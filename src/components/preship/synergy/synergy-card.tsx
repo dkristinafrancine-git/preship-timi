@@ -9,11 +9,19 @@ import { BountyBadge, StatusPill, Tag, StageChip } from "../badges";
 import { OfferDialog } from "./offer-dialog";
 import { useApi } from "@/lib/use-api";
 import { useMutate } from "@/lib/use-api";
-import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight } from "lucide-react";
+import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isOwner: boolean }) {
+export function SynergyCard({
+  request,
+  isOwner,
+  matchedSkills = [],
+}: {
+  request: SynergyRequest;
+  isOwner: boolean;
+  matchedSkills?: string[];
+}) {
   const [expanded, setExpanded] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
   const mutate = useMutate();
@@ -105,11 +113,32 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
           </div>
         )}
 
+        {matchedSkills.length > 0 && (
+          <div className="mt-3 flex items-center gap-2 rounded-md border border-[#DAFF01] bg-[#DAFF01]/15 px-3 py-2">
+            <Sparkles size={13} className="shrink-0 text-[#0E1909]" />
+            <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]">
+              matches your skills:
+            </span>
+            <div className="flex flex-wrap gap-1">
+              {matchedSkills.map((s) => (
+                <span key={s} className="rounded bg-[#0E1909] px-1.5 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#DAFF01]">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {tags.map((t) => (
-              <Tag key={t}>#{t}</Tag>
-            ))}
+            {tags.map((t) => {
+              const isMatch = matchedSkills.some((m) => m.toLowerCase() === t.toLowerCase());
+              return (
+                <Tag key={t} active={isMatch}>
+                  #{t}
+                </Tag>
+              );
+            })}
           </div>
         )}
       </div>

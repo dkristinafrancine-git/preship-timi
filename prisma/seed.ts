@@ -484,24 +484,35 @@ async function main() {
     }),
   ]);
 
-  // a few offers
+  // a few offers — the first two on request 0 are accepted (Maya gathered the GTM bounty, Nina gathered the audio-distribution bounty)
   const offers = [
-    [0, maya.id, "I ran GTM for two dev-tools at Stripe. Edge-ML is a wedge I'd take seriously. Happy to do a 60-min working session before any commitment.", "Open to 35% if you want me full-time pre-seed."],
-    [0, nina.id, "I've been building distribution for audio communities. Different surface but same muscle. I'd host an IdeaLab with you to pressure-test the wedge first.", null],
-    [1, tobi.id, "I shipped the transcript-scrub UX at a previous co. The waveform-vs-transcript split is a false binary — I have a spec that collapses them. Let's talk.", "0.6% is fine. Add a 90-day trial."],
-    [2, devrishi.id, "I red-team ML pipelines as a side quest. Treated prompts as an attack surface on a previous project. 4 hrs/month works for me.", null],
-    [4, sofia.id, "I run serverless at scale on Loomwave's backend. Kilot is the tool I wish I had 6 months ago. I'd want to own GTM fully though.", null],
+    [0, maya.id, "I ran GTM for two dev-tools at Stripe. Edge-ML is a wedge I'd take seriously. Happy to do a 60-min working session before any commitment.", "Open to 35% if you want me full-time pre-seed.", "accepted"],
+    [0, nina.id, "I've been building distribution for audio communities. Different surface but same muscle. I'd host an IdeaLab with you to pressure-test the wedge first.", null, "pending"],
+    [1, tobi.id, "I shipped the transcript-scrub UX at a previous co. The waveform-vs-transcript split is a false binary — I have a spec that collapses them. Let's talk.", "0.6% is fine. Add a 90-day trial.", "accepted"],
+    [2, devrishi.id, "I red-team ML pipelines as a side quest. Treated prompts as an attack surface on a previous project. 4 hrs/month works for me.", null, "accepted"],
+    [4, sofia.id, "I run serverless at scale on Loomwave's backend. Kilot is the tool I wish I had 6 months ago. I'd want to own GTM fully though.", null, "pending"],
+    [5, devrishi.id, "I have a small distribution list of embedded devs. 12% revenue share works. Let me run a 2-week pilot.", null, "accepted"],
   ];
-  for (const [ri, uid, pitch, offer] of offers) {
-    await db.synergyOffer.create({
-      data: {
-        requestId: synergy[ri as number].id,
-        founderId: uid as string,
-        pitch: pitch as string,
-        offer: (offer as string | null) ?? null,
-        status: "pending",
-      },
-    });
+  const createdOffers = [];
+  for (const [ri, uid, pitch, offer, status] of offers) {
+    createdOffers.push(
+      await db.synergyOffer.create({
+        data: {
+          requestId: synergy[ri as number].id,
+          founderId: uid as string,
+          pitch: pitch as string,
+          offer: (offer as string | null) ?? null,
+          status: status as string,
+        },
+      })
+    );
+  }
+  // mark requests with accepted offers as matched
+  const acceptedReqIds = new Set(
+    offers.filter((o) => o[4] === "accepted").map((o) => synergy[o[0] as number].id)
+  );
+  for (const rid of acceptedReqIds) {
+    await db.synergyRequest.update({ where: { id: rid }, data: { status: "matched" } });
   }
 
   // ---------- IdeaLab sessions ----------

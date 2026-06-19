@@ -17,6 +17,7 @@ export function RightRail() {
       {view === "synergy" && <SynergyRail />}
       {view === "idealab" && <IdeaLabRail />}
       {view === "projects" && <ProjectsRail />}
+      {view === "profile" && <ProfileRail />}
     </aside>
   );
 }
@@ -278,6 +279,54 @@ function Stat({ label, value }: { label: string; value: string | number }) {
       <p className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">{label}</p>
       <p className="mt-1 font-display text-2xl font-bold text-[#0E1909]">{value}</p>
     </div>
+  );
+}
+
+function ProfileRail() {
+  const { data: meData } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
+  const { data: bountiesData } = useApi<{ bounties: SynergyRequest[] }>(
+    "/api/bounties?mine=1"
+  );
+  const me = meData?.user;
+  if (!me) return null;
+  const skills = me.skills ? me.skills.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const bounties = bountiesData?.bounties ?? [];
+
+  return (
+    <>
+      <div className="terminal-card">
+        <TerminalHeader label="profile · snapshot" />
+        <div className="space-y-3 p-4">
+          <div className="grid grid-cols-2 gap-2">
+            <Stat label="projects" value={meData?.projects.length ?? 0} />
+            <Stat label="bounties" value={bounties.length} />
+          </div>
+          <div>
+            <p className="mb-2 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">
+              your skills · {skills.length}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {skills.length === 0 ? (
+                <span className="font-mono text-xs text-[#0E1909]/40">no skills yet — add some for synergy matching</span>
+              ) : (
+                skills.map((s) => <Tag key={s}>{s}</Tag>)
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-[#0E1909]/12 bg-[#f4ffd6] p-4">
+        <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
+          shareable profile
+        </p>
+        <p className="mt-2 text-[13px] leading-relaxed text-[#0E1909]/75">
+          Your profile + gathered bounties can be shared with a single link. Toggle
+          <span className="font-mono text-[#0E1909]"> bounties public </span>
+          to control visibility.
+        </p>
+      </div>
+    </>
   );
 }
 

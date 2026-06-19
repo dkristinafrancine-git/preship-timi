@@ -10,12 +10,16 @@ import { ViewHeader } from "../view-header";
 import type { IdeaLabSession } from "@/lib/preship-types";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mic, Plus, KeyRound, Calendar } from "lucide-react";
+import { usePreship } from "@/lib/preship-store";
+import { useEffect } from "react";
 
 export function IdeaLabView() {
   const [hostOpen, setHostOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const deepLink = usePreship((s) => s.deepLink);
+  const clearDeepLink = usePreship((s) => s.clearDeepLink);
 
   const { data: liveData, loading: liveLoading } = useApi<{ sessions: IdeaLabSession[] }>(
     "/api/idealab?status=live"
@@ -35,6 +39,17 @@ export function IdeaLabView() {
     setDetailId(session.id);
     setDetailOpen(true);
   };
+
+  // deep-link from ticker: auto-open the session detail
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (deepLink?.sessionId) {
+      setDetailId(deepLink.sessionId);
+      setDetailOpen(true);
+      clearDeepLink();
+    }
+  }, [deepLink, clearDeepLink]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div className="space-y-5">

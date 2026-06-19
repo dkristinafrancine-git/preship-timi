@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { usePreship, type PreshipView } from "@/lib/preship-store";
+import { usePreship } from "@/lib/preship-store";
 import { Button } from "@/components/ui/button";
 import { Menu, Bell, HelpCircle } from "lucide-react";
 import { useApi } from "@/lib/use-api";
@@ -10,7 +10,6 @@ import { useMemo } from "react";
 import { Logo } from "./logo";
 
 export function Header() {
-  const view = usePreship((s) => s.view);
   const setMobileNavOpen = usePreship((s) => s.setMobileNavOpen);
 
   return (
@@ -58,56 +57,101 @@ export function Header() {
         </div>
       </div>
 
-      <LiveTicker view={view} />
+      <LiveTicker />
     </header>
   );
 }
 
-/** Live ticker that shows the latest signals across the network. */
-function LiveTicker({ view }: { view: PreshipView }) {
+/** Live ticker — clickable links that navigate back to the source item. */
+type TickerItem = {
+  key: string;
+  label: string;
+  kind: "post" | "synergy" | "session" | "static";
+  onClick?: () => void;
+};
+
+function LiveTicker() {
   const feed = useApi<{ posts: FeedPost[] }>("/api/feed?sort=newest");
   const synergy = useApi<{ requests: SynergyRequest[] }>("/api/synergy?status=open");
   const idealab = useApi<{ sessions: IdeaLabSession[] }>("/api/idealab?status=live");
+  const navigate = usePreship((s) => s.navigate);
 
-  const items = useMemo(() => {
-    const out: string[] = [];
-    if (view === "war-room" && feed.data?.posts?.length) {
-      feed.data.posts.slice(0, 5).forEach((p) => {
-        out.push(`@${p.author.handle} posted in ${p.project?.name ?? "general"}`);
+  const items = useMemo<TickerItem[]>(() => {
+    const out: TickerItem[] = [];
+    // Always include the latest feed posts, synergy broadcasts, and live sessions
+    // (not gated by the current view — the ticker is a cross-network signal).
+    feed.data?.posts?.slice(0, 4).forEach((p) => {
+      out.push({
+        key: `post-${p.id}`,
+        label: `@${p.author.handle} posted in ${p.project?.name ?? "general"}`,
+        kind: "post",
+        onClick: () => navigate({ view: "war-room", postId: p.id }),
       });
-    } else if (view === "synergy" && synergy.data?.requests?.length) {
-      synergy.data.requests.slice(0, 5).forEach((s) => {
-        out.push(`@${s.founder.handle} broadcast: ${s.title}`);
+    });
+    synergy.data?.requests?.slice(0, 4).forEach((s) => {
+      out.push({
+        key: `syn-${s.id}`,
+        label: `@${s.founder.handle} broadcast: ${s.title}`,
+        kind: "synergy",
+        onClick: () => navigate({ view: "synergy", synergyId: s.id }),
       });
-    } else if (view === "idealab") {
-      if (idealab.data?.sessions?.length) {
-        idealab.data.sessions.forEach((s) => out.push(`LIVE: ${s.title}`));
-      }
-      out.push("3 sessions scheduled this week");
-    }
+    });
+    idealab.data?.sessions?.forEach((s) => {
+      out.push({
+        key: `sess-${s.id}`,
+        label: `LIVE: ${s.title}`,
+        kind: "session",
+        onClick: () => navigate({ view: "idealab", sessionId: s.id }),
+      });
+    });
+
     if (out.length === 0) {
-      out.push("Preship · alpha founders shipping in the dark");
-      out.push("Broadcast a bottleneck → get a handshake");
-      out.push("IdeaLab rooms open 24/7 for invite-only ideation");
+      out.push(
+        { key: "s1", label: "Preship · alpha founders shipping in the dark", kind: "static" },
+        { key: "s2", label: "Broadcast a bottleneck → get a handshake", kind: "static", onClick: () => navigate({ view: "synergy" }) },
+        { key: "s3", label: "IdeaLab rooms open 24/7 for invite-only ideation", kind: "static", onClick: () => navigate({ view: "idealab" }) }
+      );
     }
-    return [...out, ...out];
-  }, [view, feed.data, synergy.data, idealab.data]);
+    return out;
+  }, [feed.data, synergy.data, idealab.data, navigate]);
+
+  // duplicate for seamless marquee loop
+  const looped = [...items, ...items];
 
   return (
-    <div className="flex items-center gap-2 border-t border-[#0E1909]/8 bg-[#0E1909] px-4 py-1.5 lg:px-6">
+    <div className="group flex items-center gap-2 border-t border-[#0E1909]/8 bg-[#0E1909] px-4 py-1.5 lg:px-6">
       <span className="flex shrink-0 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-[#DAFF01]">
         <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#DAFF01]" /> live
       </span>
       <div className="relative flex-1 overflow-hidden">
-        <div className={cn("flex whitespace-nowrap font-mono text-xs text-[#DAFF01]/80", "animate-ticker")}>
-          {items.map((it, i) => (
-            <span key={i} className="mx-4 inline-flex items-center gap-2">
-              <span className="text-[#DAFF01]/40">›</span>
-              {it}
-            </span>
-          ))}
+        <div className="flex w-max whitespace-nowrap animate-ticker group-hover:[animation-play-state:paused]">
+          {looped.map((it, i) => {
+            const clickable = !!it.onClick;
+            const Comp = clickable ? "button" : "span";
+            return (
+              <Comp
+                key={`${it.key}-${i}`}
+                onClick={it.onClick}
+                className={cn(
+                  "mx-4 inline-flex items-center gap-2 font-mono text-xs",
+                  clickable
+                    ? "text-[#DAFF01]/85 underline-offset-2 transition-colors hover:text-[#DAFF01] hover:underline"
+                    : "text-[#DAFF01]/80"
+                )}
+              >
+                <span className="text-[#DAFF01]/40">
+                  {it.kind === "post" ? "✎" : it.kind === "synergy" ? "⚡" : it.kind === "session" ? "●" : "›"}
+                </span>
+                <span className="max-w-[420px] truncate">{it.label}</span>
+                {clickable && <span className="text-[#DAFF01]/40">→</span>}
+              </Comp>
+            );
+          })}
         </div>
       </div>
+      <span className="hidden shrink-0 font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]/40 lg:inline">
+        hover to pause · click to open
+      </span>
     </div>
   );
 }

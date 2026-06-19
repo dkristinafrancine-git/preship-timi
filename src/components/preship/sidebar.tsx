@@ -13,6 +13,7 @@ import {
   Search,
   BookOpen,
   Settings,
+  User,
   X,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ const NAV: { id: PreshipView; label: string; code: string; icon: typeof Radio }[
   { id: "synergy", label: "Synergy", code: "SY", icon: Zap },
   { id: "idealab", label: "IdeaLab", code: "IL", icon: Mic },
   { id: "projects", label: "Projects", code: "PR", icon: Boxes },
+  { id: "profile", label: "Profile", code: "PF", icon: User },
 ];
 
 const SECONDARY = [
@@ -123,9 +125,12 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        {/* current founder card */}
+        {/* current founder card — clickable to open profile */}
         {meData?.user && (
-          <div className="m-4 rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3.5 transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]">
+          <button
+            onClick={() => setView("profile")}
+            className="m-4 block rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3.5 text-left transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]"
+          >
             <div className="flex items-center gap-3">
               <FounderAvatar founder={meData.user} size={40} />
               <div className="min-w-0 flex-1">
@@ -141,14 +146,11 @@ export function Sidebar() {
               <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">
                 {meData.projects.length} project{meData.projects.length === 1 ? "" : "s"}
               </span>
-              <button
-                onClick={() => setView("projects")}
-                className="tactile-flat font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]"
-              >
-                manage →
-              </button>
+              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]">
+                profile →
+              </span>
             </div>
-          </div>
+          </button>
         )}
       </aside>
     </>

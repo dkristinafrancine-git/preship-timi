@@ -10,6 +10,7 @@ export type Founder = {
   location?: string | null;
   avatarUrl?: string | null;
   skills?: string | null;
+  bountiesPublic?: boolean;
   isCurrent: boolean;
 };
 

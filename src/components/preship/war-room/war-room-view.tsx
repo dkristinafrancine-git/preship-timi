@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useApi } from "@/lib/use-api";
+import { usePreship } from "@/lib/preship-store";
 import { PostComposer } from "./post-composer";
 import { FeedPost } from "./feed-post";
 import { ViewHeader } from "../view-header";
@@ -15,6 +16,21 @@ export function WarRoomView() {
   const [sort, setSort] = useState<Sort>("newest");
   const { data, loading } = useApi<{ posts: FeedPostType[] }>(`/api/feed?sort=${sort}`, [sort]);
   const posts = data?.posts ?? [];
+  const deepLink = usePreship((s) => s.deepLink);
+  const clearDeepLink = usePreship((s) => s.clearDeepLink);
+
+  // deep-link from ticker: scroll to + briefly highlight a post
+  useEffect(() => {
+    if (deepLink?.postId) {
+      const el = document.getElementById(`post-${deepLink.postId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-[#DAFF01]");
+        setTimeout(() => el.classList.remove("ring-2", "ring-[#DAFF01]"), 2400);
+      }
+      clearDeepLink();
+    }
+  }, [deepLink, clearDeepLink, posts]);
 
   return (
     <div className="space-y-5">
@@ -66,7 +82,11 @@ export function WarRoomView() {
             </p>
           </div>
         ) : (
-          posts.map((p) => <FeedPost key={p.id} post={p} />)
+          posts.map((p) => (
+            <div key={p.id} id={`post-${p.id}`} className="scroll-mt-32 rounded-lg transition-shadow duration-300">
+              <FeedPost post={p} />
+            </div>
+          ))
         )}
       </div>
     </div>

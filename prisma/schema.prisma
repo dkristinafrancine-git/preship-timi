@@ -22,6 +22,7 @@ model User {
   location    String?
   avatarUrl   String?
   skills      String?  // comma separated
+  bountiesPublic Boolean @default(true) // show gathered bounties on shareable profile
   isCurrent   Boolean  @default(false) // the "logged in" founder in this demo
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
