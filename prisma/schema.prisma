@@ -1,0 +1,184 @@
+// Preship — War Room for Alpha Stage Founders
+// Prisma schema (SQLite)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Core: Founders & Projects ----
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  handle      String   @unique
+  name        String
+  title       String   // e.g. "Founder @ Acme", "Solo Builder"
+  bio         String?
+  location    String?
+  avatarUrl   String?
+  skills      String?  // comma separated
+  isCurrent   Boolean  @default(false) // the "logged in" founder in this demo
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects           Project[]
+  posts              Post[]
+  reactions          Reaction[]
+  comments           Comment[]
+  synergyRequests    SynergyRequest[]
+  synergyOffers      SynergyOffer[]
+  hostedSessions     IdeaLabSession[]  @relation("SessionHost")
+  sessionSignups     IdeaLabSignup[]
+  interests          IdeaLabInterest[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  founderId   String
+  founder     User     @relation(fields: [founderId], references: [id], onDelete: Cascade)
+  name        String
+  tagline     String
+  description String?
+  category    String   // e.g. DevTool, SaaS, Consumer, AI, Marketplace
+  alphaStage  String   // Customer Discovery | Problem Validation | Prototyping | Closed Beta | Public Beta | Pre-Launch
+  logoColor   String   @default("#DAFF01") // accent used for the project tile
+  logoMark    String?  // short monogram e.g. "AC"
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts           Post[]
+  synergyRequests SynergyRequest[]
+}
+
+// ---- Feed: text + audio posts ----
+
+model Post {
+  id            String   @id @default(cuid())
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  projectId     String?
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  type          String   @default("text") // text | audio
+  body          String?
+  audioTitle    String?
+  audioDuration Int?     // seconds
+  audioWaveform String?  // comma-separated bar heights 0..1
+  tags          String?  // comma-separated hashtags
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reactions Reaction[]
+  comments  Comment[]
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String   // like | repost | handshake
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId, kind])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+}
+
+// ---- Synergy: bottleneck broadcast + bounty + handshake ----
+
+model SynergyRequest {
+  id             String   @id @default(cuid())
+  founderId      String
+  founder        User     @relation(fields: [founderId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  title          String
+  bottleneck     String   // the problem
+  need           String   // what kind of help
+  bountyType     String   // equity | advisor-shares | revenue-share | cofounder | barter
+  stake          Float?   // % stake if equity/advisor
+  bountyDetail   String?  // description of the bounty
+  tags           String?  // comma-separated
+  status         String   @default("open") // open | matched | closed
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  offers SynergyOffer[]
+}
+
+model SynergyOffer {
+  id         String   @id @default(cuid())
+  requestId  String
+  request    SynergyRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  founderId  String
+  founder    User     @relation(fields: [founderId], references: [id], onDelete: Cascade)
+  pitch      String   // why I'm the right match
+  offer      String?  // counter-offer / terms
+  status     String   @default("pending") // pending | accepted | declined
+  createdAt  DateTime @default(now())
+}
+
+// ---- IdeaLab: invite-only live audio ideation ----
+
+model IdeaLabSession {
+  id            String   @id @default(cuid())
+  title         String
+  thesis        String   // the startup idea / hypothesis to explore
+  description   String?
+  hostId        String
+  host          User     @relation("SessionHost", fields: [hostId], references: [id], onDelete: Cascade)
+  scheduledAt   DateTime
+  durationMins  Int      @default(60)
+  status        String   @default("scheduled") // scheduled | live | ended
+  agenda        String?  // newline-separated agenda items
+  rolesOpen     String?  // comma-separated open roles (Technical Lead, Design Lead, etc.)
+  inviteCode    String   @unique
+  maxSeats      Int      @default(8)
+  isPublic      Boolean  @default(false) // visible in the public IdeaLab board
+  coverColor    String   @default("#0E1909")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  signups   IdeaLabSignup[]
+  interests IdeaLabInterest[]
+}
+
+model IdeaLabSignup {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   IdeaLabSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   // host | co-host | technical-lead | design-lead | product-lead | marketing-lead | participant
+  status    String   @default("registered") // registered | invited | confirmed | declined
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, userId])
+}
+
+model IdeaLabInterest {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   IdeaLabSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, userId])
+}
