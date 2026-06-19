@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,10 @@ export function SessionDetail({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl gap-0 overflow-hidden border-[#0E1909]/15 bg-white p-0 sm:rounded-lg">
+        <DialogTitle className="sr-only">{session?.title ?? "Session detail"}</DialogTitle>
+        <DialogDescription className="sr-only">
+          View session thesis, agenda, roles, and join the live audio room.
+        </DialogDescription>
         {loading || !session ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 size={20} className="animate-spin text-[#0E1909]/40" />
@@ -378,6 +382,20 @@ function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSessio
               className="cta-ink bg-[#e0463c] font-mono text-xs font-semibold uppercase tracking-widest text-white hover:bg-[#c93d34]"
             >
               ● go live
+            </Button>
+          )}
+          {isHost && isLive && (
+            <Button
+              size="sm"
+              onClick={async () => {
+                await mutate(`/api/idealab/${session.id}`, {
+                  method: "PATCH",
+                  body: { status: "ended" },
+                });
+              }}
+              className="cta-ink bg-[#0E1909] font-mono text-xs font-semibold uppercase tracking-widest text-[#DAFF01] hover:bg-[#0E1909]/90"
+            >
+              ■ end session
             </Button>
           )}
         </div>

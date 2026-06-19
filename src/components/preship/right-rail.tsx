@@ -26,6 +26,7 @@ export function RightRail() {
 function WarRoomRail() {
   const { data: trending } = useApi<{ posts: FeedPost[] }>("/api/feed?sort=trending");
   const { data: me } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
+  const navigate = usePreship((s) => s.navigate);
   const trendingTop = trending?.posts?.slice(0, 4) ?? [];
 
   return (
@@ -67,7 +68,11 @@ function WarRoomRail() {
         <TerminalHeader label="trending · now" right={<TrendingUp size={14} className="text-[#0E1909]/40" />} />
         <div className="divide-y divide-[#0E1909]/8">
           {trendingTop.map((p) => (
-            <div key={p.id} className="hover-row cursor-pointer px-4 py-3">
+            <button
+              key={p.id}
+              onClick={() => navigate({ view: "war-room", postId: p.id })}
+              className="hover-row block w-full cursor-pointer px-4 py-3 text-left"
+            >
               <div className="flex items-center gap-2">
                 <FounderAvatar founder={p.author} size={24} />
                 <FounderHoverCard founder={p.author} className="truncate font-display text-[13px] font-medium text-[#0E1909]">
@@ -81,7 +86,7 @@ function WarRoomRail() {
                   <Tag>↪ {p._count.reactions.handshake} handshake</Tag>
                 )}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -92,14 +97,18 @@ function WarRoomRail() {
           <TerminalHeader label="my-projects · status" />
           <div className="space-y-1.5 p-4">
             {me.projects.slice(0, 3).map((p) => (
-              <div key={p.id} className="hover-row -mx-1.5 flex items-center gap-2.5 rounded-md px-1.5 py-1.5">
+              <button
+                key={p.id}
+                onClick={() => navigate({ view: "projects" })}
+                className="hover-row -mx-1.5 flex w-full items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left"
+              >
                 <ProjectMark mark={p.logoMark} color={p.logoColor} logoUrl={p.logoUrl} name={p.name} size={32} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-[13px] font-semibold text-[#0E1909]">{p.name}</p>
                   <p className="truncate font-mono text-xs text-[#0E1909]/50">{p.tagline}</p>
                 </div>
                 <StageChip stage={p.alphaStage} />
-              </div>
+              </button>
             ))}
           </div>
         </div>

@@ -11,7 +11,7 @@ import { OfferDialog } from "./offer-dialog";
 import { useApi } from "@/lib/use-api";
 import { useMutate } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
-import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight, Sparkles, Trash2 } from "lucide-react";
+import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight, Sparkles, Trash2, XCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -177,6 +177,46 @@ export function SynergyCard({
               <span className="rounded-md bg-[#0E1909] px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#DAFF01]">
                 your broadcast
               </span>
+              <button
+                onClick={async () => {
+                  await mutate(`/api/synergy/${request.id}`, {
+                    method: "PATCH",
+                    body: { status: "closed" },
+                  });
+                  toast.success("Broadcast closed →");
+                }}
+                className="tactile-flat rounded-md border border-[#0E1909]/15 bg-white px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50 hover:border-[#0E1909] hover:text-[#0E1909]"
+                title="Close broadcast (stop accepting offers)"
+              >
+                <XCircle size={12} /> close
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm("Delete this broadcast? This cannot be undone.")) return;
+                  await mutate(`/api/synergy/${request.id}`, { method: "DELETE" });
+                }}
+                className="tactile-flat rounded-md border border-[#0E1909]/15 bg-white px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50 hover:border-[#e0463c] hover:text-[#e0463c]"
+                title="Delete broadcast"
+              >
+                <Trash2 size={12} />
+              </button>
+            </>
+          )}
+          {isOwner && request.status === "closed" && (
+            <>
+              <button
+                onClick={async () => {
+                  await mutate(`/api/synergy/${request.id}`, {
+                    method: "PATCH",
+                    body: { status: "open" },
+                  });
+                  toast.success("Broadcast reopened →");
+                }}
+                className="tactile-flat rounded-md border border-[#0E1909]/15 bg-white px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50 hover:border-[#0E1909] hover:text-[#0E1909]"
+                title="Reopen broadcast"
+              >
+                <RotateCcw size={12} /> reopen
+              </button>
               <button
                 onClick={async () => {
                   if (!confirm("Delete this broadcast? This cannot be undone.")) return;

@@ -279,3 +279,24 @@ Stage Summary:
 - Full CRUD is now wired for all entities (posts, comments, projects, synergy requests/offers, idealab sessions, follows, profile). Every entity supports Create, Read, Update, Delete where applicable, with ownership checks (403) and existence checks (404).
 - NextAuth v4 is deployed with a credentials provider (email-only login). The app works in demo mode (fallback to isCurrent user) without login, and switches to the session user when logged in. Login modal supports quick-pick from any seeded founder.
 - Seed is comprehensive: 7 founders, 8 projects (5 with logos), 9 posts, 6 synergy broadcasts, 6 offers (4 accepted = gathered bounties), 5 IdeaLab sessions, 10 follows.
+
+---
+Task ID: 15
+Agent: main
+Task: Fix DialogContent accessibility error, wire trending cards, audit + fix missed CRUD.
+
+Work Log:
+- **Fix: SessionDetail DialogContent accessibility error** — Added `<DialogTitle className="sr-only">` and `<DialogDescription className="sr-only">` inside the DialogContent in session-detail.tsx. Console error is now gone.
+- **Fix: Trending Now cards not clickable** — Changed the trending post `<div>`s in right-rail.tsx to `<button>`s with `onClick={() => navigate({ view: "war-room", postId: p.id })}`. Verified clicking navigates to the War Room feed.
+- **Fix: My-projects right rail rows not clickable** — Changed to `<button>`s with `onClick={() => navigate({ view: "projects" })}`.
+- **Fix: Bounties gathered onOpenRequest not wired** — Passed `onOpenRequest={(rid) => navigate({ view: "synergy", synergyId: rid })}` to BountiesGathered in profile-view.tsx.
+- **CRUD: Post inline edit** — Replaced "coming soon" toast with actual inline editing. Added editing state + Textarea + Save/Cancel buttons. Click edit → textarea replaces body → save calls PATCH /api/posts/[id]. Verified end-to-end.
+- **CRUD: Session end live** — Host could go live but couldn't end the session. Added "■ end session" button (PATCH status to "ended") visible when isHost && isLive.
+- **CRUD: Synergy close/reopen** — Owner could only delete broadcasts. Added "close" button (open → closed, PATCH status) and "reopen" button (closed → open, PATCH status) with appropriate icons.
+- **Audit: checked all DialogContent usages** — all 7 dialog files now have DialogTitle. No more accessibility warnings.
+- **Verified**: no console errors, no page errors, lint clean (0 errors). Post inline edit tested end-to-end (typed text, saved, editor closed). Session detail opens without error. Trending cards navigate to War Room.
+
+Stage Summary:
+- DialogContent accessibility error eliminated (sr-only DialogTitle + Description added to session detail).
+- All right-rail interactive elements now have proper click handlers (trending → war room, my-projects → projects view).
+- Post edit is now functional (inline editor with PATCH). Session end-live and synergy close/reopen added. All entities now have complete CRUD.

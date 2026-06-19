@@ -10,9 +10,10 @@ import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
 import { useMutate } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
-import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2, Pencil, Trash2, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,12 +24,29 @@ import { usePreship } from "@/lib/preship-store";
 
 export function FeedPost({ post }: { post: FeedPost }) {
   const [showComments, setShowComments] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editBody, setEditBody] = useState(post.body ?? "");
+  const [savingEdit, setSavingEdit] = useState(false);
   const mutate = useMutate();
   const me = usePreship((s) => s.me);
   const isAuthor = me?.id === post.authorId;
 
   const react = async (kind: "like" | "repost" | "handshake") => {
     await mutate(`/api/posts/${post.id}/react`, { method: "POST", body: { kind } });
+  };
+
+  const saveEdit = async () => {
+    if (!editBody.trim()) return;
+    setSavingEdit(true);
+    const res = await mutate(`/api/posts/${post.id}`, {
+      method: "PATCH",
+      body: { body: editBody.trim() },
+    });
+    setSavingEdit(false);
+    if (res.ok) {
+      setEditing(false);
+      toast.success("Post updated →");
+    }
   };
 
   const tags = post.tags ? post.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
@@ -69,7 +87,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40 border-[#0E1909]/15">
               <DropdownMenuItem
-                onClick={() => toast.info("Edit mode coming soon →")}
+                onClick={() => { setEditing(true); setEditBody(post.body ?? ""); }}
                 className="cursor-pointer font-mono text-xs uppercase tracking-widest text-[#0E1909]/70"
               >
                 <Pencil size={13} /> edit
@@ -98,7 +116,35 @@ export function FeedPost({ post }: { post: FeedPost }) {
 
       {/* body */}
       <div className="px-5 pb-4">
-        {post.type === "audio" ? (
+        {editing ? (
+          <div className="space-y-3">
+            <Textarea
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value)}
+              className="min-h-[80px] resize-none border-[#0E1909]/12 bg-white font-display text-[16px] leading-[1.65] text-[#0E1909] focus-visible:ring-[#DAFF01]"
+              autoFocus
+            />
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => { setEditing(false); setEditBody(post.body ?? ""); }}
+                className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/55"
+              >
+                <X size={12} /> cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={saveEdit}
+                disabled={savingEdit || !editBody.trim()}
+                className="cta-lime bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600] disabled:opacity-50"
+              >
+                {savingEdit ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                save
+              </Button>
+            </div>
+          </div>
+        ) : post.type === "audio" ? (
           <div className="space-y-3.5">
             {post.body && (
               <p className="whitespace-pre-wrap font-display text-[15px] leading-[1.65] text-[#0E1909]/85">

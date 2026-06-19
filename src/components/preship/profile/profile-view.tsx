@@ -22,6 +22,7 @@ import { toast } from "sonner";
 export function ProfileView() {
   const me = usePreship((s) => s.me);
   const setMe = usePreship((s) => s.setMe);
+  const navigate = usePreship((s) => s.navigate);
   const { data: meData } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
   const { data: bountiesData } = useApi<{ bounties: SynergyOffer[]; isOwner: boolean }>(
     "/api/bounties?mine=1"
@@ -267,7 +268,7 @@ export function ProfileView() {
             </span>
           </div>
         </div>
-        <BountiesGathered bounties={bounties} />
+        <BountiesGathered bounties={bounties} onOpenRequest={(rid) => navigate({ view: "synergy", synergyId: rid })} />
       </div>
 
       {/* my projects */}
