@@ -73,8 +73,8 @@ export async function GET(req: NextRequest) {
     if (authorId) where.authorId = authorId;
     if (projectId) where.projectId = projectId;
     if (tag) {
-      // SQLite doesn't support mode: 'insensitive' — fall back to contains.
-      where.tags = { contains: tag };
+      // PostgreSQL supports case-insensitive `contains` via mode: "insensitive".
+      where.tags = { contains: tag, mode: "insensitive" };
     }
 
     const posts = await db.post.findMany({

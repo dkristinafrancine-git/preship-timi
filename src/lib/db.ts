@@ -4,28 +4,25 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Detect a stale cached client: hot-reload preserves `globalThis.prisma`,
-// so when the Prisma schema gains a new model (e.g. Article) the cached
-// client from before that model was generated is missing the new delegate.
-// We sanity-check a recent model and replace the client if it's absent.
+/**
+ * Single shared PrismaClient.
+ *
+ * - In dev, Next.js hot-reloads re-run module code; caching the client on
+ *   globalThis prevents opening a new connection pool on every reload.
+ * - Query logging is expensive and noisy, so it is gated behind a DEBUG_DB
+ *   env flag. Set DEBUG_DB=1 (e.g. `DEBUG_DB=1 npm run dev`) to see queries.
+ * - DATABASE_URL points at the Supabase transaction-mode PgBouncer pooler
+ *   (see prisma/schema.prisma). Prisma is fully compatible with PgBouncer in
+ *   transaction mode when `?pgbouncer=true` is in the URL (set in .env).
+ */
 function makeClient() {
-  return new PrismaClient({ log: ['query'] })
+  return new PrismaClient(
+    process.env.DEBUG_DB === '1' ? { log: ['query', 'warn', 'error'] } : { log: ['error'] }
+  )
 }
 
-let db = globalForPrisma.prisma ?? makeClient()
-
-if (typeof (db as unknown as { article?: unknown }).article === 'undefined') {
-  // Cached client predates the Article model — discard and rebuild.
-  try {
-    void (db as PrismaClient).$disconnect?.()
-  } catch {
-    // ignore disconnect errors
-  }
-  db = makeClient()
-}
+const db = globalForPrisma.prisma ?? makeClient()
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
 
 export { db }
-
-

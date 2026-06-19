@@ -1,13 +1,19 @@
 // Preship — War Room for Alpha Stage Founders
-// Prisma schema (SQLite)
+// Prisma schema (PostgreSQL / Supabase)
+//
+// DATABASE_URL points at the Supabase transaction-mode pooler (PgBouncer)
+// used at runtime; DIRECT_URL points at the session-mode pooler used by
+// `prisma migrate` (migrations need a real session and cannot run through
+// PgBouncer in transaction mode).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ---- Core: Founders & Projects ----
@@ -48,6 +54,10 @@ model User {
   notifications      Notification[]
   articles           Article[]
   articleClaps       ArticleClap[]
+
+  @@index([isCurrent])
+  @@index([handle])
+  @@index([email])
 }
 
 model Follow {
@@ -59,6 +69,9 @@ model Follow {
   createdAt   DateTime @default(now())
 
   @@unique([followerId, followingId])
+
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model Project {
@@ -79,6 +92,10 @@ model Project {
 
   posts           Post[]
   synergyRequests SynergyRequest[]
+
+  @@index([founderId])
+  @@index([alphaStage])
+  @@index([category])
 }
 
 // ---- Feed: text + audio posts ----
@@ -101,6 +118,11 @@ model Post {
 
   reactions Reaction[]
   comments  Comment[]
+
+  @@index([authorId, createdAt])
+  @@index([projectId])
+  @@index([createdAt])
+  @@index([type])
 }
 
 model Reaction {
@@ -113,6 +135,9 @@ model Reaction {
   createdAt DateTime @default(now())
 
   @@unique([postId, userId, kind])
+
+  @@index([postId, kind])
+  @@index([userId])
 }
 
 model Comment {
@@ -123,6 +148,9 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   body      String
   createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
+  @@index([userId])
 }
 
 // ---- Synergy: bottleneck broadcast + bounty + handshake ----
@@ -145,6 +173,11 @@ model SynergyRequest {
   updatedAt      DateTime @updatedAt
 
   offers SynergyOffer[]
+
+  @@index([founderId, createdAt])
+  @@index([status, createdAt])
+  @@index([projectId])
+  @@index([bountyType])
 }
 
 model SynergyOffer {
@@ -157,6 +190,10 @@ model SynergyOffer {
   offer      String?  // counter-offer / terms
   status     String   @default("pending") // pending | accepted | declined
   createdAt  DateTime @default(now())
+
+  @@index([requestId])
+  @@index([founderId, status])
+  @@index([status])
 }
 
 // ---- IdeaLab: invite-only live audio ideation ----
@@ -182,6 +219,11 @@ model IdeaLabSession {
 
   signups   IdeaLabSignup[]
   interests IdeaLabInterest[]
+
+  @@index([hostId, scheduledAt])
+  @@index([status])
+  @@index([isPublic, scheduledAt])
+  @@index([scheduledAt])
 }
 
 model IdeaLabSignup {
@@ -195,6 +237,9 @@ model IdeaLabSignup {
   createdAt DateTime @default(now())
 
   @@unique([sessionId, userId])
+
+  @@index([sessionId])
+  @@index([userId])
 }
 
 model IdeaLabInterest {
@@ -207,6 +252,9 @@ model IdeaLabInterest {
   createdAt DateTime @default(now())
 
   @@unique([sessionId, userId])
+
+  @@index([sessionId])
+  @@index([userId])
 }
 
 // ---- Notifications ----
@@ -222,6 +270,9 @@ model Notification {
   linkId    String?  // postId / synergyId / sessionId / founderId
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+  @@index([createdAt])
 }
 
 // ---- Brain Dump (articles) ----
@@ -240,6 +291,10 @@ model Article {
   updatedAt   DateTime @updatedAt
 
   claps ArticleClap[]
+
+  @@index([published, createdAt])
+  @@index([authorId, createdAt])
+  @@index([createdAt])
 }
 
 model ArticleClap {
@@ -251,5 +306,8 @@ model ArticleClap {
   createdAt DateTime @default(now())
 
   @@unique([articleId, userId])
+
+  @@index([articleId])
+  @@index([userId])
 }
 

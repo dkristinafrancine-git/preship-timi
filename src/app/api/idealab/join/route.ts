@@ -24,27 +24,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const normalized = inviteCode.trim().toUpperCase();
+    const normalized = inviteCode.trim();
 
-    // SQLite does not support Prisma's `mode: "insensitive"`; fetch all
-    // candidates and compare case-insensitively in JS. inviteCode is unique,
-    // so the list is bounded by the number of sessions.
-    const candidates = await db.ideaLabSession.findMany({
-      select: { id: true, inviteCode: true },
-    });
-    const match = candidates.find(
-      (s) => s.inviteCode.toUpperCase() === normalized
-    );
-
-    if (!match) {
-      return NextResponse.json(
-        { error: "Session not found for that invite code" },
-        { status: 404 }
-      );
-    }
-
-    const session = await db.ideaLabSession.findUnique({
-      where: { id: match.id },
+    // PostgreSQL supports `mode: "insensitive"`, so we resolve the session in a
+    // single indexed query (inviteCode has a unique index) instead of fetching
+    // all candidates and folding case in JS.
+    const session = await db.ideaLabSession.findFirst({
+      where: { inviteCode: { equals: normalized, mode: "insensitive" } },
       include: {
         host: {
           select: {

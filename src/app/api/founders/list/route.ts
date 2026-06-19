@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 /**
  * GET /api/founders/list
  * Returns all founders (lightweight) for the login quick-pick.
+ *
+ * NOTE: `email` is intentionally excluded — this endpoint is public and must
+ * not leak founder email addresses. If a future caller needs emails, gate it
+ * behind getCurrentUser().
  */
 export async function GET() {
   try {
@@ -11,7 +15,6 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
-        email: true,
         name: true,
         handle: true,
         title: true,

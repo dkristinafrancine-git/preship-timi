@@ -11,8 +11,11 @@ export async function GET(req: NextRequest) {
     const handle = searchParams.get("handle");
     if (!handle) return NextResponse.json({ error: "handle required" }, { status: 400 });
 
-    const founder = await db.user.findUnique({
-      where: { handle },
+    // Case-insensitive match against the indexed handle. Handles are
+    // normalized to lowercase on signup/onboarding, but insensitive matching
+    // here keeps lookups robust if a caller passes mixed case.
+    const founder = await db.user.findFirst({
+      where: { handle: { equals: handle, mode: "insensitive" } },
       select: {
         id: true,
         name: true,

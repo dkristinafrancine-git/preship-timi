@@ -98,23 +98,54 @@ export async function POST(req: NextRequest) {
     const passwordHash = hashPassword(password);
 
     // --- Create the user ---
-    const user = await db.user.create({
-      data: {
-        email: emailNorm,
-        passwordHash,
-        name: nameTrim,
-        handle: handleNorm,
-        title: "", // filled in during onboarding
-        onboarded: false,
-        // isCurrent: false (default) — the session handles "current user"
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        handle: true,
-      },
-    });
+    //
+    // We pre-check email/handle uniqueness above, but a concurrent signup can
+    // still win the race between the check and the insert. Catch the Postgres
+    // unique violation (Prisma P2002) and convert it to the same friendly
+    // error instead of surfacing a 500.
+    let user;
+    try {
+      user = await db.user.create({
+        data: {
+          email: emailNorm,
+          passwordHash,
+          name: nameTrim,
+          handle: handleNorm,
+          title: "", // filled in during onboarding
+          onboarded: false,
+          // isCurrent: false (default) — the session handles "current user"
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          handle: true,
+        },
+      });
+    } catch (err) {
+      if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        (err as { code: string }).code === "P2002"
+      ) {
+        const target = (err as { meta?: { target?: string[] } }).meta?.target ?? [];
+        const field = target.join(", ");
+        if (field.includes("email")) {
+          return NextResponse.json(
+            { error: "An account with this email already exists" },
+            { status: 400 }
+          );
+        }
+        if (field.includes("handle")) {
+          return NextResponse.json(
+            { error: "This handle is already taken" },
+            { status: 400 }
+          );
+        }
+      }
+      throw err;
+    }
 
     return NextResponse.json({ user }, { status: 201 });
   } catch (err) {

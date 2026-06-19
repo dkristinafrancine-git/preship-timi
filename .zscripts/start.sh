@@ -53,37 +53,33 @@ cd "$BUILD_DIR" || exit 1
 
 ls -lah
 
-DEFAULT_PACKAGED_DB_PATH="/app/db/custom.db"
-DEFAULT_PACKAGED_DATABASE_URL="file:$DEFAULT_PACKAGED_DB_PATH"
+# The app uses a hosted Supabase Postgres database — there is no local SQLite
+# file. DATABASE_URL (transaction-mode pooler) is required to start. Fail fast
+# rather than booting into a broken/empty state.
 
 # 启动 Next.js 服务器
 if [ -f "./next-service-dist/server.js" ]; then
     echo "🚀 启动 Next.js 服务器..."
     cd next-service-dist/ || exit 1
-    
+
     # 设置环境变量
     export NODE_ENV=production
     export PORT="${PORT:-3000}"
     export HOSTNAME="${HOSTNAME:-0.0.0.0}"
-    export DATABASE_URL="${DATABASE_URL:-$DEFAULT_PACKAGED_DATABASE_URL}"
 
-    if [ "$DATABASE_URL" = "$DEFAULT_PACKAGED_DATABASE_URL" ]; then
-        if [ ! -f "$DEFAULT_PACKAGED_DB_PATH" ]; then
-            echo "❌ 未找到打包后的数据库文件 $DEFAULT_PACKAGED_DB_PATH"
-            echo "   为避免生产环境启动到空数据库，启动已终止"
-            exit 1
-        fi
-
-        echo "🗄️  当前使用打包数据库: $DEFAULT_PACKAGED_DB_PATH"
-    else
-        echo "🗄️  当前使用外部指定数据库: $DATABASE_URL"
+    if [ -z "$DATABASE_URL" ]; then
+        echo "❌ DATABASE_URL 未设置"
+        echo "   应用需要连接 Supabase Postgres。请在环境变量中提供 DATABASE_URL 和 DIRECT_URL。"
+        echo "   详见 supabase/README.md"
+        exit 1
     fi
-    
+    echo "🗄️  使用数据库: $DATABASE_URL"
+
     # 后台启动 Next.js
     bun server.js &
     NEXT_PID=$!
     pids="$NEXT_PID"
-    
+
     # 等待一小段时间检查进程是否成功启动
     sleep 1
     if ! kill -0 "$NEXT_PID" 2>/dev/null; then
@@ -92,7 +88,7 @@ if [ -f "./next-service-dist/server.js" ]; then
     else
         echo "✅ Next.js 服务器已启动 (PID: $NEXT_PID, Port: $PORT)"
     fi
-    
+
     cd ../
 else
     echo "⚠️  未找到 Next.js 服务器文件: ./next-service-dist/server.js"
