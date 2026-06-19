@@ -92,7 +92,7 @@ export function OfferDialog({
             size="sm"
             onClick={submit}
             disabled={submitting || !pitch.trim()}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600] disabled:opacity-50"
+            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
           >
             {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
             send handshake →

@@ -34,9 +34,9 @@ export function WarRoomView() {
               key={s}
               onClick={() => setSort(s)}
               className={cn(
-                "flex items-center gap-1.5 rounded px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition",
+                "tactile-flat flex items-center gap-1.5 rounded px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest",
                 sort === s
-                  ? "bg-[#DAFF01] text-[#0E1909]"
+                  ? "bg-[#DAFF01] text-[#0E1909] shadow-[0_1px_3px_rgba(14,25,9,0.10)]"
                   : "text-[#0E1909]/55 hover:text-[#0E1909]"
               )}
             >

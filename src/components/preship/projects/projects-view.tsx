@@ -43,7 +43,7 @@ export function ProjectsView() {
           <Button
             size="sm"
             onClick={openNew}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
           >
             <Plus size={13} /> add →
           </Button>
@@ -58,7 +58,7 @@ export function ProjectsView() {
               key={s}
               onClick={() => setScope(s)}
               className={cn(
-                "rounded px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition",
+                "rounded px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest tactile-flat",
                 scope === s ? "bg-[#DAFF01] text-[#0E1909]" : "text-[#0E1909]/55 hover:text-[#0E1909]"
               )}
             >
@@ -73,7 +73,7 @@ export function ProjectsView() {
           <button
             onClick={() => setStageFilter("all")}
             className={cn(
-              "shrink-0 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition",
+              "shrink-0 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest tactile-flat",
               stageFilter === "all"
                 ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                 : "border-[#0E1909]/15 bg-white text-[#0E1909]/55 hover:border-[#0E1909]"
@@ -86,7 +86,7 @@ export function ProjectsView() {
               key={s}
               onClick={() => setStageFilter(s)}
               className={cn(
-                "shrink-0 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition",
+                "shrink-0 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest tactile-flat",
                 stageFilter === s
                   ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                   : "border-[#0E1909]/15 bg-white text-[#0E1909]/55 hover:border-[#0E1909]"

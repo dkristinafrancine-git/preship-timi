@@ -125,7 +125,7 @@ export function PostComposer() {
           <button
             onClick={() => setMode("text")}
             className={cn(
-              "flex items-center gap-1.5 rounded px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest transition",
+              "tactile-flat flex items-center gap-1.5 rounded px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest",
               mode === "text" ? "bg-[#0E1909] text-[#DAFF01]" : "text-[#0E1909]/55 hover:text-[#0E1909]"
             )}
           >
@@ -134,7 +134,7 @@ export function PostComposer() {
           <button
             onClick={() => setMode("audio")}
             className={cn(
-              "flex items-center gap-1.5 rounded px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest transition",
+              "tactile-flat flex items-center gap-1.5 rounded px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest",
               mode === "audio" ? "bg-[#0E1909] text-[#DAFF01]" : "text-[#0E1909]/55 hover:text-[#0E1909]"
             )}
           >
@@ -168,10 +168,10 @@ export function PostComposer() {
                   <button
                     onClick={toggleRecord}
                     className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-full border-2 transition",
+                      "tactile flex h-8 w-8 items-center justify-center rounded-full border-2",
                       recording
-                        ? "border-[#e0463c] bg-[#e0463c] text-white"
-                        : "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909] hover:scale-105"
+                        ? "border-[#e0463c] bg-[#e0463c] text-white shadow-[0_0_0_4px_rgba(224,70,60,0.15)]"
+                        : "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909] hover:scale-105 hover:shadow-[0_4px_12px_rgba(218,255,1,0.4)]"
                     )}
                     aria-label={recording ? "Stop recording" : "Start recording"}
                   >
@@ -270,7 +270,7 @@ export function PostComposer() {
             <Button
               onClick={submit}
               disabled={submitting}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600] disabled:opacity-60"
+              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-60"
             >
               {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
               {mode === "audio" ? "Ship audio →" : "Ship post →"}

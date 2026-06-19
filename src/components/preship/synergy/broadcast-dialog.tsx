@@ -93,7 +93,7 @@ export function BroadcastDialog({
               <button
                 onClick={() => setProjectId("")}
                 className={cn(
-                  "rounded-md border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-widest transition",
+                  "rounded-md border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-widest tactile-flat",
                   !projectId
                     ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                     : "border-[#0E1909]/15 bg-white text-[#0E1909]/60 hover:border-[#0E1909]"
@@ -261,7 +261,7 @@ export function BroadcastDialog({
               size="sm"
               onClick={submit}
               disabled={submitting || !title.trim() || !bottleneck.trim() || !need.trim()}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600] disabled:opacity-50"
+              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
             >
               {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
               broadcast →

@@ -40,9 +40,9 @@ export function SessionCard({
     <button
       onClick={onOpen}
       className={cn(
-        "group block w-full overflow-hidden rounded-lg border text-left transition hover:-translate-y-0.5",
+        "group block w-full overflow-hidden rounded-lg border text-left hover-lift",
         isLive
-          ? "border-[#e0463c] shadow-[0_0_0_1px_rgba(224,70,60,0.2)]"
+          ? "border-[#e0463c] shadow-[0_0_0_1px_rgba(224,70,60,0.2)] hover:shadow-[0_8px_24px_rgba(224,70,60,0.18),0_0_0_1px_rgba(224,70,60,0.3)]"
           : "border-[#0E1909]/12 hover:border-[#0E1909]/30"
       )}
     >
@@ -127,8 +127,8 @@ export function SessionCard({
               </span>
             )}
           </div>
-          <span className="flex items-center gap-1 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] transition group-hover:gap-1.5">
-            enter <ArrowRight size={11} />
+          <span className="flex items-center gap-1 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] transition-all duration-200 group-hover:gap-2 group-hover:text-[#6f8a3e]">
+            enter <ArrowRight size={11} className="transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>
         </div>
         {seatsLeft <= 3 && seatsLeft > 0 && (

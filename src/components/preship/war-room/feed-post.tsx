@@ -50,7 +50,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
             </div>
           </div>
         )}
-        <button className="rounded p-1 text-[#0E1909]/30 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
+        <button className="tactile-flat rounded p-1 text-[#0E1909]/30 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
           <MoreHorizontal size={16} />
         </button>
       </div>
@@ -125,7 +125,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
             onClick={() => {
               toast.success("Link copied →");
             }}
-            className="rounded p-1.5 text-[#0E1909]/40 transition hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
+            className="tactile-flat rounded p-1.5 text-[#0E1909]/40 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
             aria-label="Share"
           >
             <Share size={15} />
@@ -159,7 +159,7 @@ function ReactionBtn({
     <button
       onClick={onClick}
       className={cn(
-        "group flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs transition",
+        "tactile-flat group flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs",
         highlight && !active
           ? "text-[#0E1909]/70 hover:bg-[#DAFF01] hover:text-[#0E1909]"
           : active
@@ -167,7 +167,7 @@ function ReactionBtn({
           : "text-[#0E1909]/50 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
       )}
     >
-      <Icon size={15} className={cn(active && activeColor.includes("bg") && "text-[#0E1909]")} />
+      <Icon size={15} className={cn("transition-transform duration-150 group-hover:scale-110", active && activeColor.includes("bg") && "text-[#0E1909]")} />
       <span className="uppercase tracking-wider">{count}</span>
       <span className="hidden uppercase tracking-wider text-[10px] opacity-50 sm:inline">
         {label}
@@ -210,7 +210,7 @@ function CommentsSection({ postId }: { postId: string }) {
           data?.comments?.map((c) => (
             <div key={c.id} className="flex gap-2">
               <FounderAvatar founder={c.user} size={24} />
-              <div className="flex-1 rounded-md border border-[#0E1909]/8 bg-white px-2.5 py-1.5">
+              <div className="flex-1 rounded-md border border-[#0E1909]/8 bg-white px-2.5 py-1.5 transition-colors duration-150 hover:border-[#0E1909]/15 hover:bg-[#f8f9f3]">
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-display text-xs font-semibold text-[#0E1909]">
                     {c.user.name}

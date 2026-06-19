@@ -39,7 +39,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
   };
 
   return (
-    <div className="terminal-card">
+    <div className="terminal-card hover:border-[#0E1909]/20">
       {/* header strip */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#0E1909]/8 bg-[#f8f9f3] px-4 py-2">
         <div className="flex items-center gap-2">
@@ -118,11 +118,11 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
       <div className="flex items-center gap-2 border-t border-[#0E1909]/8 px-3 py-2">
         <button
           onClick={() => setExpanded((e) => !e)}
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 transition hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
+          className="tactile-flat flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
         >
           <MessageSquare size={13} />
           {request._count.offers} handshake{request._count.offers === 1 ? "" : "s"}
-          <ChevronDown size={13} className={cn("transition", expanded && "rotate-180")} />
+          <ChevronDown size={13} className={cn("transition-transform duration-200", expanded && "rotate-180")} />
         </button>
 
         <div className="ml-auto flex items-center gap-2">
@@ -135,7 +135,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
             <Button
               size="sm"
               onClick={() => setOfferOpen(true)}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+              className="cta-lime bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
             >
               <Handshake size={12} /> offer handshake →
             </Button>
@@ -165,7 +165,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
                 <li
                   key={o.id}
                   className={cn(
-                    "rounded-md border bg-white p-2.5",
+                    "rounded-md border bg-white p-2.5 transition-all duration-150 hover:shadow-[0_2px_6px_rgba(14,25,9,0.05)]",
                     o.status === "accepted"
                       ? "border-[#6f8a3e] bg-[#f4ffd6]"
                       : o.status === "declined"
@@ -217,7 +217,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
                       <Button
                         size="sm"
                         onClick={() => accept(o.id)}
-                        className="h-7 bg-[#0E1909] font-mono text-[10px] uppercase tracking-widest text-[#DAFF01] shadow-none hover:bg-[#0E1909]/90"
+                        className="cta-ink h-7 bg-[#0E1909] font-mono text-[10px] uppercase tracking-widest text-[#DAFF01] hover:bg-[#0E1909]/90"
                       >
                         <Check size={11} /> accept handshake
                       </Button>

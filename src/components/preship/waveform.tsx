@@ -85,7 +85,7 @@ export function WaveformPlayer({
         <button
           onClick={toggle}
           aria-label={playing ? "Pause" : "Play"}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#DAFF01] text-[#0E1909] transition hover:scale-105"
+          className="tactile flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#DAFF01] text-[#0E1909] hover:scale-110 hover:shadow-[0_4px_12px_rgba(218,255,1,0.4)]"
         >
           {playing ? (
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
@@ -119,12 +119,12 @@ export function WaveformPlayer({
             <button
               key={i}
               onClick={() => seekTo(i)}
-              className="group flex-1"
+              className="group flex-1 transition-transform duration-100 hover:scale-y-110"
               style={{ height: "100%" }}
               aria-label={`Seek to ${Math.floor((i / bars.length) * duration)}s`}
             >
               <span
-                className="block w-full rounded-full transition-colors"
+                className="block w-full rounded-full transition-all duration-150 group-hover:opacity-100"
                 style={{
                   height: `${Math.max(8, h * 100)}%`,
                   background: played ? "#DAFF01" : "rgba(218,255,1,0.28)",

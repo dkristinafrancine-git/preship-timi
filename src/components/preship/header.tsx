@@ -31,27 +31,27 @@ export function Header() {
           <Button
             variant="ghost"
             size="sm"
-            className="hidden font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:text-[#0E1909] md:inline-flex"
+            className="tactile-flat hidden font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
           >
-            <HelpCircle size={14} /> Docs
+            <HelpCircle size={14} className="transition-transform duration-150 hover:scale-110" /> Docs
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="relative hidden font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:text-[#0E1909] md:inline-flex"
+            className="tactile-flat relative hidden font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
           >
-            <Bell size={14} />
+            <Bell size={14} className="transition-transform duration-150 hover:scale-110" />
             <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#DAFF01] ring-1 ring-[#0E1909]" />
           </Button>
           <Button
             size="sm"
-            className="hidden border border-[#0E1909] bg-[#0E1909] font-mono text-[11px] font-semibold uppercase tracking-widest text-white hover:bg-[#0E1909]/90 sm:inline-flex"
+            className="cta-ink hidden border border-[#0E1909] bg-[#0E1909] font-mono text-[11px] font-semibold uppercase tracking-widest text-white hover:bg-[#0E1909]/90 sm:inline-flex"
           >
             Log in
           </Button>
           <Button
             size="sm"
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+            className="cta-lime bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
           >
             Invite founder →
           </Button>

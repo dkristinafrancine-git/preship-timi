@@ -97,7 +97,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
             <StatusPill status={session.status} />
             <button
               onClick={copyInvite}
-              className="flex items-center gap-1.5 rounded-md border border-[#DAFF01]/25 bg-white/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-[#DAFF01] transition hover:bg-white/10"
+              className="tactile-flat flex items-center gap-1.5 rounded-md border border-[#DAFF01]/25 bg-white/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-[#DAFF01] hover:bg-white/10 hover:border-[#DAFF01]/50"
             >
               {copied ? <Check size={11} /> : <Copy size={11} />}
               {session.inviteCode}
@@ -170,8 +170,8 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                 <button
                   onClick={() => setMuted((m) => !m)}
                   className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-full border-2 transition",
-                    muted ? "border-[#DAFF01]/30 bg-transparent text-[#DAFF01]/50" : "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909]"
+                    "tactile flex h-11 w-11 items-center justify-center rounded-full border-2",
+                    muted ? "border-[#DAFF01]/30 bg-transparent text-[#DAFF01]/50 hover:border-[#DAFF01]/60" : "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909] hover:shadow-[0_0_16px_rgba(218,255,1,0.4)]"
                   )}
                 >
                   {muted ? <MicOff size={16} /> : <Mic size={16} />}
@@ -179,8 +179,8 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                 <button
                   onClick={() => setHandRaised((h) => !h)}
                   className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-full border-2 transition",
-                    handRaised ? "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909]" : "border-[#DAFF01]/30 bg-transparent text-[#DAFF01]/50"
+                    "tactile flex h-11 w-11 items-center justify-center rounded-full border-2",
+                    handRaised ? "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909] hover:shadow-[0_0_16px_rgba(218,255,1,0.4)]" : "border-[#DAFF01]/30 bg-transparent text-[#DAFF01]/50 hover:border-[#DAFF01]/60"
                   )}
                 >
                   <Hand size={16} />
@@ -244,7 +244,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
             <Button
               size="sm"
               onClick={register}
-              className="mt-3 bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+              className="mt-3 bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
             >
               register as {signupRole.replace("-", " ")} →
             </Button>
@@ -286,7 +286,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                 <Button size="sm" variant="ghost" onClick={() => setShowInterest(false)} className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/55">
                   <X size={11} /> cancel
                 </Button>
-                <Button size="sm" onClick={toggleInterest} className="bg-[#DAFF01] font-mono text-[10px] uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]">
+                <Button size="sm" onClick={toggleInterest} className="bg-[#DAFF01] font-mono text-[10px] uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]">
                   <Check size={11} /> mark interest
                 </Button>
               </div>
@@ -335,7 +335,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
             <Button
               size="sm"
               onClick={register}
-              className="bg-[#e0463c] font-mono text-[11px] font-semibold uppercase tracking-widest text-white shadow-none hover:bg-[#c93d34]"
+              className="cta-ink bg-[#e0463c] font-mono text-[11px] font-semibold uppercase tracking-widest text-white hover:bg-[#c93d34]"
             >
               <Volume2 size={12} /> join live room →
             </Button>
@@ -345,7 +345,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
               size="sm"
               onClick={() => setJoined((j) => !j)}
               className={cn(
-                "font-mono text-[11px] font-semibold uppercase tracking-widest shadow-none",
+                "cta-ink font-mono text-[11px] font-semibold uppercase tracking-widest",
                 joined ? "bg-[#0E1909] text-[#DAFF01] hover:bg-[#0E1909]/90" : "bg-[#e0463c] text-white hover:bg-[#c93d34]"
               )}
             >
@@ -361,7 +361,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                   body: { status: "live" },
                 });
               }}
-              className="bg-[#e0463c] font-mono text-[11px] font-semibold uppercase tracking-widest text-white shadow-none hover:bg-[#c93d34]"
+              className="cta-ink bg-[#e0463c] font-mono text-[11px] font-semibold uppercase tracking-widest text-white hover:bg-[#c93d34]"
             >
               ● go live
             </Button>

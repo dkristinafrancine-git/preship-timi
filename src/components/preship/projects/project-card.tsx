@@ -23,7 +23,7 @@ export function ProjectCard({
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="terminal-card group"
+      className="terminal-card group hover:border-[#0E1909]/25 hover:shadow-[0_6px_16px_rgba(14,25,9,0.08),0_2px_6px_rgba(14,25,9,0.05)]"
     >
       {/* header */}
       <div className="flex items-start justify-between gap-2 p-4 pb-3">

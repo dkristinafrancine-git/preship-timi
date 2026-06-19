@@ -39,7 +39,7 @@ export function SynergyView() {
           <Button
             size="sm"
             onClick={() => setBroadcastOpen(true)}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
           >
             <Plus size={13} /> broadcast →
           </Button>
@@ -54,7 +54,7 @@ export function SynergyView() {
               key={f}
               onClick={() => setFilter(f)}
               className={cn(
-                "rounded px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition",
+                "rounded px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest tactile-flat",
                 filter === f
                   ? "bg-[#DAFF01] text-[#0E1909]"
                   : "text-[#0E1909]/55 hover:text-[#0E1909]"
@@ -69,7 +69,7 @@ export function SynergyView() {
             <button
               onClick={() => setBountyFilter("all")}
               className={cn(
-                "rounded px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-widest transition",
+                "rounded px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-widest tactile-flat",
                 bountyFilter === "all"
                   ? "bg-[#0E1909] text-[#DAFF01]"
                   : "text-[#0E1909]/55 hover:text-[#0E1909]"
@@ -82,7 +82,7 @@ export function SynergyView() {
                 key={b.id}
                 onClick={() => setBountyFilter(b.id)}
                 className={cn(
-                  "rounded px-2 py-1.5 font-mono text-[11px] uppercase tracking-widest transition",
+                  "rounded px-2 py-1.5 font-mono text-[11px] uppercase tracking-widest tactile-flat",
                   bountyFilter === b.id
                     ? "bg-[#0E1909] text-[#DAFF01]"
                     : "text-[#0E1909]/55 hover:text-[#0E1909]"

@@ -36,9 +36,9 @@ function WarRoomRail() {
             <Flame size={13} />
             <span className="font-mono text-[10px] uppercase tracking-widest">highest-intent signal</span>
           </div>
-          <ul className="space-y-2.5">
+          <ul className="space-y-1">
             {TOP_FOUNDERS.map((f, i) => (
-              <li key={f.handle} className="flex items-center gap-2.5">
+              <li key={f.handle} className="hover-row -mx-1 flex items-center gap-2.5 rounded-md px-1 py-1">
                 <span
                   className={cn(
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded font-mono text-[10px] font-bold",
@@ -54,7 +54,7 @@ function WarRoomRail() {
                   </p>
                   <p className="truncate font-mono text-[10px] text-[#0E1909]/50">@{f.handle}</p>
                 </div>
-                <button className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#0E1909] hover:text-[#6f8a3e]">
+                <button className="tactile-flat font-mono text-[10px] font-semibold uppercase tracking-wider text-[#0E1909] hover:text-[#6f8a3e]">
                   follow →
                 </button>
               </li>
@@ -68,7 +68,7 @@ function WarRoomRail() {
         <TerminalHeader label="trending · now" right={<TrendingUp size={13} className="text-[#0E1909]/40" />} />
         <div className="divide-y divide-[#0E1909]/8">
           {trendingTop.map((p) => (
-            <div key={p.id} className="px-3 py-2.5">
+            <div key={p.id} className="hover-row cursor-pointer px-3 py-2.5">
               <div className="flex items-center gap-2">
                 <FounderAvatar founder={p.author} size={22} />
                 <span className="truncate font-display text-xs font-medium text-[#0E1909]">
@@ -91,9 +91,9 @@ function WarRoomRail() {
       {me?.projects?.length ? (
         <div className="terminal-card">
           <TerminalHeader label="my-projects · status" />
-          <div className="space-y-2 p-3">
+          <div className="space-y-1 p-3">
             {me.projects.slice(0, 3).map((p) => (
-              <div key={p.id} className="flex items-center gap-2.5">
+              <div key={p.id} className="hover-row -mx-1 flex items-center gap-2.5 rounded-md px-1 py-1">
                 <ProjectMark mark={p.logoMark} color={p.logoColor} size={30} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-xs font-semibold text-[#0E1909]">{p.name}</p>

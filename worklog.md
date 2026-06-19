@@ -127,3 +127,35 @@ Work Log:
 
 Stage Summary:
 - Layout now matches Peerlist.io: full-width sticky header + centered 3-col grid (220/1fr/320) + sticky sidebars. On-brand Preship styling preserved (white/lime/ink, Funnel Display, live ticker, developer aesthetic).
+
+---
+Task ID: 11
+Agent: main
+Task: Add subtle shadows and hover animations for responsive feel.
+
+Work Log:
+- Added a shadow + interaction utility system to globals.css:
+  - `.terminal-card` now has a subtle ink-tinted default shadow `0 1px 2px rgba(14,25,9,0.06), 0 2px 6px rgba(14,25,9,0.04)` + 200ms transition on box-shadow/transform/border-color.
+  - `.hover-lift` for clickable cards: on hover, lifts `-2px` with `0 8px 20px rgba(14,25,9,0.12)` shadow; active presses back flat.
+  - `.hover-row` for list rows: 150ms bg-color transition to accent tint.
+  - `.tactile` (lift on hover, scale on press) and `.tactile-flat` (scale-only on press, for dense rows/pills).
+  - `.cta-lime` — lime CTAs get a soft lime glow `0 4px 12px rgba(218,255,1,0.45)` + 1px lift on hover.
+  - `.cta-ink` — ink CTAs get a deeper `0 4px 12px rgba(14,25,9,0.18)` shadow on hover.
+- Applied utilities across all interactive surfaces:
+  - Header: Docs/Bell (tactile-flat + icon scale), Log in (cta-ink), Invite founder (cta-lime).
+  - Sidebar nav: primary nav items (tactile-flat + icon scale-110 on hover + active shadow), secondary nav, user card (hover border+shadow), manage→ link.
+  - War Room: PostComposer mode tabs (tactile-flat + active shadow), record button (tactile + lime glow hover), SHIP POST (cta-lime), feed reaction buttons (tactile-flat + icon scale-110 on hover), share/more buttons, comment rows (hover border+bg).
+  - Waveform player: play button (tactile + scale-110 + lime glow), seek bars (hover scale-y + opacity).
+  - Synergy: SynergyCard (hover border), expand button (tactile-flat + chevron rotate), offer handshake button (cta-lime), accept handshake (cta-ink), offer list rows (hover shadow), broadcast/offer dialog CTAs (cta-lime).
+  - IdeaLab: SessionCard (hover-lift + live red glow variant), ENTER affordance (group-hover gap+color+arrow translate), host/join CTAs (cta-lime/outline), session detail mic/hand controls (tactile + lime glow when active), invite-code copy (tactile-flat), go-live/join-live (cta-ink), speaker tiles.
+  - Projects: ProjectCard (hover border + lift shadow), add CTA (cta-lime), dialog stage/category pickers (tactile-flat).
+  - Right rail: founder list rows (hover-row + follow→ tactile-flat), trending post rows (hover-row), my-projects rows (hover-row).
+  - Filter tabs in all views (tactile-flat + active shadow).
+- Verified via Agent Browser + getComputedStyle:
+  - terminal-card default shadow present: `rgba(14,25,9,0.06) 0px 1px 2px, rgba(14,25,9,0.04) 0px 2px 6px` with `box-shadow 0.2s, transform 0.2s, border-color 0.2s` transition.
+  - hover-lift on session card: on hover, transform → `matrix(1,0,0,1,0,-2)` (translateY(-2px)) + lift shadow.
+  - cta-lime on Ship post button: on hover, shadow → `rgba(218,255,1,0.45) 0px 4px 12px, rgba(14,25,9,0.08) 0px 2px 4px` + transform `matrix(1,0,0,1,0,-1)`.
+- Lint clean. No runtime errors. VLM confirmed no regressions to layout/colors.
+
+Stage Summary:
+- App now feels responsive: cards have subtle depth, buttons lift+glow on hover, nav icons scale, list rows tint, waveform bars respond. Shadows are ink-tinted (not gray) to match the brand. Hover transitions are 150-200ms ease-out; press feedback is 100-120ms scale.

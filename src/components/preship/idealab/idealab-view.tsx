@@ -55,7 +55,7 @@ export function IdeaLabView() {
             <Button
               size="sm"
               onClick={() => setHostOpen(true)}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
             >
               <Plus size={13} /> host →
             </Button>

@@ -80,13 +80,13 @@ export function Sidebar() {
                   <button
                     onClick={() => setView(item.id)}
                     className={cn(
-                      "group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition",
+                      "tactile-flat group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left",
                       active
-                        ? "bg-[#0E1909] text-[#DAFF01]"
+                        ? "bg-[#0E1909] text-[#DAFF01] shadow-[0_2px_8px_rgba(14,25,9,0.12)]"
                         : "text-[#0E1909] hover:bg-[#f4ffd6]"
                     )}
                   >
-                    <Icon size={16} className={active ? "text-[#DAFF01]" : "text-[#0E1909]/70"} />
+                    <Icon size={16} className={cn("transition-transform duration-150", active ? "text-[#DAFF01]" : "text-[#0E1909]/70 group-hover:scale-110")} />
                     <span className="flex-1 font-display text-sm font-medium">{item.label}</span>
                     <span
                       className={cn(
@@ -110,8 +110,8 @@ export function Sidebar() {
               const Icon = item.icon;
               return (
                 <li key={item.label}>
-                  <button className="group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-[#0E1909]/70 transition hover:bg-[#f4ffd6] hover:text-[#0E1909]">
-                    <Icon size={16} className="text-[#0E1909]/50" />
+                  <button className="tactile-flat group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-[#0E1909]/70 hover:bg-[#f4ffd6] hover:text-[#0E1909]">
+                    <Icon size={16} className="text-[#0E1909]/50 transition-transform duration-150 group-hover:scale-110" />
                     <span className="flex-1 font-display text-sm font-medium">{item.label}</span>
                     <span className="font-mono text-[9px] uppercase tracking-widest text-[#0E1909]/25">
                       {item.code}
@@ -125,7 +125,7 @@ export function Sidebar() {
 
         {/* current founder card */}
         {meData?.user && (
-          <div className="m-3 rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3">
+          <div className="m-3 rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3 transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]">
             <div className="flex items-center gap-2.5">
               <FounderAvatar founder={meData.user} size={36} />
               <div className="min-w-0 flex-1">
@@ -143,7 +143,7 @@ export function Sidebar() {
               </span>
               <button
                 onClick={() => setView("projects")}
-                className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909] transition hover:text-[#6f8a3e]"
+                className="tactile-flat font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]"
               >
                 manage →
               </button>

@@ -166,7 +166,7 @@ function ProjectForm({
                   key={c}
                   onClick={() => setCategory(c)}
                   className={cn(
-                    "rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition",
+                    "rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest tactile-flat",
                     category === c
                       ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                       : "border-[#0E1909]/15 bg-white text-[#0E1909]/60 hover:border-[#0E1909]"
@@ -287,7 +287,7 @@ function ProjectForm({
             size="sm"
             onClick={submit}
             disabled={submitting || !name.trim() || !tagline.trim()}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600] disabled:opacity-50"
+            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
           >
             {submitting ? <Loader2 size={12} className="animate-spin" /> : isEdit ? null : <Boxes size={12} />}
             {isEdit ? "save changes →" : "add project →"}
