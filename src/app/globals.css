@@ -297,3 +297,13 @@
   50% { box-shadow: 0 0 0 6px rgba(218,255,1,0); }
 }
 .animate-softpulse { animation: softpulse 2s ease-in-out infinite; }
+
+/* live audio meter — bars pulse in height, staggered by delay */
+@keyframes live-audio-bar {
+  0%, 100% { transform: scaleY(0.25); }
+  50%      { transform: scaleY(1); }
+}
+.animate-live-audio-bar {
+  animation: live-audio-bar 600ms ease-in-out infinite;
+  transform-origin: bottom;
+}

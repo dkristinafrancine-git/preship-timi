@@ -7,8 +7,9 @@ import { fmtDuration } from "@/lib/preship";
 /**
  * Audio waveform player.
  *
- * If `audioUrl` is provided, plays real audio via an <audio> element and
- * syncs the waveform progress to the actual playback position.
+ * If `audioUrl` is provided, plays real audio via an always-mounted
+ * `<audio>` element and syncs the waveform progress to the actual playback
+ * position. Event handlers are attached via JSX so the ref is always live.
  *
  * If no `audioUrl`, falls back to a simulated player that animates progress
  * over the waveform bars at the given duration.
@@ -39,38 +40,8 @@ export function WaveformPlayer({
   const startProgress = useRef<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Real audio mode: sync progress to the <audio> element
-  useEffect(() => {
-    if (!audioUrl) return;
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const onTimeUpdate = () => {
-      if (audio.duration > 0) {
-        setProgress(audio.currentTime / audio.duration);
-      }
-    };
-    const onEnded = () => {
-      setPlaying(false);
-      setProgress(0);
-    };
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-
-    audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("pause", onPause);
-
-    return () => {
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("pause", onPause);
-    };
-  }, [audioUrl]);
-
-  // Simulated mode (no audioUrl): animate progress via requestAnimationFrame
+  // Simulated mode (no audioUrl): animate progress via requestAnimationFrame.
+  // In real-audio mode, progress is driven by the <audio> onTimeUpdate event.
   useEffect(() => {
     if (audioUrl || !playing) {
       if (raf.current) cancelAnimationFrame(raf.current);
@@ -96,14 +67,13 @@ export function WaveformPlayer({
   }, [playing, duration, audioUrl]);
 
   const toggle = () => {
-    if (audioUrl && audioRef.current) {
+    const audio = audioRef.current;
+    if (audioUrl && audio) {
       if (playing) {
-        audioRef.current.pause();
+        audio.pause();
       } else {
-        if (progress >= 1) {
-          audioRef.current.currentTime = 0;
-        }
-        audioRef.current.play().catch(() => {});
+        if (progress >= 1) audio.currentTime = 0;
+        audio.play().catch(() => {});
       }
     } else {
       if (progress >= 1) setProgress(0);
@@ -114,8 +84,9 @@ export function WaveformPlayer({
   const seekTo = (idx: number) => {
     const p = (idx + 0.5) / bars.length;
     setProgress(Math.max(0, Math.min(1, p)));
-    if (audioUrl && audioRef.current) {
-      audioRef.current.currentTime = p * (audioRef.current.duration || duration);
+    const audio = audioRef.current;
+    if (audioUrl && audio) {
+      audio.currentTime = p * (audio.duration || duration);
     } else if (playing) {
       startTs.current = performance.now();
       startProgress.current = p;
@@ -132,7 +103,21 @@ export function WaveformPlayer({
         className
       )}
     >
-      {audioUrl && <audio ref={audioRef} src={audioUrl} preload="metadata" />}
+      <audio
+        ref={audioRef}
+        src={audioUrl ?? undefined}
+        preload="metadata"
+        onTimeUpdate={(e) => {
+          const a = e.currentTarget;
+          if (a.duration > 0) setProgress(a.currentTime / a.duration);
+        }}
+        onEnded={() => {
+          setPlaying(false);
+          setProgress(0);
+        }}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+      />
       <div className="flex items-center gap-3">
         <button
           onClick={toggle}

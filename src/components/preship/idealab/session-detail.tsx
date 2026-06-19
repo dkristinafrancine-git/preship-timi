@@ -12,7 +12,6 @@ import type { IdeaLabSession, IdeaLabSignup, Founder } from "@/lib/preship-types
 import { fmtRelative, IDEA_ROLES } from "@/lib/preship";
 import { FounderAvatar } from "../avatars";
 import { StatusPill, RoleBadge, TerminalHeader } from "../badges";
-import { WaveformPlayer } from "../waveform";
 import { Loader2, Mic, MicOff, Hand, Copy, Check, Star, X, Volume2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -159,15 +158,7 @@ function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSessio
                 </p>
               )}
             </div>
-            <WaveformPlayer
-              waveform={Array.from({ length: 48 }, (_, i) => {
-                const env = Math.sin((i / 48) * Math.PI);
-                return Math.max(0.15, 0.3 + Math.abs(Math.sin(i * 0.7)) * 0.6 * (0.4 + env)).toFixed(3);
-              }).join(",")}
-              duration={session.durationMins * 60}
-              compact
-              className="mt-3 !bg-[#162414] !border-[#DAFF01]/15"
-            />
+            <LiveAudioMeter />
             {/* audio controls */}
             {joined && (
               <div className="mt-3 flex items-center justify-center gap-2">
@@ -426,6 +417,34 @@ function SpeakerTile({ signup }: { signup: IdeaLabSignup }) {
       <span className="rounded bg-[#DAFF01]/15 px-1 font-mono text-[8px] uppercase tracking-widest text-[#DAFF01]">
         {signup.role.split("-")[0]}
       </span>
+    </div>
+  );
+}
+
+/** Animated "live audio" meter for the live session detail.
+ *  Purely decorative — no play button, no timer, no seek. Just pulsing bars
+ *  to signal that the room is broadcasting. */
+function LiveAudioMeter() {
+  const bars = Array.from({ length: 20 });
+  return (
+    <div className="mt-3 flex items-center gap-3 rounded-lg border border-[#DAFF01]/15 bg-[#162414] px-3 py-2.5">
+      <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-[#DAFF01]">
+        <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#e0463c]" />
+        on air
+      </span>
+      <div className="ml-auto flex h-7 items-end gap-[3px]">
+        {bars.map((_, i) => (
+          <span
+            key={i}
+            className="block w-[3px] rounded-full bg-[#DAFF01] animate-live-audio-bar"
+            style={{
+              height: "100%",
+              animationDelay: `${(i % 7) * 80}ms`,
+              animationDuration: `${480 + (i % 4) * 140}ms`,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }

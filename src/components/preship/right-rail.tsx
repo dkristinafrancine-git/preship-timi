@@ -27,8 +27,10 @@ export function RightRail() {
 function WarRoomRail() {
   const { data: trending } = useApi<{ posts: FeedPost[] }>("/api/feed?sort=trending");
   const { data: me } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
+  const { data: topData } = useApi<{ founders: Founder[] }>("/api/founders/top");
   const navigate = usePreship((s) => s.navigate);
   const trendingTop = trending?.posts?.slice(0, 4) ?? [];
+  const topFounders = topData?.founders ?? [];
 
   return (
     <>
@@ -40,27 +42,31 @@ function WarRoomRail() {
             <Flame size={14} />
             <span className="font-mono text-xs uppercase tracking-widest">highest-intent signal</span>
           </div>
-          <ul className="space-y-1.5">
-            {TOP_FOUNDERS.map((f, i) => (
-              <li key={f.handle} className="hover-row -mx-1.5 flex items-center gap-2.5 rounded-md px-1.5 py-1.5">
-                <span
-                  className={cn(
-                    "flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-xs font-bold",
-                    i === 0 ? "bg-[#DAFF01] text-[#0E1909]" : "bg-[#0E1909]/8 text-[#0E1909]/60"
-                  )}
-                >
-                  {i + 1}
-                </span>
-                <FounderAvatar founder={f} size={30} />
-                <div className="min-w-0 flex-1">
-                  <FounderHoverCard founder={f} className="block truncate font-display text-[13px] font-semibold text-[#0E1909]">
-                    {f.name}
-                  </FounderHoverCard>
-                  <p className="truncate font-mono text-xs text-[#0E1909]/50">@{f.handle}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {topFounders.length === 0 ? (
+            <p className="py-4 text-center font-mono text-xs text-[#0E1909]/40">no signal yet</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {topFounders.map((f, i) => (
+                <li key={f.handle} className="hover-row -mx-1.5 flex items-center gap-2.5 rounded-md px-1.5 py-1.5">
+                  <span
+                    className={cn(
+                      "flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-xs font-bold",
+                      i === 0 ? "bg-[#DAFF01] text-[#0E1909]" : "bg-[#0E1909]/8 text-[#0E1909]/60"
+                    )}
+                  >
+                    {i + 1}
+                  </span>
+                  <FounderAvatar founder={f} size={30} />
+                  <div className="min-w-0 flex-1">
+                    <FounderHoverCard founder={f} className="block truncate font-display text-[13px] font-semibold text-[#0E1909]">
+                      {f.name}
+                    </FounderHoverCard>
+                    <p className="truncate font-mono text-xs text-[#0E1909]/50">@{f.handle}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -377,10 +383,3 @@ function GenericRail() {
   );
 }
 
-const TOP_FOUNDERS: Founder[] = [
-  { id: "1", email: "", handle: "sofiawren", name: "Sofia Wren", title: "Loomwave", avatarUrl: "/avatars/sofia.svg", isCurrent: false },
-  { id: "2", email: "", handle: "devrishi", name: "Devrishi K.", title: "Helm Labs", avatarUrl: "/avatars/devrishi.svg", isCurrent: false },
-  { id: "3", email: "", handle: "tobidez", name: "Tobi Adebayo", title: "Stackpile", avatarUrl: "/avatars/tobi.svg", isCurrent: false },
-  { id: "4", email: "", handle: "maya", name: "Maya Okafor", title: "Ledgerline", avatarUrl: "/avatars/maya.svg", isCurrent: false },
-  { id: "5", email: "", handle: "kwame", name: "Kwame Mensah", title: "Draftpilot", avatarUrl: "/avatars/kwame.svg", isCurrent: false },
-];

@@ -74,7 +74,7 @@ export function SessionCard({
         </div>
         {isLive && (
           <div className="absolute right-4 top-4">
-            <WaveformMini waveform={Array.from({ length: 18 }, () => 0.4 + Math.random() * 0.6).join(",")} className="text-[#DAFF01]" />
+            <WaveformMini waveform={Array.from({ length: 18 }, (_, i) => 0.3 + Math.sin(i * 0.5) * 0.3 + 0.2).join(",")} className="text-[#DAFF01]" />
           </div>
         )}
       </div>

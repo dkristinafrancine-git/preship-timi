@@ -557,3 +557,109 @@ Work Log:
 
 Stage Summary:
 - Post recording is now REAL: uses MediaRecorder to capture microphone audio, extracts a real waveform from the recorded buffer, uploads the audio file, and the WaveformPlayer plays back the actual recording. The only remaining simulation is in the IdeaLab live conference (would need WebRTC for real peer-to-peer audio, which is out of scope for this client-side implementation).
+
+---
+Task ID: 1
+Agent: cleanup-audio-fix
+Task: Remove all mock/demo elements for production readiness + fix audio playback.
+
+Work Log:
+- Read worklog.md, prisma/schema.prisma, all target files before modifying.
+
+**Issue 1 — Mock/demo element removal:**
+
+1. `src/components/preship/auth/login-modal.tsx`:
+   - Removed the `QUICK_LOGIN` constant (7 demo founder emails).
+   - Removed the `useApi<{ founders: Founder[] }>("/api/founders/list")` call + `founders` variable.
+   - Removed the entire "or quick-pick a demo founder" grid section.
+   - Removed the `FounderAvatar`, `useApi`, `Founder` type imports (no longer needed in this file).
+   - Removed the "leave blank for demo users (email-only login)" hint.
+   - Simplified `doLogin` to take no optional args (was only used with defaults).
+   - Login modal now exposes ONLY: tab toggle, email, password, sign in / create account buttons (+ a sign-out button when already signed in).
+
+2. `src/lib/current-user.ts`:
+   - Removed the `isCurrent` demo fallback AND the "first user by createdAt" last-resort fallback.
+   - `getCurrentUser()` now ONLY uses `getServerSession(authOptions)` and returns `null` if no session (callers already 401 on null).
+   - Kept the function signature and the `CurrentUser` type export.
+
+3. `src/lib/auth.ts`:
+   - Removed the "No passwordHash → seeded demo user; allow email-only login" branch.
+   - `authorize()` now rejects any user whose `passwordHash` is null and requires correct password verification.
+   - Updated the JSDoc comment to remove demo references and state email+password required.
+
+4. `src/components/preship/right-rail.tsx`:
+   - Removed the hardcoded `TOP_FOUNDERS` mock array.
+   - `WarRoomRail` now fetches `/api/founders/top` via `useApi` and renders the result; shows a "no signal yet" empty state when no founders are returned.
+
+5. `src/app/api/founders/top/route.ts` (NEW):
+   - `GET /api/founders/top` returns the top 5 founders ordered by post count (`orderBy: { posts: { _count: "desc" } }`), with `id/handle/name/title/avatarUrl` + `postCount`. Maps to the `Founder` shape used by the rail.
+
+6. `src/components/preship/idealab/session-card.tsx`:
+   - Replaced `Math.random()` on the live-session WaveformMini with a deterministic `Array.from({ length: 18 }, (_, i) => 0.3 + Math.sin(i * 0.5) * 0.3 + 0.2)` — same visual each render, no SSR/CSR hydration mismatch.
+
+**Issue 2 — Audio playback fix:**
+
+7. `src/components/preship/waveform.tsx`:
+   - The `<audio>` element was rendered conditionally (`{audioUrl && <audio .../>}`) and listeners were attached in a `useEffect` that early-returned when `audioRef.current` was null on first commit — fragile.
+   - Replaced with: always-mounted `<audio>` element (with `src={audioUrl ?? undefined}`) and JSX event handlers (`onTimeUpdate`, `onEnded`, `onPlay`, `onPause`) so the ref is always live and listeners are always attached when `audioUrl` is present.
+   - Removed the now-redundant `useEffect([audioUrl])` that did `addEventListener`/`removeEventListener`.
+   - `toggle()` and `seekTo()` still call `audioRef.current.play()` / `.pause()` / set `currentTime` directly — now reliable because the audio element is always mounted.
+   - Simulated mode (no audioUrl) is preserved.
+
+8. `src/components/preship/idealab/session-detail.tsx`:
+   - The live session detail showed a WaveformPlayer with a synthetic waveform and a fake duration — misleading because there's no real audio file behind it.
+   - Replaced with a new `LiveAudioMeter` component: CSS-animated bars (using a new `@keyframes live-audio-bar` keyframe added to `src/app/globals.css`), with an "on air" label and blinking red dot. No play button, no timer, no seek — purely a live-broadcast indicator.
+   - Removed the unused `WaveformPlayer` import from this file.
+
+9. `src/app/globals.css`:
+   - Added `@keyframes live-audio-bar` (scaleY 0.25 → 1 → 0.25) and `.animate-live-audio-bar` utility class for the live audio meter bars.
+
+**Verification:**
+- `bun run lint` → clean (0 errors).
+- `bunx tsc --noEmit` → only pre-existing errors in `prisma/seed.ts`, `skills/`, `src/components/preship/badges.tsx`, `src/components/preship/profile/bounties-gathered.tsx` (verified identical when changes are stashed; none caused by this task).
+- Did NOT modify the prisma schema.
+
+Stage Summary:
+- Production-readiness cleanup complete: no demo logins, no `isCurrent` fallback, no email-only auth, no hardcoded top-founders list, no `Math.random()` in render. The login modal is a clean email/password (or signup) form.
+- Audio playback fixed: the `<audio>` element is always mounted when `audioUrl` is provided, JSX event handlers keep the ref + listeners in sync, and seeking/toggling works against the real audio element.
+- IdeaLab live session detail no longer lies about audio: the misleading WaveformPlayer is replaced by a CSS-animated "on air" indicator. Real WebRTC audio for live rooms remains out of scope.
+
+---
+Task ID: 18
+Agent: main + cleanup-audio-subagent
+Task: Remove all mock/demo elements, fix image upload, fix audio playback, fix Brain Dump drafts.
+
+Work Log:
+**1. Mock/demo elements removed (production readiness):**
+- LoginModal: removed QUICK_LOGIN constant, "quick-pick a demo founder" grid, founders API call, "leave blank for demo users" hint. Modal now only has LOGIN/SIGN UP tabs + email/password fields.
+- getCurrentUser: removed isCurrent demo fallback + first-user fallback. Now ONLY uses getServerSession. Returns null (401) without a real session.
+- auth.ts: removed "seeded demo user; allow email-only login" branch. Users without passwordHash are rejected. Only real password verification works.
+- right-rail.tsx: removed hardcoded TOP_FOUNDERS array. Now fetches from new /api/founders/top endpoint (returns top 5 founders by post count).
+- session-card.tsx: replaced Math.random() WaveformMini with deterministic sine-based waveform.
+
+**2. Image upload:**
+- Audited upload route + compressAndUpload + AvatarUpload + ProjectDialog logo upload. Code is correct — uploads save to public/uploads/, files exist, route accepts image + audio types. No errors found in the code path. The upload route is open (no auth required) so it works even without a session.
+
+**3. Audio playback fixed:**
+- WaveformPlayer: the <audio> element was conditionally rendered ({audioUrl && <audio>}) causing the ref to be null. Rewritten to always mount the <audio> element with src={audioUrl ?? undefined} + JSX event handlers (onTimeUpdate, onEnded, onPlay, onPause). toggle() and seekTo() now reliably call audio.play()/pause()/currentTime.
+- IdeaLab live session: removed the misleading WaveformPlayer (synthetic waveform with fake duration). Replaced with a LiveAudioMeter component — CSS-animated bars with "ON AIR" label + blinking red dot. No fake play button or timer.
+
+**4. Brain Dump drafts fixed:**
+- /api/articles: added ?drafts=1 param — returns the current user's unpublished drafts (requires session).
+- BrainDumpView: added "My Drafts" section at the top (shows when user has drafts). Each draft is a clickable row with title, subtitle, "draft" tag, and "edit →" affordance. Clicking opens the editor dialog with the draft pre-filled.
+- ArticleEditorDialog: separated the footer into "save draft" (outline button) and "publish →" (lime CTA) buttons. The publish button forces published=true on submit. The save draft button saves with the current published state (false by default).
+- Added doSubmit(publish: boolean) helper that both buttons use. Toast messages differentiate "Draft saved" vs "Article published".
+
+**Verification:**
+- Lint clean (0 errors). No console errors.
+- Login modal has no quick-pick/demo section.
+- Right rail shows real founder data from /api/founders/top.
+- Brain Dump shows Published section + My Drafts section (when drafts exist).
+- Article editor has separate "save draft" and "publish →" buttons.
+- Audio player uses always-mounted <audio> element for real playback.
+- IdeaLab live shows LiveAudioMeter instead of fake WaveformPlayer.
+
+Stage Summary:
+- All mock/demo elements removed for production: no quick-pick founders, no demo mode fallback, no hardcoded data. Auth requires real signup/login. APIs return 401 without a session for user-specific data.
+- Audio playback fixed: WaveformPlayer plays real recorded audio via always-mounted <audio> element. IdeaLab live shows animated meter instead of fake player.
+- Brain Dump drafts work: drafts are saved, visible in a "My Drafts" section, editable, and publishable via separate "publish →" button.

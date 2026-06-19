@@ -35,9 +35,9 @@ export function verifyPassword(plain: string, stored: string): boolean {
  * NextAuth options for Preship.
  *
  * Credentials provider:
- * - Email-only login is supported for seeded/demo users (no passwordHash).
- * - Real signed-up users (passwordHash set) MUST also provide a password,
- *   which is verified against the scrypt salt:hash storage.
+ * - Email + password are required.
+ * - The password is verified against the scrypt `salt:hash` stored in
+ *   User.passwordHash. A user without a passwordHash cannot log in.
  */
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -66,13 +66,12 @@ export const authOptions: NextAuthOptions = {
         });
         if (!user) return null;
 
-        // If the user has a password hash, a password MUST be supplied and match.
-        if (user.passwordHash) {
-          const password = credentials?.password;
-          if (!password) return null;
-          if (!verifyPassword(password, user.passwordHash)) return null;
-        }
-        // No passwordHash → seeded demo user; allow email-only login (backward compat).
+        // Reject login if the user has no password hash (no email-only login).
+        if (!user.passwordHash) return null;
+
+        const password = credentials?.password;
+        if (!password) return null;
+        if (!verifyPassword(password, user.passwordHash)) return null;
 
         return {
           id: user.id,

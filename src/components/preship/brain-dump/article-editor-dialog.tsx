@@ -75,7 +75,7 @@ export function ArticleEditorDialog({
 
   const canSubmit = title.trim().length > 0 && body.trim().length > 0;
 
-  const submit = async () => {
+  const doSubmit = async (publish: boolean) => {
     if (!canSubmit) return;
     setSubmitting(true);
     const payload = {
@@ -83,7 +83,7 @@ export function ArticleEditorDialog({
       subtitle: subtitle.trim() || null,
       body: body,
       tags: tags.trim() || null,
-      published,
+      published: publish,
       coverColor,
     };
     const res = isEdit
@@ -92,7 +92,7 @@ export function ArticleEditorDialog({
     setSubmitting(false);
     if (res.ok) {
       toast.success(
-        published
+        publish
           ? isEdit
             ? "Article updated & published →"
             : "Article published →"
@@ -103,6 +103,9 @@ export function ArticleEditorDialog({
       onOpenChange(false);
     }
   };
+
+  const submit = () => doSubmit(published);
+  const submitWithPublish = (publish: boolean) => doSubmit(publish);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -230,8 +233,8 @@ export function ArticleEditorDialog({
           <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             {canSubmit
               ? published
-                ? "publishing to brain dump"
-                : "saving as draft"
+                ? "will publish to brain dump"
+                : "will save as private draft"
               : "title + body required"}
           </span>
           <div className="flex items-center gap-2">
@@ -243,14 +246,32 @@ export function ArticleEditorDialog({
             >
               cancel
             </Button>
+            {/* Save as draft button (only when not toggled to publish) */}
+            {!published && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={submit}
+                disabled={submitting || !canSubmit}
+                className="border-[#0E1909]/20 bg-white font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#f4ffd6] disabled:opacity-50"
+              >
+                {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
+                save draft
+              </Button>
+            )}
+            {/* Publish button */}
             <Button
               size="sm"
-              onClick={submit}
+              onClick={async () => {
+                setPublished(true);
+                // small delay to let state update, then submit
+                setTimeout(() => submitWithPublish(true), 50);
+              }}
               disabled={submitting || !canSubmit}
-              className="bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
+              className="cta-lime bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600] disabled:opacity-50"
             >
               {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
-              {published ? "publish →" : isEdit ? "save draft →" : "save draft →"}
+              publish →
             </Button>
           </div>
         </div>

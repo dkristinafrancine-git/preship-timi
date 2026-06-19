@@ -6,24 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FounderAvatar } from "../avatars";
-import { useApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
-import type { Founder } from "@/lib/preship-types";
 import { Loader2, LogIn, LogOut, ShieldCheck, ChevronDown, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-/** Seed founder emails shown as quick-pick options in the login modal. */
-const QUICK_LOGIN = [
-  "maya@preship.app",
-  "dev@preship.app",
-  "sofia@preship.app",
-  "tobi@preship.app",
-  "nina@preship.app",
-  "kwame@preship.app",
-  "ren@preship.app",
-];
 
 export function LoginModal({
   open,
@@ -39,13 +25,11 @@ export function LoginModal({
   const [signupName, setSignupName] = useState("");
   const [signupHandle, setSignupHandle] = useState("");
   const [loading, setLoading] = useState(false);
-  const { data: foundersData } = useApi<{ founders: Founder[] }>("/api/founders/list");
-  const founders = foundersData?.founders ?? [];
   const bump = usePreship((s) => s.bump);
 
-  const doLogin = async (emailToUse?: string, passwordToUse?: string) => {
-    const em = (emailToUse ?? email).trim().toLowerCase();
-    const pw = passwordToUse ?? password;
+  const doLogin = async () => {
+    const em = email.trim().toLowerCase();
+    const pw = password;
     if (!em) {
       toast.error("Enter your email");
       return;
@@ -53,7 +37,7 @@ export function LoginModal({
     setLoading(true);
     const res = await signIn("credentials", {
       email: em,
-      password: pw || undefined,
+      password: pw,
       redirect: false,
     });
     setLoading(false);
@@ -230,11 +214,6 @@ export function LoginModal({
               placeholder={mode === "signup" ? "min 6 characters" : "••••••••"}
               className="mt-1.5 h-10 border-[#0E1909]/12 bg-white font-mono text-sm focus-visible:ring-[#DAFF01]"
             />
-            {mode === "login" && (
-              <p className="mt-1.5 font-mono text-[11px] text-[#0E1909]/40">
-                leave blank for demo users (email-only login)
-              </p>
-            )}
           </div>
 
           {mode === "login" ? (
@@ -255,53 +234,6 @@ export function LoginModal({
               {loading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
               create account →
             </Button>
-          )}
-
-          {/* Quick-pick founders (login mode only) */}
-          {mode === "login" && (
-            <div>
-              <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
-                or quick-pick a demo founder
-              </p>
-              <div className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto scroll-thin">
-                {founders.length === 0
-                  ? QUICK_LOGIN.map((em) => (
-                      <button
-                        key={em}
-                        onClick={() => doLogin(em)}
-                        disabled={loading}
-                        className="tactile-flat flex items-center gap-2.5 rounded-md border border-[#0E1909]/10 bg-white px-3 py-2 text-left hover:border-[#0E1909]/30 disabled:opacity-50"
-                      >
-                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#0E1909] font-mono text-xs font-bold text-[#DAFF01]">
-                          {em[0].toUpperCase()}
-                        </span>
-                        <span className="flex-1 font-mono text-xs text-[#0E1909]/70">{em}</span>
-                        <LogIn size={12} className="text-[#0E1909]/40" />
-                      </button>
-                    ))
-                  : founders
-                      .filter((f) => QUICK_LOGIN.includes(f.email))
-                      .map((f) => (
-                        <button
-                          key={f.id}
-                          onClick={() => doLogin(f.email)}
-                          disabled={loading}
-                          className="tactile-flat flex items-center gap-2.5 rounded-md border border-[#0E1909]/10 bg-white px-3 py-2 text-left hover:border-[#0E1909]/30 disabled:opacity-50"
-                        >
-                          <FounderAvatar founder={f} size={28} />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-display text-xs font-semibold text-[#0E1909]">
-                              {f.name}
-                            </p>
-                            <p className="truncate font-mono text-[11px] text-[#0E1909]/50">
-                              {f.email}
-                            </p>
-                          </div>
-                          <LogIn size={12} className="text-[#0E1909]/40" />
-                        </button>
-                      ))}
-              </div>
-            </div>
           )}
 
           {session && mode === "login" && (

@@ -20,13 +20,25 @@ const ARTICLE_INCLUDE = {
 // GET /api/articles — list published articles, newest first.
 // Query params:
 //   ?authorId=<id>  filter by author
+//   ?drafts=1       return the current user's drafts (unpublished) instead of published
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const authorId = searchParams.get("authorId") ?? undefined;
+    const drafts = searchParams.get("drafts") === "1";
 
-    const where: Prisma.ArticleWhereInput = { published: true };
-    if (authorId) where.authorId = authorId;
+    let where: Prisma.ArticleWhereInput;
+    if (drafts) {
+      // Return only the current user's unpublished drafts
+      const user = await getCurrentUser();
+      if (!user) {
+        return NextResponse.json({ error: "No current user" }, { status: 401 });
+      }
+      where = { published: false, authorId: user.id };
+    } else {
+      where = { published: true };
+      if (authorId) where.authorId = authorId;
+    }
 
     const articles = await db.article.findMany({
       where,
