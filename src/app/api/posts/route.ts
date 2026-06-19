@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
       type,
       body: postBody,
       audioTitle,
+      audioUrl,
       audioDuration,
       audioWaveform,
       tags,
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
       type?: string;
       body?: string;
       audioTitle?: string;
+      audioUrl?: string;
       audioDuration?: number;
       audioWaveform?: string;
       tags?: string;
@@ -107,6 +109,7 @@ export async function POST(req: NextRequest) {
         type,
         body: type === "text" ? (postBody as string) : postBody ?? null,
         audioTitle: type === "audio" ? audioTitle : null,
+        audioUrl: type === "audio" ? (typeof audioUrl === "string" ? audioUrl : null) : null,
         audioDuration: type === "audio" ? audioDuration : null,
         audioWaveform: type === "audio" ? audioWaveform : null,
         tags: typeof tags === "string" ? tags : null,

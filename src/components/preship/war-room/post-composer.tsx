@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutate } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
+import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import type { Founder, Project } from "@/lib/preship-types";
 import { ProjectMark } from "../avatars";
-import { Type, Mic, Hash, X, Loader2 } from "lucide-react";
+import { Type, Mic, Hash, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 type Mode = "text" | "audio";
@@ -20,41 +21,46 @@ export function PostComposer() {
   const [audioTitle, setAudioTitle] = useState("");
   const [tags, setTags] = useState("");
   const [projectId, setProjectId] = useState<string>("");
-  const [recording, setRecording] = useState(false);
-  const [recordSecs, setRecordSecs] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadedAudioUrl, setUploadedAudioUrl] = useState<string | null>(null);
   const mutate = useMutate();
   const me = usePreship((s) => s.me);
   const { data: meData } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
   const projects = meData?.projects ?? [];
 
-  const recRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recorder = useAudioRecorder();
 
-  const stopTimer = () => {
-    if (recRef.current) {
-      clearInterval(recRef.current);
-      recRef.current = null;
+  const toggleRecord = () => {
+    if (recorder.recording) {
+      recorder.stop();
+    } else {
+      recorder.start();
     }
   };
 
-  const toggleRecord = () => {
-    if (recording) {
-      stopTimer();
-      setRecording(false);
-      return;
+  // when recording finishes and we have a blob + waveform, upload the audio
+  const ensureAudioUploaded = async (): Promise<string | null> => {
+    if (uploadedAudioUrl) return uploadedAudioUrl;
+    if (!recorder.audioBlob) return null;
+    setUploadingAudio(true);
+    try {
+      const form = new FormData();
+      const ext = recorder.audioBlob.type.split("/")[1] || "webm";
+      const file = new File([recorder.audioBlob], `audio.${ext}`, { type: recorder.audioBlob.type });
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) throw new Error((json as { error?: string }).error ?? "Upload failed");
+      const url = (json as { url: string }).url;
+      setUploadedAudioUrl(url);
+      setUploadingAudio(false);
+      return url;
+    } catch (e) {
+      setUploadingAudio(false);
+      toast.error(e instanceof Error ? e.message : "Audio upload failed");
+      return null;
     }
-    setRecording(true);
-    setRecordSecs(0);
-    recRef.current = setInterval(() => {
-      setRecordSecs((s) => {
-        if (s >= 300) {
-          stopTimer();
-          setRecording(false);
-          return s;
-        }
-        return s + 1;
-      });
-    }, 1000);
   };
 
   const reset = () => {
@@ -62,8 +68,8 @@ export function PostComposer() {
     setAudioTitle("");
     setTags("");
     setProjectId("");
-    setRecordSecs(0);
-    setRecording(false);
+    setUploadedAudioUrl(null);
+    recorder.reset();
   };
 
   const submit = async () => {
@@ -75,16 +81,26 @@ export function PostComposer() {
       toast.error("Give your audio a title.");
       return;
     }
+    if (mode === "audio" && !recorder.audioBlob && recorder.seconds === 0) {
+      toast.error("Record some audio first.");
+      return;
+    }
     setSubmitting(true);
 
-    // synthesize a waveform for audio posts
-    const wf =
-      mode === "audio"
-        ? Array.from({ length: 48 }, (_, i) => {
-            const env = Math.sin((i / 48) * Math.PI);
-            return Math.max(0.15, Math.min(1, 0.35 + Math.random() * 0.6 * (0.4 + env))).toFixed(3);
-          }).join(",")
-        : undefined;
+    // For audio mode: upload the real recording + use the real waveform
+    let audioUrl: string | null = null;
+    let wf: string | null = null;
+    let audioDuration: number | null = null;
+
+    if (mode === "audio") {
+      // Upload the real audio blob
+      audioUrl = await ensureAudioUploaded();
+      // Use the real waveform extracted from the recording
+      wf = recorder.waveform.length > 0
+        ? recorder.waveform.map((v) => v.toFixed(3)).join(",")
+        : null;
+      audioDuration = Math.max(1, recorder.seconds);
+    }
 
     const res = await mutate("/api/posts", {
       method: "POST",
@@ -92,8 +108,9 @@ export function PostComposer() {
         type: mode,
         body: mode === "text" ? body.trim() : body.trim() || null,
         audioTitle: mode === "audio" ? audioTitle.trim() : null,
-        audioDuration: mode === "audio" ? Math.max(8, recordSecs || 92) : null,
-        audioWaveform: wf ?? null,
+        audioUrl,
+        audioDuration,
+        audioWaveform: wf,
         tags: tags.trim() || null,
         projectId: projectId || null,
       },
@@ -169,46 +186,64 @@ export function PostComposer() {
                     onClick={toggleRecord}
                     className={cn(
                       "tactile flex h-8 w-8 items-center justify-center rounded-full border-2",
-                      recording
+                      recorder.recording
                         ? "border-[#e0463c] bg-[#e0463c] text-white shadow-[0_0_0_4px_rgba(224,70,60,0.15)]"
                         : "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909] hover:scale-105 hover:shadow-[0_4px_12px_rgba(218,255,1,0.4)]"
                     )}
-                    aria-label={recording ? "Stop recording" : "Start recording"}
+                    aria-label={recorder.recording ? "Stop recording" : "Start recording"}
                   >
-                    {recording ? (
+                    {recorder.recording ? (
                       <span className="h-3 w-3 rounded-[2px] bg-white" />
                     ) : (
                       <Mic size={14} />
                     )}
                   </button>
                   <div className="flex-1">
-                    {recording ? (
+                    {recorder.recording ? (
+                      /* Real mic level visualization */
                       <div className="flex items-end gap-[2px]" style={{ height: 20 }}>
-                        {Array.from({ length: 28 }).map((_, i) => (
-                          <span
-                            key={i}
-                            className="w-[2px] rounded-full bg-[#e0463c]"
-                            style={{
-                              height: `${20 + Math.sin(i + recordSecs) * 40 + Math.random() * 30}%`,
-                              animation: `blink 0.8s ease-in-out ${i * 0.05}s infinite`,
-                            }}
-                          />
-                        ))}
+                        {Array.from({ length: 28 }).map((_, i) => {
+                          const base = recorder.level * 100;
+                          const variance = Math.sin(i * 0.5 + Date.now() / 100) * 30;
+                          return (
+                            <span
+                              key={i}
+                              className="w-[2px] rounded-full bg-[#e0463c]"
+                              style={{
+                                height: `${Math.max(8, Math.min(100, base + variance + Math.random() * 20))}%`,
+                              }}
+                            />
+                          );
+                        })}
                       </div>
-                    ) : recordSecs > 0 ? (
+                    ) : recorder.audioBlob ? (
                       <span className="font-mono text-xs text-[#DAFF01]/70">
-                        Recorded {fmtRec(recordSecs)} · ready to ship
+                        Recorded {fmtRec(recorder.seconds)} · {recorder.waveform.length > 0 ? "waveform ready" : "processing…"} · ready to ship
                       </span>
                     ) : (
                       <span className="font-mono text-xs text-[#DAFF01]/60">
-                        Tap to record · max 5:00
+                        Tap to record · uses your real microphone
                       </span>
                     )}
                   </div>
                   <span className="font-mono text-xs tabular-nums text-[#DAFF01]">
-                    {fmtRec(recordSecs)}
+                    {fmtRec(recorder.seconds)}
                   </span>
                 </div>
+                {recorder.error && (
+                  <div className="flex items-center gap-2 rounded-md border border-[#e0463c]/30 bg-[#e0463c]/5 px-3 py-2">
+                    <AlertCircle size={14} className="shrink-0 text-[#e0463c]" />
+                    <span className="text-xs text-[#e0463c]">{recorder.error}</span>
+                  </div>
+                )}
+                {uploadingAudio && (
+                  <div className="flex items-center gap-2 rounded-md border border-[#DAFF01]/30 bg-[#f4ffd6] px-3 py-2">
+                    <Loader2 size={14} className="shrink-0 animate-spin text-[#0E1909]" />
+                    <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/60">
+                      uploading audio…
+                    </span>
+                  </div>
+                )}
                 <Textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
@@ -269,7 +304,7 @@ export function PostComposer() {
             </span>
             <Button
               onClick={submit}
-              disabled={submitting}
+              disabled={submitting || uploadingAudio || (mode === "audio" && recorder.recording)}
               className="cta-lime h-9 bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600] disabled:opacity-60"
             >
               {submitting ? <Loader2 size={12} className="animate-spin" /> : null}

@@ -5,21 +5,26 @@ import { cn } from "@/lib/utils";
 import { fmtDuration } from "@/lib/preship";
 
 /**
- * Audio waveform player. Since we don't have real audio files, this is a
- * simulated player that animates playback progress over the waveform bars.
- * The visual language is intentionally "developer": mono timer, scrub bar,
- * lime progress fill on ink bars.
+ * Audio waveform player.
+ *
+ * If `audioUrl` is provided, plays real audio via an <audio> element and
+ * syncs the waveform progress to the actual playback position.
+ *
+ * If no `audioUrl`, falls back to a simulated player that animates progress
+ * over the waveform bars at the given duration.
  */
 export function WaveformPlayer({
   waveform,
   duration,
   title,
+  audioUrl,
   className,
   compact = false,
 }: {
   waveform: string;
   duration: number;
   title?: string;
+  audioUrl?: string | null;
   className?: string;
   compact?: boolean;
 }) {
@@ -32,9 +37,42 @@ export function WaveformPlayer({
   const raf = useRef<number | null>(null);
   const startTs = useRef<number>(0);
   const startProgress = useRef<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Real audio mode: sync progress to the <audio> element
   useEffect(() => {
-    if (!playing) {
+    if (!audioUrl) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const onTimeUpdate = () => {
+      if (audio.duration > 0) {
+        setProgress(audio.currentTime / audio.duration);
+      }
+    };
+    const onEnded = () => {
+      setPlaying(false);
+      setProgress(0);
+    };
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+
+    return () => {
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+    };
+  }, [audioUrl]);
+
+  // Simulated mode (no audioUrl): animate progress via requestAnimationFrame
+  useEffect(() => {
+    if (audioUrl || !playing) {
       if (raf.current) cancelAnimationFrame(raf.current);
       return;
     }
@@ -55,17 +93,30 @@ export function WaveformPlayer({
     return () => {
       if (raf.current) cancelAnimationFrame(raf.current);
     };
-  }, [playing, duration]);
+  }, [playing, duration, audioUrl]);
 
   const toggle = () => {
-    if (progress >= 1) setProgress(0);
-    setPlaying((p) => !p);
+    if (audioUrl && audioRef.current) {
+      if (playing) {
+        audioRef.current.pause();
+      } else {
+        if (progress >= 1) {
+          audioRef.current.currentTime = 0;
+        }
+        audioRef.current.play().catch(() => {});
+      }
+    } else {
+      if (progress >= 1) setProgress(0);
+      setPlaying((p) => !p);
+    }
   };
 
   const seekTo = (idx: number) => {
     const p = (idx + 0.5) / bars.length;
     setProgress(Math.max(0, Math.min(1, p)));
-    if (playing) {
+    if (audioUrl && audioRef.current) {
+      audioRef.current.currentTime = p * (audioRef.current.duration || duration);
+    } else if (playing) {
       startTs.current = performance.now();
       startProgress.current = p;
     }
@@ -81,6 +132,7 @@ export function WaveformPlayer({
         className
       )}
     >
+      {audioUrl && <audio ref={audioRef} src={audioUrl} preload="metadata" />}
       <div className="flex items-center gap-3">
         <button
           onClick={toggle}
@@ -136,8 +188,8 @@ export function WaveformPlayer({
       </div>
 
       {!compact && (
-        <div className="mt-2 flex items-center justify-between font-mono text-xs uppercase tracking-widest text-[#DAFF01]/50">
-          <span>preship / audio</span>
+        <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]/50">
+          <span>preship / audio {audioUrl ? "· live" : "· simulated"}</span>
           <span>{playing ? "playing" : progress > 0 ? "paused" : "ready"}</span>
         </div>
       )}

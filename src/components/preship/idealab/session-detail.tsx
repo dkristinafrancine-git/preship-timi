@@ -406,7 +406,10 @@ function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSessio
 
 function SpeakerTile({ signup }: { signup: IdeaLabSignup }) {
   const isHost = signup.role === "host";
-  const speaking = isHost || Math.random() > 0.5; // demo
+  // In a real implementation, this would reflect actual WebRTC audio level.
+  // For now, the host is always shown as "speaking" and others show based on
+  // their signup status (confirmed = active, registered = idle).
+  const speaking = isHost || signup.status === "confirmed";
   return (
     <div className="flex flex-col items-center gap-1 rounded-md border border-[#DAFF01]/15 bg-white/5 p-2">
       <div className="relative">

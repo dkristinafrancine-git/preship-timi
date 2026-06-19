@@ -92,6 +92,7 @@ model Post {
   type          String   @default("text") // text | audio
   body          String?
   audioTitle    String?
+  audioUrl      String?  // URL to the uploaded audio file (real recording)
   audioDuration Int?     // seconds
   audioWaveform String?  // comma-separated bar heights 0..1
   tags          String?  // comma-separated hashtags

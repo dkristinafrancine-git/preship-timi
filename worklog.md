@@ -508,3 +508,52 @@ Work Log:
 
 Stage Summary:
 - All 7 user requests implemented: layout fixed, notifications deployed, real auth+onboarding, search, brain dump (renamed from Field Notes), settings (preferences), docs (glossary). 5 new DB models, 12 new API routes, 8 new frontend views/components.
+
+---
+Task ID: 17
+Agent: main
+Task: Fix layout overflow + audit + fix audio features (real microphone recording).
+
+Work Log:
+**1. Layout fix (feed post header):**
+- Added `max-w-[120px]` to the project name div inside the project chip so long project names truncate instead of overflowing and overlapping the author info / stage chip.
+- This was the root cause of the "Ledgerline" + "CD" overlap visible in the screenshot.
+
+**2. Audio feature audit:**
+- **Post recording**: Was simulated (fake timer + random waveform). No real microphone capture. The waveform was randomly generated, not from real audio.
+- **IdeaLab Live conference**: Was simulated (Math.random() > 0.5 for "speaking" state, synthetic waveform). No real WebRTC audio connection.
+- **WaveformPlayer**: Was simulated-only (animated progress bar, no actual audio playback).
+
+**3. Real microphone recording (post composer):**
+- Created `src/lib/use-audio-recorder.ts` hook using `MediaRecorder` + `AudioContext` + `AnalyserNode`:
+  - Captures real audio from the microphone via `getUserMedia`
+  - Monitors live mic level (for the recording visualizer)
+  - On stop: decodes the recorded audio buffer, extracts a real 48-bar waveform from actual amplitude data
+  - Returns: recording state, seconds, audioBlob, waveform array, live level, error
+- Updated `PostComposer` to use the real recorder:
+  - Recording bar shows real mic level visualization (bars respond to actual audio input)
+  - After recording: shows "Recorded Xm:Ys · waveform ready · ready to ship"
+  - On submit: uploads the real audio blob to `/api/upload`, sends the real waveform + audioUrl to the API
+  - Error handling: shows mic permission denied message if user blocks mic access
+  - Upload progress indicator while audio is uploading
+  - Ship button disabled while recording or uploading
+- Updated `/api/upload` to accept audio files (audio/webm, audio/ogg, audio/mpeg, audio/mp4) up to 10MB
+- Added `audioUrl` field to the Post model + Posts API + types
+
+**4. WaveformPlayer upgrade:**
+- Now supports real audio playback via `<audio>` element when `audioUrl` is provided
+- Syncs waveform progress to actual audio currentTime
+- Scrubbing seeks the real audio
+- Falls back to simulated playback for legacy posts without audioUrl
+- Shows "· live" vs "· simulated" in the footer label
+
+**5. IdeaLab SpeakerTile fix:**
+- Replaced `Math.random() > 0.5` with deterministic logic: host is always "speaking", others show speaking indicator based on signup status (confirmed = active). This is still not real WebRTC audio, but it's deterministic and sensible. Real WebRTC would require a socket.io/WebRTC mini-service.
+
+**Verification:**
+- Lint clean (0 errors). No console errors.
+- Audio composer shows "Tap to record · uses your real microphone" with Start recording button.
+- Feed post project chips now have max-width, preventing overflow.
+
+Stage Summary:
+- Post recording is now REAL: uses MediaRecorder to capture microphone audio, extracts a real waveform from the recorded buffer, uploads the audio file, and the WaveformPlayer plays back the actual recording. The only remaining simulation is in the IdeaLab live conference (would need WebRTC for real peer-to-peer audio, which is out of scope for this client-side implementation).

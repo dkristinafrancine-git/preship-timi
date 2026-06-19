@@ -41,6 +41,7 @@ export type FeedPost = {
   type: "text" | "audio";
   body: string | null;
   audioTitle: string | null;
+  audioUrl: string | null;
   audioDuration: number | null;
   audioWaveform: string | null;
   tags: string | null;

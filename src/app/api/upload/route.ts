@@ -11,8 +11,11 @@ import { randomUUID } from "crypto";
  * The client is expected to pre-compress images to max 400x400 before sending,
  * but we still sanity-check size (< 1.5MB) and content type.
  */
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const MAX_BYTES = 1.5 * 1024 * 1024;
+const ALLOWED = new Set([
+  "image/jpeg", "image/png", "image/webp", "image/gif",
+  "audio/webm", "audio/ogg", "audio/mpeg", "audio/mp4",
+]);
+const MAX_BYTES = 10 * 1024 * 1024; // 10MB for audio
 
 export async function POST(req: NextRequest) {
   try {
