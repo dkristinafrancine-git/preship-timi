@@ -19,35 +19,35 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Preship — War Room for Alpha Stage Founders",
+  title: "Preship — The Alpha War Room for Pre-Launch Founders",
   description:
-    "Preship is a structured, high-intent social network for alpha-stage founders. Broadcast bottlenecks, match collaborators in Synergy, and ideate new startups in invite-only IdeaLab audio rooms.",
+    "Preship is the alpha war room: a high-velocity tactical command center where pre-launch founders intently collaborate, support, back, and trade leverage in broad daylight. Broadcast bottlenecks, match collaborators in Synergy, and ideate new startups in invite-only IdeaLab audio rooms.",
   keywords: [
     "Preship",
+    "alpha war room",
     "founders",
-    "alpha stage",
+    "pre-launch",
     "startup",
-    "war room",
-    "synergy",
-    "ideala b",
     "collaboration",
+    "synergy",
+    "idealab",
   ],
   authors: [{ name: "Preship" }],
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "Preship — War Room for Alpha Stage Founders",
+    title: "Preship — The Alpha War Room for Pre-Launch Founders",
     description:
-      "Broadcast bottlenecks, match collaborators, and ideate new startups in invite-only audio rooms.",
+      "A high-velocity tactical command center where pre-launch founders collaborate, back, and trade leverage in broad daylight.",
     siteName: "Preship",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Preship — War Room for Alpha Stage Founders",
+    title: "Preship — The Alpha War Room for Pre-Launch Founders",
     description:
-      "Broadcast bottlenecks, match collaborators, and ideate new startups in invite-only audio rooms.",
+      "A high-velocity tactical command center where pre-launch founders collaborate, back, and trade leverage in broad daylight.",
   },
 };
 

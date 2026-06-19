@@ -8,6 +8,7 @@ import { ViewHeader } from "../view-header";
 import { AvatarUpload } from "./avatar-upload";
 import { SkillsEditor } from "./skills-editor";
 import { BountiesGathered } from "./bounties-gathered";
+import { FollowedUsers } from "../followed-users";
 import { TerminalHeader, Tag } from "../badges";
 import { ProjectMark } from "../avatars";
 import { Button } from "@/components/ui/button";
@@ -279,7 +280,7 @@ export function ProfileView() {
                 key={p.id}
                 className="hover-row -mx-1.5 flex items-center gap-2.5 rounded-md px-1.5 py-1.5"
               >
-                <ProjectMark mark={p.logoMark} color={p.logoColor} size={32} />
+                <ProjectMark mark={p.logoMark} color={p.logoColor} logoUrl={p.logoUrl} name={p.name} size={32} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-[13px] font-semibold text-[#0E1909]">
                     {p.name}
@@ -292,6 +293,9 @@ export function ProfileView() {
           </div>
         </div>
       )}
+
+      {/* followed founders */}
+      <FollowedUsers />
     </div>
   );
 }

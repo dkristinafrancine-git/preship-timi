@@ -28,7 +28,7 @@ export function ProjectCard({
       {/* header */}
       <div className="flex items-start justify-between gap-2 p-5 pb-3.5">
         <div className="flex items-center gap-3.5">
-          <ProjectMark mark={project.logoMark} color={project.logoColor} size={46} />
+          <ProjectMark mark={project.logoMark} color={project.logoColor} logoUrl={project.logoUrl} name={project.name} size={46} />
           <div className="min-w-0">
             <h3 className="font-display text-lg font-semibold text-[#0E1909]">{project.name}</h3>
             <p className="truncate font-mono text-[13px] text-[#0E1909]/55">{project.tagline}</p>

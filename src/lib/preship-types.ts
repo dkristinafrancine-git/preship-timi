@@ -22,6 +22,7 @@ export type Project = {
   description?: string | null;
   category: string;
   alphaStage: string;
+  logoUrl?: string | null;
   logoColor: string;
   logoMark: string | null;
   website?: string | null;

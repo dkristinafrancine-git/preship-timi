@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         request: {
           include: {
             founder: {
-              select: { id: true, name: true, handle: true, title: true, avatarUrl: true },
+              select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
             },
             project: {
               select: {

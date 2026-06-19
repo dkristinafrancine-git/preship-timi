@@ -6,6 +6,7 @@ import type { SynergyRequest, SynergyOffer } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
 import { FounderAvatar, ProjectMark } from "../avatars";
 import { BountyBadge, StatusPill, Tag, StageChip } from "../badges";
+import { FounderHoverCard } from "../founder-hover-card";
 import { OfferDialog } from "./offer-dialog";
 import { useApi } from "@/lib/use-api";
 import { useMutate } from "@/lib/use-api";
@@ -65,16 +66,16 @@ export function SynergyCard({
           <FounderAvatar founder={request.founder} size={44} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline gap-x-2">
-              <span className="font-display text-[15px] font-semibold text-[#0E1909]">
+              <FounderHoverCard founder={request.founder} className="font-display text-[15px] font-semibold text-[#0E1909]">
                 {request.founder.name}
-              </span>
+              </FounderHoverCard>
               <span className="font-mono text-[13px] text-[#0E1909]/50">@{request.founder.handle}</span>
             </div>
             <p className="truncate font-mono text-xs text-[#0E1909]/55">{request.founder.title}</p>
           </div>
           {request.project && (
             <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-white px-2 py-1">
-              <ProjectMark mark={request.project.logoMark} color={request.project.logoColor} size={18} />
+              <ProjectMark mark={request.project.logoMark} color={request.project.logoColor} logoUrl={request.project.logoUrl} name={request.project.name} size={18} />
               <span className="font-display text-xs font-semibold text-[#0E1909]">
                 {request.project.name}
               </span>

@@ -184,3 +184,22 @@ Work Log:
 
 Stage Summary:
 - App now has comfortable, readable typography: body 15-16px at 1.55-1.65 line-height, metadata 12-13px, generous p-5 card padding, space-y-5 section spacing. Feels clean, low-fatigue, sharp — matching Linear/Vercel/GitHub caliber. No text below 12px anywhere. Lint clean, no runtime errors.
+
+---
+Task ID: 13
+Agent: main
+Task: Logo SVG, positive messaging, project logo upload, founder hover cards, followed users.
+
+Work Log:
+- Copied upload/logo_preship.svg → public/logo_preship.svg. Rewrote Logo component to render the SVG wordmark (with CSS invert filter for lime/on-dark variants). Updated favicon.svg to a "P" mark. Updated layout metadata title/description to "The Alpha War Room for Pre-Launch Founders" + positive high-intent language.
+- Copy-edited all negative "shipping in the dark" phrasing → positive: composer placeholder "What are you broadcasting to the war room?", ticker "the alpha war room — collaborate in broad daylight", footer "the alpha war room — collaborate in broad daylight", war-room subtitle "broadcast progress · text + audio · back each other with handshakes".
+- DB: added logoUrl to Project + Follow model (follower/following, unique pair). db push. Seeded 10 follow pairs (Maya follows 4 founders, followed back by 4).
+- API: PATCH/POST /api/projects accept logoUrl; all founder selects across feed/posts/projects/synergy/idealab APIs now include bio/location/skills for hover cards; new /api/follows (POST toggle + GET status); new /api/me/follows (GET list); new /api/founders/by-handle (GET lightweight profile).
+- Frontend: ProjectMark now renders an uploaded logo image (logoUrl) when present, falls back to monogram-on-color. Updated all 8 ProjectMark call sites to pass logoUrl + name.
+- ProjectDialog: replaced brand color picker with logo upload (400×400 client-side compression via compressAndUpload, camera overlay on the mark, upload/remove buttons, monogram fallback input shown only when no logo). Live preview uses the uploaded logo.
+- FounderHoverCard: new component wrapping any founder name trigger — hover reveals avatar, name, @handle, follow/following button (toggles via /api/follows), title, bio, location, skills. Wired into feed post authors, synergy card founders, session card hosts, right-rail founder list, right-rail trending posts, and the followed-users card.
+- FollowedUsers card: new component on the Profile view — lists founders the current user follows with avatar, name (hover-card enabled), @handle, title, top 3 skills, and a "following" toggle to unfollow.
+- Lint clean. Verified via Agent Browser + VLM: logo wordmark renders in header, no "shipping in the dark" anywhere, hover cards show rich founder info, profile shows FOLLOWING · 4 card with all 4 followed founders.
+
+Stage Summary:
+- Preship now has the official SVG wordmark everywhere (header, footer, favicon), positive "alpha war room / broad daylight" messaging replacing all "in the dark" phrasing, per-project logo upload with 400×400 compression (brand color removed), founder hover cards with follow/unfollow + bio/skills/location anywhere a founder name appears, and a followed-users card on the profile.

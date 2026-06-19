@@ -5,7 +5,7 @@ import { ALPHA_STAGES, PROJECT_CATEGORIES } from "@/lib/preship";
 
 const PROJECT_DETAIL_INCLUDE = {
   founder: {
-    select: { id: true, name: true, handle: true, title: true, avatarUrl: true },
+    select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
   },
   _count: { select: { posts: true, synergyRequests: true } },
 } as const;
@@ -67,6 +67,7 @@ export async function PATCH(
       description,
       category,
       alphaStage,
+      logoUrl,
       logoColor,
       logoMark,
       website,
@@ -83,6 +84,7 @@ export async function PATCH(
     if (typeof tagline === "string") data.tagline = tagline.trim();
     if (typeof description === "string") data.description = description;
     if (typeof website === "string") data.website = website;
+    if (typeof logoUrl === "string") data.logoUrl = logoUrl || null;
     if (typeof logoColor === "string") data.logoColor = logoColor;
     if (typeof logoMark === "string") data.logoMark = logoMark.trim();
     if (category !== undefined) {

@@ -37,7 +37,7 @@ export function WarRoomView() {
       <ViewHeader
         title="War Room"
         code="/war-room"
-        sub="high-signal feed · text + audio · handshake over like"
+        sub="broadcast progress · text + audio · back each other with handshakes"
       />
 
       <PostComposer />

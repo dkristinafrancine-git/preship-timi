@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/current-user";
 
 const POST_INCLUDE = {
   author: {
-    select: { id: true, name: true, handle: true, title: true, avatarUrl: true },
+    select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
   },
   project: {
     select: {

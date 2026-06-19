@@ -6,6 +6,7 @@ import type { FeedPost, Comment, Founder } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
 import { FounderAvatar, ProjectMark } from "../avatars";
 import { StageChip, Tag } from "../badges";
+import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
 import { useMutate } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
@@ -30,9 +31,9 @@ export function FeedPost({ post }: { post: FeedPost }) {
         <FounderAvatar founder={post.author} size={44} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="font-display text-[15px] font-semibold text-[#0E1909]">
+            <FounderHoverCard founder={post.author} className="font-display text-[15px] font-semibold text-[#0E1909]">
               {post.author.name}
-            </span>
+            </FounderHoverCard>
             <span className="font-mono text-[13px] text-[#0E1909]/50">@{post.author.handle}</span>
             <span className="font-mono text-[13px] text-[#0E1909]/35">·</span>
             <span className="font-mono text-[13px] text-[#0E1909]/50">{fmtRelative(post.createdAt)}</span>
@@ -41,7 +42,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
         </div>
         {post.project && (
           <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] px-2.5 py-1.5">
-            <ProjectMark mark={post.project.logoMark} color={post.project.logoColor} size={20} />
+            <ProjectMark mark={post.project.logoMark} color={post.project.logoColor} logoUrl={post.project.logoUrl} name={post.project.name} size={20} />
             <div className="hidden sm:block">
               <p className="font-display text-[13px] font-semibold leading-tight text-[#0E1909]">
                 {post.project.name}

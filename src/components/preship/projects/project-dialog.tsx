@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useMutate } from "@/lib/use-api";
 import { ALPHA_STAGES, PROJECT_CATEGORIES } from "@/lib/preship";
+import { compressAndUpload } from "@/lib/image-compress";
 import type { Project } from "@/lib/preship-types";
 import { ProjectMark } from "../avatars";
 import { cn } from "@/lib/utils";
-import { Loader2, Boxes, Pencil, Plus } from "lucide-react";
+import { Loader2, Boxes, Pencil, Plus, Camera, Upload, X } from "lucide-react";
+import { toast } from "sonner";
 
-const LOGO_COLORS = ["#DAFF01", "#0E1909", "#6f8a3e", "#c4cf9a", "#2a3a1f"];
+// fallback tile color when no logo is uploaded
+const FALLBACK_COLOR = "#0E1909";
 
 function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -72,12 +75,35 @@ function ProjectForm({
   const [description, setDescription] = useState(project?.description ?? "");
   const [category, setCategory] = useState<string>(project?.category ?? PROJECT_CATEGORIES[0]);
   const [alphaStage, setAlphaStage] = useState<string>(project?.alphaStage ?? ALPHA_STAGES[0]);
-  const [logoColor, setLogoColor] = useState(project?.logoColor ?? LOGO_COLORS[0]);
+  const [logoUrl, setLogoUrl] = useState<string | null>(project?.logoUrl ?? null);
   const [logoMark, setLogoMark] = useState(project?.logoMark ?? "");
   const [website, setWebsite] = useState(project?.website ?? "");
   const [submitting, setSubmitting] = useState(false);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const mark = logoMark.trim() || initialsOf(name || "··");
+
+  const handleLogoFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please pick an image file.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image too large (max 8MB before compression).");
+      return;
+    }
+    try {
+      setLogoBusy(true);
+      const url = await compressAndUpload(file, 400, 0.85);
+      setLogoUrl(url);
+      toast.success("Logo compressed + uploaded →");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Logo upload failed");
+    } finally {
+      setLogoBusy(false);
+    }
+  };
 
   const submit = async () => {
     if (!name.trim() || !tagline.trim()) return;
@@ -88,7 +114,7 @@ function ProjectForm({
       description: description.trim() || null,
       category,
       alphaStage,
-      logoColor,
+      logoUrl: logoUrl || null,
       logoMark: logoMark.trim() || initialsOf(name.trim()),
       website: website.trim() || null,
     };
@@ -104,7 +130,7 @@ function ProjectForm({
       <div className="max-h-[70vh] space-y-4 overflow-y-auto p-5 scroll-thin">
         {/* preview */}
         <div className="flex items-center gap-3 rounded-md border border-dashed border-[#0E1909]/20 bg-[#f8f9f3] p-3">
-          <ProjectMark mark={mark} color={logoColor} size={40} />
+          <ProjectMark mark={mark} color={FALLBACK_COLOR} logoUrl={logoUrl} name={name || "Your startup"} size={40} />
           <div className="min-w-0">
             <p className="font-display text-sm font-semibold text-[#0E1909]">
               {name || "Your startup"}
@@ -234,39 +260,84 @@ function ProjectForm({
           </div>
         </div>
 
-        {/* logo color + mark */}
-        <div className="flex items-center gap-4">
-          <div>
-            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
-              brand color
-            </Label>
-            <div className="mt-1.5 flex gap-1.5">
-              {LOGO_COLORS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setLogoColor(c)}
-                  className={cn(
-                    "h-7 w-7 rounded-md border-2 transition",
-                    logoColor === c ? "border-[#0E1909] ring-2 ring-[#DAFF01]" : "border-[#0E1909]/15"
-                  )}
-                  style={{ background: c }}
-                  aria-label={c}
-                />
-              ))}
+        {/* logo upload + monogram fallback */}
+        <div>
+          <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            logo · 400×400
+          </Label>
+          <div className="mt-2 flex items-center gap-3">
+            <div className="group relative" style={{ width: 56, height: 56 }}>
+              <ProjectMark mark={mark} color={FALLBACK_COLOR} logoUrl={logoUrl} name={name || "Your startup"} size={56} className="size-full" />
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={logoBusy}
+                className="absolute inset-0 flex items-center justify-center rounded-md bg-[#0E1909]/60 opacity-0 transition-opacity group-hover:opacity-100 disabled:cursor-not-allowed"
+                aria-label="Upload logo"
+              >
+                {logoBusy ? (
+                  <Loader2 size={18} className="animate-spin text-[#DAFF01]" />
+                ) : (
+                  <Camera size={18} className="text-[#DAFF01]" />
+                )}
+              </button>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleLogoFile(f);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={logoBusy}
+                  className="h-8 border-[#0E1909]/15 bg-white font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:border-[#0E1909]"
+                >
+                  {logoBusy ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                  upload
+                </Button>
+                {logoUrl && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => { setLogoUrl(null); toast.success("Logo removed"); }}
+                    className="h-8 font-mono text-xs uppercase tracking-widest text-[#0E1909]/55 hover:text-[#e0463c]"
+                  >
+                    <X size={12} /> remove
+                  </Button>
+                )}
+              </div>
+              <p className="mt-1.5 font-mono text-[11px] text-[#0E1909]/40">
+                auto-compressed to 400×400 · falls back to monogram if empty
+              </p>
             </div>
           </div>
-          <div className="flex-1">
-            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
-              monogram (optional)
-            </Label>
-            <Input
-              value={logoMark}
-              onChange={(e) => setLogoMark(e.target.value)}
-              placeholder={initialsOf(name || "··")}
-              maxLength={3}
-              className="mt-1.5 border-[#0E1909]/12 bg-white font-mono text-sm uppercase focus-visible:ring-[#DAFF01]"
-            />
-          </div>
+          {/* monogram fallback (only used if no logo uploaded) */}
+          {!logoUrl && (
+            <div className="mt-3">
+              <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
+                monogram fallback
+              </Label>
+              <Input
+                value={logoMark}
+                onChange={(e) => setLogoMark(e.target.value)}
+                placeholder={initialsOf(name || "··")}
+                maxLength={3}
+                className="mt-1.5 h-9 border-[#0E1909]/12 bg-white font-mono text-sm uppercase focus-visible:ring-[#DAFF01]"
+              />
+            </div>
+          )}
         </div>
       </div>
 

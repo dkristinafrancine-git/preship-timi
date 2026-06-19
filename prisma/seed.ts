@@ -646,6 +646,26 @@ async function main() {
     });
   }
 
+  // ---------- Follows (Maya follows a few founders, and is followed back) ----------
+  await db.follow.deleteMany();
+  const followPairs: [string, string][] = [
+    [maya.id, devrishi.id],
+    [maya.id, sofia.id],
+    [maya.id, tobi.id],
+    [maya.id, nina.id],
+    [sofia.id, maya.id],
+    [tobi.id, maya.id],
+    [nina.id, maya.id],
+    [devrishi.id, maya.id],
+    [sofia.id, nina.id],
+    [nina.id, sofia.id],
+  ];
+  for (const [followerId, followingId] of followPairs) {
+    try {
+      await db.follow.create({ data: { followerId, followingId } });
+    } catch {}
+  }
+
   console.log("Preship seed complete.");
   console.log({ users: users.length, projects: projects.length, posts: createdPosts.length, synergy: synergy.length, sessions: sessions.length });
 }

@@ -220,7 +220,7 @@ export function PostComposer() {
               <Textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="What are you shipping in the dark?"
+                placeholder="What are you broadcasting to the war room?"
                 className="min-h-[96px] resize-none border-0 bg-transparent p-0 font-display text-lg leading-relaxed text-[#0E1909] shadow-none focus-visible:ring-0 placeholder:text-[#0E1909]/30"
               />
             )}

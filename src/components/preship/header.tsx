@@ -107,7 +107,7 @@ function LiveTicker() {
 
     if (out.length === 0) {
       out.push(
-        { key: "s1", label: "Preship · alpha founders shipping in the dark", kind: "static" },
+        { key: "s1", label: "Preship · the alpha war room — collaborate in broad daylight", kind: "static" },
         { key: "s2", label: "Broadcast a bottleneck → get a handshake", kind: "static", onClick: () => navigate({ view: "synergy" }) },
         { key: "s3", label: "IdeaLab rooms open 24/7 for invite-only ideation", kind: "static", onClick: () => navigate({ view: "idealab" }) }
       );

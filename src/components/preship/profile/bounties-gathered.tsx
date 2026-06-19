@@ -69,7 +69,7 @@ export function BountiesGathered({
                 </div>
                 {r.project && (
                   <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] px-2 py-1">
-                    <ProjectMark mark={r.project.logoMark} color={r.project.logoColor} size={18} />
+                    <ProjectMark mark={r.project.logoMark} color={r.project.logoColor} logoUrl={r.project.logoUrl} name={r.project.name} size={18} />
                     <span className="font-display text-xs font-semibold text-[#0E1909]">
                       {r.project.name}
                     </span>

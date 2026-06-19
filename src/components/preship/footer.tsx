@@ -10,7 +10,7 @@ export function Footer() {
           <div className="flex items-center gap-3">
             <Logo variant="lime" />
             <span className="hidden font-mono text-xs uppercase tracking-widest text-white/40 sm:inline">
-              · war room for alpha-stage founders
+              · the alpha war room for pre-launch founders
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-widest text-white/45">
@@ -27,7 +27,7 @@ export function Footer() {
         </div>
         <div className="flex flex-col gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="font-mono text-xs uppercase tracking-widest text-white/35">
-            © preship · shipping in the dark, together
+            © preship · the alpha war room — collaborate in broad daylight
           </p>
           <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-widest text-white/35">
             <span className="flex items-center gap-1.5">

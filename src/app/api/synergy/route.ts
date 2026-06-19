@@ -40,6 +40,9 @@ export async function GET(req: NextRequest) {
             handle: true,
             title: true,
             avatarUrl: true,
+            bio: true,
+            location: true,
+            skills: true,
           },
         },
         project: {
@@ -188,6 +191,9 @@ export async function POST(req: NextRequest) {
             handle: true,
             title: true,
             avatarUrl: true,
+            bio: true,
+            location: true,
+            skills: true,
           },
         },
         project: {

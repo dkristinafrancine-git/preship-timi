@@ -5,6 +5,7 @@ import { usePreship } from "@/lib/preship-store";
 import { useApi } from "@/lib/use-api";
 import { TerminalHeader, StatusPill, StageChip, Tag } from "./badges";
 import { FounderAvatar, ProjectMark } from "./avatars";
+import { FounderHoverCard } from "./founder-hover-card";
 import type { Founder, Project, SynergyRequest, IdeaLabSession, FeedPost } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
 import { TrendingUp, Flame, Users, Calendar, ArrowRight } from "lucide-react";
@@ -50,14 +51,11 @@ function WarRoomRail() {
                 </span>
                 <FounderAvatar founder={f} size={30} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-[13px] font-semibold text-[#0E1909]">
+                  <FounderHoverCard founder={f} className="block truncate font-display text-[13px] font-semibold text-[#0E1909]">
                     {f.name}
-                  </p>
+                  </FounderHoverCard>
                   <p className="truncate font-mono text-xs text-[#0E1909]/50">@{f.handle}</p>
                 </div>
-                <button className="tactile-flat font-mono text-xs font-semibold uppercase tracking-wider text-[#0E1909] hover:text-[#6f8a3e]">
-                  follow →
-                </button>
               </li>
             ))}
           </ul>
@@ -72,9 +70,9 @@ function WarRoomRail() {
             <div key={p.id} className="hover-row cursor-pointer px-4 py-3">
               <div className="flex items-center gap-2">
                 <FounderAvatar founder={p.author} size={24} />
-                <span className="truncate font-display text-[13px] font-medium text-[#0E1909]">
+                <FounderHoverCard founder={p.author} className="truncate font-display text-[13px] font-medium text-[#0E1909]">
                   {p.author.name}
-                </span>
+                </FounderHoverCard>
                 <span className="font-mono text-xs text-[#0E1909]/45">{fmtRelative(p.createdAt)}</span>
               </div>
               <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-[#0E1909]/70">{p.body ?? p.audioTitle}</p>
@@ -95,7 +93,7 @@ function WarRoomRail() {
           <div className="space-y-1.5 p-4">
             {me.projects.slice(0, 3).map((p) => (
               <div key={p.id} className="hover-row -mx-1.5 flex items-center gap-2.5 rounded-md px-1.5 py-1.5">
-                <ProjectMark mark={p.logoMark} color={p.logoColor} size={32} />
+                <ProjectMark mark={p.logoMark} color={p.logoColor} logoUrl={p.logoUrl} name={p.name} size={32} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-[13px] font-semibold text-[#0E1909]">{p.name}</p>
                   <p className="truncate font-mono text-xs text-[#0E1909]/50">{p.tagline}</p>

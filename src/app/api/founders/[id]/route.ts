@@ -54,7 +54,7 @@ export async function GET(
           request: {
             include: {
               founder: {
-                select: { id: true, name: true, handle: true, title: true, avatarUrl: true },
+                select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
               },
               project: {
                 select: { id: true, name: true, logoMark: true, logoColor: true, alphaStage: true, category: true },

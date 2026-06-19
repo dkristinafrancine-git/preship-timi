@@ -15,7 +15,7 @@ function initialsFromName(name: string): string {
 
 const PROJECT_LIST_INCLUDE = {
   founder: {
-    select: { id: true, name: true, handle: true, title: true, avatarUrl: true },
+    select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
   },
   _count: { select: { posts: true, synergyRequests: true } },
 } as const;
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       description,
       category,
       alphaStage,
+      logoUrl,
       logoColor,
       logoMark,
       website,
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
       description?: string;
       category?: string;
       alphaStage?: string;
+      logoUrl?: string;
       logoColor?: string;
       logoMark?: string;
       website?: string;
@@ -97,6 +99,7 @@ export async function POST(req: NextRequest) {
         description: typeof description === "string" ? description : null,
         category,
         alphaStage,
+        logoUrl: typeof logoUrl === "string" && logoUrl ? logoUrl : null,
         logoColor: typeof logoColor === "string" ? logoColor : "#DAFF01",
         logoMark:
           typeof logoMark === "string" && logoMark.trim().length > 0

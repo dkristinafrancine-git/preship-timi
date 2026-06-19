@@ -36,6 +36,19 @@ model User {
   hostedSessions     IdeaLabSession[]  @relation("SessionHost")
   sessionSignups     IdeaLabSignup[]
   interests          IdeaLabInterest[]
+  following          Follow[]           @relation("Follower")
+  followers          Follow[]           @relation("Following")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
 }
 
 model Project {
@@ -47,8 +60,9 @@ model Project {
   description String?
   category    String   // e.g. DevTool, SaaS, Consumer, AI, Marketplace
   alphaStage  String   // Customer Discovery | Problem Validation | Prototyping | Closed Beta | Public Beta | Pre-Launch
-  logoColor   String   @default("#DAFF01") // accent used for the project tile
-  logoMark    String?  // short monogram e.g. "AC"
+  logoUrl     String?  // uploaded logo image (preferred)
+  logoColor   String   @default("#DAFF01") // fallback tile color (kept for legacy monogram)
+  logoMark    String?  // fallback monogram e.g. "AC"
   website     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -112,7 +112,7 @@ export function BroadcastDialog({
                       : "border-[#0E1909]/15 bg-white hover:border-[#0E1909]"
                   )}
                 >
-                  <ProjectMark mark={p.logoMark} color={p.logoColor} size={18} />
+                  <ProjectMark mark={p.logoMark} color={p.logoColor} logoUrl={p.logoUrl} name={p.name} size={18} />
                   <span className="font-mono text-xs uppercase tracking-wider text-[#0E1909]">
                     {p.name}
                   </span>

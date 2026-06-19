@@ -9,29 +9,22 @@ export function Logo({
   className?: string;
   variant?: "ink" | "lime" | "on-dark";
 }) {
-  const text =
-    variant === "lime"
-      ? "text-[#DAFF01]"
-      : variant === "on-dark"
-      ? "text-white"
-      : "text-[#0E1909]";
-  const dot = "bg-[#DAFF01]";
+  // The provided SVG wordmark uses #0E1909 ink paths. For on-dark surfaces we
+  // invert via CSS filter so the wordmark reads as #DAFF01 lime / white.
+  const filter =
+    variant === "lime" || variant === "on-dark"
+      ? "invert(94%) sepia(83%) saturate(743%) hue-rotate(34deg) brightness(105%)"
+      : "none";
   return (
     <div className={cn("flex items-center gap-2 select-none", className)}>
-      <span
-        className={cn(
-          "inline-flex h-7 w-7 items-center justify-center rounded-md border font-mono text-sm font-bold",
-          variant === "on-dark"
-            ? "border-[#DAFF01]/40 bg-[#DAFF01] text-[#0E1909]"
-            : "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
-        )}
-      >
-        P_
-      </span>
-      <span className={cn("font-display text-xl font-semibold tracking-tight", text)}>
-        Preship
-      </span>
-      <span className={cn("h-1.5 w-1.5 rounded-full", dot)} />
+      <img
+        src="/logo_preship.svg"
+        alt="Preship"
+        className="h-7 w-auto"
+        style={{ filter }}
+        draggable={false}
+      />
+      <span className="h-1.5 w-1.5 rounded-full bg-[#DAFF01]" />
     </div>
   );
 }

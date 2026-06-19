@@ -52,14 +52,31 @@ export function FounderAvatar({
 export function ProjectMark({
   mark,
   color,
+  logoUrl,
+  name,
   size = 36,
   className,
 }: {
-  mark: string | null;
+  mark?: string | null;
   color: string;
+  logoUrl?: string | null;
+  name?: string;
   size?: number;
   className?: string;
 }) {
+  // Prefer an uploaded logo image; fall back to a monogram-on-color tile.
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt={name ?? "Project logo"}
+        width={size}
+        height={size}
+        className={cn("shrink-0 rounded-md border border-[#0E1909]/10 object-cover", className)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
   const isDark = color.toLowerCase() === "#0e1909";
   return (
     <div
