@@ -44,7 +44,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#0E1909]/8 bg-[#f8f9f3] px-4 py-2">
         <div className="flex items-center gap-2">
           <StatusPill status={request.status} />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             broadcast · {fmtRelative(request.createdAt)} ago
           </span>
         </div>
@@ -52,17 +52,17 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
       </div>
 
       {/* body */}
-      <div className="p-4">
-        <div className="flex items-start gap-3">
-          <FounderAvatar founder={request.founder} size={40} />
+      <div className="p-5">
+        <div className="flex items-start gap-3.5">
+          <FounderAvatar founder={request.founder} size={44} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline gap-x-2">
-              <span className="font-display text-sm font-semibold text-[#0E1909]">
+              <span className="font-display text-[15px] font-semibold text-[#0E1909]">
                 {request.founder.name}
               </span>
-              <span className="font-mono text-xs text-[#0E1909]/45">@{request.founder.handle}</span>
+              <span className="font-mono text-[13px] text-[#0E1909]/50">@{request.founder.handle}</span>
             </div>
-            <p className="truncate font-mono text-[11px] text-[#0E1909]/50">{request.founder.title}</p>
+            <p className="truncate font-mono text-xs text-[#0E1909]/55">{request.founder.title}</p>
           </div>
           {request.project && (
             <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-white px-2 py-1">
@@ -75,38 +75,38 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
           )}
         </div>
 
-        <h3 className="mt-3 font-display text-base font-semibold text-[#0E1909]">
+        <h3 className="mt-3.5 font-display text-lg font-semibold leading-snug text-[#0E1909]">
           {request.title}
         </h3>
 
-        <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
-          <div className="rounded-md border border-[#0E1909]/10 bg-[#f8f9f3] p-2.5">
-            <p className="font-mono text-[9px] font-semibold uppercase tracking-widest text-[#0E1909]/45">
+        <div className="mt-3.5 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-md border border-[#0E1909]/10 bg-[#f8f9f3] p-3.5">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
               ⟶ bottleneck
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#0E1909]/80">{request.bottleneck}</p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-[#0E1909]/80">{request.bottleneck}</p>
           </div>
-          <div className="rounded-md border border-[#0E1909]/10 bg-[#f8f9f3] p-2.5">
-            <p className="font-mono text-[9px] font-semibold uppercase tracking-widest text-[#0E1909]/45">
+          <div className="rounded-md border border-[#0E1909]/10 bg-[#f8f9f3] p-3.5">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
               ⟶ need
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#0E1909]/80">{request.need}</p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-[#0E1909]/80">{request.need}</p>
           </div>
         </div>
 
         {request.bountyDetail && (
-          <div className="mt-2.5 rounded-md border border-[#0E1909]/10 bg-[#0E1909] p-2.5 text-[#DAFF01]">
-            <p className="font-mono text-[9px] font-semibold uppercase tracking-widest text-[#DAFF01]/60">
+          <div className="mt-3 rounded-md border border-[#0E1909]/10 bg-[#0E1909] p-3.5 text-[#DAFF01]">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#DAFF01]/60">
               ⟶ bounty terms
             </p>
-            <p className="mt-1 font-mono text-xs leading-relaxed text-[#DAFF01]/90">
+            <p className="mt-1.5 font-mono text-[13px] leading-relaxed text-[#DAFF01]/90">
               {request.bountyDetail}
             </p>
           </div>
         )}
 
         {tags.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap gap-1">
+          <div className="mt-3 flex flex-wrap gap-1.5">
             {tags.map((t) => (
               <Tag key={t}>#{t}</Tag>
             ))}
@@ -118,7 +118,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
       <div className="flex items-center gap-2 border-t border-[#0E1909]/8 px-3 py-2">
         <button
           onClick={() => setExpanded((e) => !e)}
-          className="tactile-flat flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
+          className="tactile-flat flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
         >
           <MessageSquare size={13} />
           {request._count.offers} handshake{request._count.offers === 1 ? "" : "s"}
@@ -127,7 +127,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
 
         <div className="ml-auto flex items-center gap-2">
           {request.myOffer && (
-            <span className="rounded-md bg-[#f4ffd6] px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/70">
+            <span className="rounded-md bg-[#f4ffd6] px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/70">
               you offered · {request.myOffer.status}
             </span>
           )}
@@ -135,13 +135,13 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
             <Button
               size="sm"
               onClick={() => setOfferOpen(true)}
-              className="cta-lime bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
+              className="cta-lime bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
             >
               <Handshake size={12} /> offer handshake →
             </Button>
           )}
           {isOwner && request.status === "open" && (
-            <span className="rounded-md bg-[#0E1909] px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]">
+            <span className="rounded-md bg-[#0E1909] px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#DAFF01]">
               your broadcast
             </span>
           )}
@@ -180,13 +180,13 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
                         <span className="font-display text-xs font-semibold text-[#0E1909]">
                           {o.founder.name}
                         </span>
-                        <span className="font-mono text-[10px] text-[#0E1909]/45">
+                        <span className="font-mono text-xs text-[#0E1909]/45">
                           @{o.founder.handle} · {fmtRelative(o.createdAt)} ago
                         </span>
                         {o.status !== "pending" && (
                           <span
                             className={cn(
-                              "rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest",
+                              "rounded px-1.5 py-0.5 font-mono text-xs uppercase tracking-widest",
                               o.status === "accepted"
                                 ? "bg-[#6f8a3e] text-white"
                                 : "bg-[#0E1909]/10 text-[#0E1909]/50"
@@ -198,7 +198,7 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
                       </div>
                       <p className="mt-1 text-xs text-[#0E1909]/80">{o.pitch}</p>
                       {o.offer && (
-                        <p className="mt-1 rounded bg-[#f8f9f3] px-2 py-1 font-mono text-[11px] text-[#0E1909]/70">
+                        <p className="mt-1 rounded bg-[#f8f9f3] px-2 py-1 font-mono text-xs text-[#0E1909]/70">
                           counter: {o.offer}
                         </p>
                       )}
@@ -210,14 +210,14 @@ export function SynergyCard({ request, isOwner }: { request: SynergyRequest; isO
                         size="sm"
                         variant="ghost"
                         onClick={() => decline(o.id)}
-                        className="h-7 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/50 hover:text-[#e0463c]"
+                        className="h-7 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50 hover:text-[#e0463c]"
                       >
                         <X size={11} /> decline
                       </Button>
                       <Button
                         size="sm"
                         onClick={() => accept(o.id)}
-                        className="cta-ink h-7 bg-[#0E1909] font-mono text-[10px] uppercase tracking-widest text-[#DAFF01] hover:bg-[#0E1909]/90"
+                        className="cta-ink h-7 bg-[#0E1909] font-mono text-xs uppercase tracking-widest text-[#DAFF01] hover:bg-[#0E1909]/90"
                       >
                         <Check size={11} /> accept handshake
                       </Button>

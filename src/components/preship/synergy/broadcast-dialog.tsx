@@ -78,7 +78,7 @@ export function BroadcastDialog({
               Broadcast a bottleneck
             </DialogTitle>
           </div>
-          <DialogDescription className="font-mono text-[11px] uppercase tracking-widest text-white/50">
+          <DialogDescription className="font-mono text-xs uppercase tracking-widest text-white/50">
             synergy · open a handshake request
           </DialogDescription>
         </DialogHeader>
@@ -86,14 +86,14 @@ export function BroadcastDialog({
         <div className="max-h-[70vh] space-y-4 overflow-y-auto p-5 scroll-thin">
           {/* Project picker */}
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               attach to project (optional)
             </Label>
             <div className="mt-2 flex flex-wrap gap-2">
               <button
                 onClick={() => setProjectId("")}
                 className={cn(
-                  "rounded-md border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-widest tactile-flat",
+                  "rounded-md border px-2.5 py-1.5 font-mono text-xs uppercase tracking-widest tactile-flat",
                   !projectId
                     ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                     : "border-[#0E1909]/15 bg-white text-[#0E1909]/60 hover:border-[#0E1909]"
@@ -113,7 +113,7 @@ export function BroadcastDialog({
                   )}
                 >
                   <ProjectMark mark={p.logoMark} color={p.logoColor} size={18} />
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#0E1909]">
+                  <span className="font-mono text-xs uppercase tracking-wider text-[#0E1909]">
                     {p.name}
                   </span>
                 </button>
@@ -123,7 +123,7 @@ export function BroadcastDialog({
 
           {/* Title */}
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               title
             </Label>
             <Input
@@ -136,7 +136,7 @@ export function BroadcastDialog({
 
           {/* Bottleneck */}
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               the bottleneck
             </Label>
             <Textarea
@@ -149,7 +149,7 @@ export function BroadcastDialog({
 
           {/* Need */}
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               what you need
             </Label>
             <Textarea
@@ -162,7 +162,7 @@ export function BroadcastDialog({
 
           {/* Bounty */}
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               bounty on the table
             </Label>
             <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
@@ -177,7 +177,7 @@ export function BroadcastDialog({
                       : "border-[#0E1909]/15 bg-white text-[#0E1909] hover:border-[#0E1909]"
                   )}
                 >
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest opacity-70">
+                  <span className="font-mono text-xs font-bold uppercase tracking-widest opacity-70">
                     {b.short}
                   </span>
                   <span className="font-display text-xs font-medium leading-tight">{b.label}</span>
@@ -188,7 +188,7 @@ export function BroadcastDialog({
             {needsStake && (
               <div className="mt-3 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] p-3">
                 <div className="flex items-center justify-between">
-                  <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+                  <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
                     {bountyType === "cofounder" ? "founding equity" : "stake offered"}
                   </Label>
                   <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export function BroadcastDialog({
 
           {/* Tags */}
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               tags
             </Label>
             <Input
@@ -232,7 +232,7 @@ export function BroadcastDialog({
 
           {/* Preview */}
           <div className="rounded-md border border-dashed border-[#0E1909]/20 bg-[#f8f9f3] p-3">
-            <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/50">
+            <p className="mb-1.5 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/50">
               preview
             </p>
             <div className="flex items-center gap-2">
@@ -245,7 +245,7 @@ export function BroadcastDialog({
         </div>
 
         <div className="flex items-center justify-between border-t border-[#0E1909]/10 bg-[#f8f9f3] px-5 py-3">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             broadcasts are public to the founder network
           </span>
           <div className="flex items-center gap-2">
@@ -253,7 +253,7 @@ export function BroadcastDialog({
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60"
+              className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/60"
             >
               cancel
             </Button>
@@ -261,7 +261,7 @@ export function BroadcastDialog({
               size="sm"
               onClick={submit}
               disabled={submitting || !title.trim() || !bottleneck.trim() || !need.trim()}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
+              className="bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
             >
               {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
               broadcast →

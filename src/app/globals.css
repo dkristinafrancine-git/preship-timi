@@ -45,7 +45,7 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
   /* Preship palette */
   --background: #ffffff;
   --foreground: #0e1909;
@@ -118,6 +118,15 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "ss01", "cv01";
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  /* comfortable line-height for body paragraphs */
+  p {
+    line-height: 1.6;
   }
   /* selection in lime */
   ::selection {
@@ -134,8 +143,8 @@
 .label-mono {
   font-family: var(--font-jetbrains), monospace;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 

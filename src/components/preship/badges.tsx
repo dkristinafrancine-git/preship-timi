@@ -25,7 +25,7 @@ export function StageChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest",
+        "inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-widest",
         active
           ? "border-[#0E1909] bg-[#DAFF01] text-[#0E1909]"
           : "border-[#0E1909]/15 bg-[#f4ffd6] text-[#0E1909]",
@@ -66,7 +66,7 @@ export function StageRail({
               <div
                 className={cn(
                   "flex shrink-0 items-center justify-center rounded-full border font-mono font-bold",
-                  size === "sm" ? "h-4 w-4 text-[8px]" : "h-5 w-5 text-[9px]",
+                  size === "sm" ? "h-4 w-4 text-[8px]" : "h-5 w-5 text-xs",
                   isCurrent
                     ? "border-[#0E1909] bg-[#DAFF01] text-[#0E1909]"
                     : done
@@ -125,7 +125,7 @@ export function BountyBadge({
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded border font-mono font-semibold uppercase tracking-wider",
-        size === "sm" ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-1 text-[10px]",
+        size === "sm" ? "px-2 py-1 text-xs" : "px-2.5 py-1 text-xs",
         isBarter
           ? "border-[#0E1909]/20 bg-white text-[#0E1909]"
           : "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]",
@@ -138,7 +138,7 @@ export function BountyBadge({
       {stake != null && stake > 0 ? (
         <span
           className={cn(
-            "rounded px-1",
+            "rounded px-1.5 py-0.5 font-mono text-xs",
             isBarter ? "bg-[#DAFF01] text-[#0E1909]" : "bg-[#DAFF01] text-[#0E1909]"
           )}
         >
@@ -174,7 +174,7 @@ export function RoleBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider",
+        "inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-wider",
         filled
           ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
           : "border-dashed border-[#0E1909]/30 bg-[#f4ffd6] text-[#0E1909]/70",
@@ -201,8 +201,8 @@ export function Tag({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider",
-        active ? "bg-[#DAFF01] text-[#0E1909]" : "bg-[#0E1909]/5 text-[#0E1909]/60",
+        "inline-flex items-center rounded px-2 py-1 font-mono text-xs uppercase tracking-wider",
+        active ? "bg-[#DAFF01] text-[#0E1909]" : "bg-[#0E1909]/5 text-[#0E1909]/65",
         className
       )}
     >
@@ -236,13 +236,13 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest",
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-xs font-semibold uppercase tracking-widest",
         m.cls,
         isLive && "animate-softpulse",
         className
       )}
     >
-      <span className={cn("h-1.5 w-1.5 rounded-full", m.dot, isLive && "animate-blink")} />
+      <span className={cn("h-2 w-2 rounded-full", m.dot, isLive && "animate-blink")} />
       {m.label}
     </span>
   );
@@ -262,17 +262,17 @@ export function TerminalHeader({
   return (
     <div
       className={cn(
-        "flex items-center justify-between border-b border-[#0E1909]/10 bg-[#f8f9f3] px-3 py-2",
+        "flex items-center justify-between border-b border-[#0E1909]/10 bg-[#f8f9f3] px-4 py-2.5",
         className
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <span className="flex gap-1">
           <span className="h-2 w-2 rounded-full bg-[#0E1909]/15" />
           <span className="h-2 w-2 rounded-full bg-[#0E1909]/15" />
           <span className="h-2 w-2 rounded-full bg-[#DAFF01]" />
         </span>
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/70">
+        <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/70">
           {label}
         </span>
       </div>

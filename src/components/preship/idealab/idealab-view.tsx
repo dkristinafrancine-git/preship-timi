@@ -48,14 +48,14 @@ export function IdeaLabView() {
               size="sm"
               variant="outline"
               onClick={() => setJoinOpen(true)}
-              className="border-[#0E1909]/20 bg-white font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#f4ffd6]"
+              className="border-[#0E1909]/20 bg-white font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#f4ffd6]"
             >
               <KeyRound size={13} /> join
             </Button>
             <Button
               size="sm"
               onClick={() => setHostOpen(true)}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
+              className="cta-lime h-9 bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
             >
               <Plus size={13} /> host →
             </Button>
@@ -70,7 +70,7 @@ export function IdeaLabView() {
             <span className="h-2 w-2 animate-blink rounded-full bg-[#e0463c]" />
           </span>
           <h3 className="font-display text-sm font-semibold text-[#0E1909]">Live now</h3>
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             · {liveSessions.length} room{liveSessions.length === 1 ? "" : "s"} on air
           </span>
         </div>
@@ -97,7 +97,7 @@ export function IdeaLabView() {
         <div className="mb-2 flex items-center gap-2">
           <Calendar size={14} className="text-[#0E1909]/60" />
           <h3 className="font-display text-sm font-semibold text-[#0E1909]">Upcoming sessions</h3>
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             · {scheduled.length} scheduled
           </span>
         </div>

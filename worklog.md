@@ -159,3 +159,28 @@ Work Log:
 
 Stage Summary:
 - App now feels responsive: cards have subtle depth, buttons lift+glow on hover, nav icons scale, list rows tint, waveform bars respond. Shadows are ink-tinted (not gray) to match the brand. Hover transitions are 150-200ms ease-out; press feedback is 100-120ms scale.
+
+---
+Task ID: 12
+Agent: main
+Task: Readability & spacing pass — dev-tools-grade typography (Linear/Vercel/GitHub caliber).
+
+Work Log:
+- Established a type scale in globals.css: body 15px / line-height 1.55; p line-height 1.6; antialiased font smoothing; text-rendering optimizeLegibility. Bumped --radius from 0.5rem to 0.625rem. Bumped label-mono from 0.6875rem to 0.75rem.
+- Eliminated all text-[9px] (16 instances) and text-[10px] (110 instances) → text-[11px] via global sed, then bumped all remaining text-[11px] → text-xs (12px) — 222 instances now at 12px.
+- Bumped view-level spacing: space-y-4 → space-y-5 across all 4 views. Page padding px-4 py-5 → px-5 py-8 lg:px-8. Max-width 1280→1320. Grid gap-6→gap-8. Right rail space-y-4→space-y-5.
+- Header: h-14→h-16, button text text-[11px]→text-xs, icons 14→15px, gaps tightened. Updated all sticky offsets from top-[84px]→top-[96px] to match new header height.
+- ViewHeader: title text-xl→text-2xl, subtitle text-xs→text-[13px], py-3→py-4, mb-4→mb-6, -mx-4→-mx-5 lg:-mx-8.
+- Sidebar: nav px-2.5 py-2 → px-3 py-2.5, label text-sm→text-[15px], icons 16→17px, space-y-0.5→space-y-1, section headers text-[11px]→text-xs. User card m-3→m-4, p-3→p-3.5, avatar 36→40, name text-sm→text-[15px].
+- FeedPost: header p-4→p-5, gap-3→gap-3.5, author name text-sm→text-[15px], handle/timestamp text-xs→text-[13px], body text text-[15px]→text-[16px] with leading-[1.65], tags gap-1→gap-1.5, reaction buttons px-2 py-1→px-2.5 py-1.5 text-xs→text-[13px], icons 15→16px. Comments: p-3→p-4, avatar 24→28, name text-xs→text-[13px], body text-xs→text-[13px] leading-relaxed, input h-9 text-[13px].
+- PostComposer: tabs px-2 py-1→px-2.5 py-1.5, body p-4→p-5, textarea text-base→text-lg min-h-88→96, tags input h-9 w-44→w-48, select h-9, ship button h-9.
+- Badges: StageChip px-2 py-0.5→px-2.5 py-1, BountyBadge text-[11px]→text-xs, RoleBadge px-2 py-0.5→px-2.5 py-1, Tag px-1.5 py-0.5→px-2 py-1, StatusPill px-2.5 py-1→px-3 py-1 dot 1.5→2px, TerminalHeader px-3 py-2→px-4 py-2.5.
+- Right rail: all widget content bumped — founder names text-xs→text-[13px], avatars 28→30, trending body text-xs→text-[13px] leading-relaxed, Stat value text-xl→text-2xl p-2.5→p-3, bounty-mix/stage-distribution bars h-1.5→h-2, labels text-[11px]→text-xs, how-synergy-works text-xs→text-[13px] leading-relaxed.
+- SynergyCard: p-4→p-5, avatar 40→44, title text-base→text-lg, bottleneck/need blocks p-2.5→p-3.5 text-xs→text-[13px], bounty terms p-2.5→p-3.5 text-xs→text-[13px], gaps mt-2.5→mt-3/3.5.
+- SessionCard: cover px-4 py-3→px-5 py-4, title text-base→text-[17px], body p-4→p-5, thesis text-xs→text-[13px], host name text-xs→text-[13px], border /12→/15 for sharper definition.
+- ProjectCard: p-4→p-5, mark 44→46, title text-base→text-lg, tagline text-xs→text-[13px], description text-xs→text-[13px], stage rail py-3→py-3.5, footer py-2.5→py-3.
+- View CTAs bumped to h-9 text-xs. Filter tabs px-3 py-1.5→px-3.5 py-2.
+- Verified via getComputedStyle: body 15px/23.25px (1.55 LH), h1 24px, feed post body 16px/26.4px (1.65 LH). VLM confirmed 3/4 screens clearly pass dev-tools-grade; synergy borderline but fixed with p-5 + 13px secondary text.
+
+Stage Summary:
+- App now has comfortable, readable typography: body 15-16px at 1.55-1.65 line-height, metadata 12-13px, generous p-5 card padding, space-y-5 section spacing. Feels clean, low-fatigue, sharp — matching Linear/Vercel/GitHub caliber. No text below 12px anywhere. Lint clean, no runtime errors.

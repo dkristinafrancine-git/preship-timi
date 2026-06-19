@@ -34,7 +34,7 @@ export function ProjectsView() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <ViewHeader
         title="Projects"
         code="/projects"
@@ -43,7 +43,7 @@ export function ProjectsView() {
           <Button
             size="sm"
             onClick={openNew}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
+            className="cta-lime h-9 bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
           >
             <Plus size={13} /> add →
           </Button>
@@ -58,7 +58,7 @@ export function ProjectsView() {
               key={s}
               onClick={() => setScope(s)}
               className={cn(
-                "rounded px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest tactile-flat",
+                "rounded px-3.5 py-2 font-mono text-xs font-semibold uppercase tracking-widest tactile-flat",
                 scope === s ? "bg-[#DAFF01] text-[#0E1909]" : "text-[#0E1909]/55 hover:text-[#0E1909]"
               )}
             >
@@ -67,13 +67,13 @@ export function ProjectsView() {
           ))}
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto">
-          <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <span className="flex items-center gap-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             <Filter size={11} /> stage:
           </span>
           <button
             onClick={() => setStageFilter("all")}
             className={cn(
-              "shrink-0 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest tactile-flat",
+              "shrink-0 rounded border px-2 py-1 font-mono text-xs uppercase tracking-widest tactile-flat",
               stageFilter === "all"
                 ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                 : "border-[#0E1909]/15 bg-white text-[#0E1909]/55 hover:border-[#0E1909]"
@@ -86,7 +86,7 @@ export function ProjectsView() {
               key={s}
               onClick={() => setStageFilter(s)}
               className={cn(
-                "shrink-0 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest tactile-flat",
+                "shrink-0 rounded border px-2 py-1 font-mono text-xs uppercase tracking-widest tactile-flat",
                 stageFilter === s
                   ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                   : "border-[#0E1909]/15 bg-white text-[#0E1909]/55 hover:border-[#0E1909]"

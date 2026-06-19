@@ -110,14 +110,14 @@ export function PostComposer() {
   return (
     <div className="terminal-card">
       {/* mode tabs */}
-      <div className="flex items-center justify-between border-b border-[#0E1909]/10 bg-[#f8f9f3] px-3 py-2">
+      <div className="flex items-center justify-between border-b border-[#0E1909]/10 bg-[#f8f9f3] px-4 py-2.5">
         <div className="flex items-center gap-1">
           <span className="flex gap-1">
             <span className="h-2 w-2 rounded-full bg-[#0E1909]/15" />
             <span className="h-2 w-2 rounded-full bg-[#0E1909]/15" />
             <span className="h-2 w-2 rounded-full bg-[#DAFF01]" />
           </span>
-          <span className="ml-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+          <span className="ml-2.5 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
             post · as-founder
           </span>
         </div>
@@ -125,30 +125,30 @@ export function PostComposer() {
           <button
             onClick={() => setMode("text")}
             className={cn(
-              "tactile-flat flex items-center gap-1.5 rounded px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest",
+              "tactile-flat flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-xs font-semibold uppercase tracking-widest",
               mode === "text" ? "bg-[#0E1909] text-[#DAFF01]" : "text-[#0E1909]/55 hover:text-[#0E1909]"
             )}
           >
-            <Type size={12} /> Text
+            <Type size={13} /> Text
           </button>
           <button
             onClick={() => setMode("audio")}
             className={cn(
-              "tactile-flat flex items-center gap-1.5 rounded px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest",
+              "tactile-flat flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-xs font-semibold uppercase tracking-widest",
               mode === "audio" ? "bg-[#0E1909] text-[#DAFF01]" : "text-[#0E1909]/55 hover:text-[#0E1909]"
             )}
           >
-            <Mic size={12} /> Audio
+            <Mic size={13} /> Audio
           </button>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-5">
         <div className="flex gap-3">
           <div className="shrink-0">
             {me && (
               <div className="text-center">
-                <span className="font-mono text-[9px] uppercase tracking-widest text-[#0E1909]/40">
+                <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
                   you
                 </span>
               </div>
@@ -156,12 +156,12 @@ export function PostComposer() {
           </div>
           <div className="flex-1">
             {mode === "audio" ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <input
                   value={audioTitle}
                   onChange={(e) => setAudioTitle(e.target.value)}
                   placeholder="Audio title — one line, high-signal"
-                  className="w-full bg-transparent font-display text-base font-medium text-[#0E1909] outline-none placeholder:text-[#0E1909]/30"
+                  className="w-full bg-transparent font-display text-lg font-medium text-[#0E1909] outline-none placeholder:text-[#0E1909]/30"
                 />
                 {/* recording bar */}
                 <div className="flex items-center gap-3 rounded-md border border-[#0E1909]/12 bg-[#0E1909] px-3 py-2.5">
@@ -213,7 +213,7 @@ export function PostComposer() {
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   placeholder="Optional context for the audio…"
-                  className="min-h-[60px] resize-none border-[#0E1909]/12 bg-transparent font-display text-sm text-[#0E1909] placeholder:text-[#0E1909]/30 focus-visible:ring-[#DAFF01]"
+                  className="min-h-[64px] resize-none border-[#0E1909]/12 bg-transparent font-display text-[15px] leading-relaxed text-[#0E1909] placeholder:text-[#0E1909]/35 focus-visible:ring-[#DAFF01]"
                 />
               </div>
             ) : (
@@ -221,21 +221,21 @@ export function PostComposer() {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="What are you shipping in the dark?"
-                className="min-h-[88px] resize-none border-0 bg-transparent p-0 font-display text-base text-[#0E1909] shadow-none focus-visible:ring-0 placeholder:text-[#0E1909]/30"
+                className="min-h-[96px] resize-none border-0 bg-transparent p-0 font-display text-lg leading-relaxed text-[#0E1909] shadow-none focus-visible:ring-0 placeholder:text-[#0E1909]/30"
               />
             )}
           </div>
         </div>
 
         {/* tags + project + actions */}
-        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#0E1909]/8 pt-3">
-          <div className="flex items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-white px-2 py-1">
-            <Hash size={12} className="text-[#0E1909]/40" />
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#0E1909]/8 pt-4">
+          <div className="flex h-9 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-white px-2.5">
+            <Hash size={13} className="text-[#0E1909]/40" />
             <input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="tags, comma-separated"
-              className="w-44 bg-transparent font-mono text-[11px] text-[#0E1909] outline-none placeholder:text-[#0E1909]/30"
+              className="w-48 bg-transparent font-mono text-xs text-[#0E1909] outline-none placeholder:text-[#0E1909]/35"
             />
           </div>
 
@@ -243,7 +243,7 @@ export function PostComposer() {
             <select
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="rounded-md border border-[#0E1909]/12 bg-white px-2 py-1 font-mono text-[11px] text-[#0E1909] outline-none"
+              className="h-9 rounded-md border border-[#0E1909]/12 bg-white px-2.5 font-mono text-xs text-[#0E1909] outline-none focus-visible:border-[#0E1909]"
             >
               <option value="">post as founder</option>
               {projects.map((p) => (
@@ -255,22 +255,22 @@ export function PostComposer() {
           )}
 
           {projectId && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-[#f4ffd6] px-1.5 py-1 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/60">
+            <span className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#f4ffd6] px-2.5 font-mono text-xs uppercase tracking-widest text-[#0E1909]/60">
               tagged: {projects.find((p) => p.id === projectId)?.name}
               <button onClick={() => setProjectId("")} className="hover:text-[#0E1909]">
-                <X size={10} />
+                <X size={12} />
               </button>
             </span>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
-            <span className="hidden font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/35 sm:inline">
+          <div className="ml-auto flex items-center gap-3">
+            <span className="hidden font-mono text-xs uppercase tracking-widest text-[#0E1909]/40 sm:inline">
               cmd+enter to ship
             </span>
             <Button
               onClick={submit}
               disabled={submitting}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-60"
+              className="cta-lime h-9 bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600] disabled:opacity-60"
             >
               {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
               {mode === "audio" ? "Ship audio →" : "Ship post →"}

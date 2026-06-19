@@ -12,7 +12,7 @@ import { TrendingUp, Flame, Users, Calendar, ArrowRight } from "lucide-react";
 export function RightRail() {
   const view = usePreship((s) => s.view);
   return (
-    <aside className="hidden w-[320px] shrink-0 space-y-4 lg:sticky lg:top-[84px] lg:h-[calc(100vh-84px)] lg:block lg:overflow-y-auto lg:pb-6 scroll-thin">
+    <aside className="hidden w-[320px] shrink-0 space-y-5 lg:sticky lg:top-[96px] lg:h-[calc(100vh-96px)] lg:block lg:overflow-y-auto lg:pb-8 scroll-thin">
       {view === "war-room" && <WarRoomRail />}
       {view === "synergy" && <SynergyRail />}
       {view === "idealab" && <IdeaLabRail />}
@@ -31,30 +31,30 @@ function WarRoomRail() {
       {/* Alpha founders leaderboard */}
       <div className="terminal-card">
         <TerminalHeader label="top-founders · last-30d" />
-        <div className="p-3">
-          <div className="mb-2 flex items-center gap-2 text-[#0E1909]/50">
-            <Flame size={13} />
-            <span className="font-mono text-[10px] uppercase tracking-widest">highest-intent signal</span>
+        <div className="p-4">
+          <div className="mb-3 flex items-center gap-2 text-[#0E1909]/50">
+            <Flame size={14} />
+            <span className="font-mono text-xs uppercase tracking-widest">highest-intent signal</span>
           </div>
-          <ul className="space-y-1">
+          <ul className="space-y-1.5">
             {TOP_FOUNDERS.map((f, i) => (
-              <li key={f.handle} className="hover-row -mx-1 flex items-center gap-2.5 rounded-md px-1 py-1">
+              <li key={f.handle} className="hover-row -mx-1.5 flex items-center gap-2.5 rounded-md px-1.5 py-1.5">
                 <span
                   className={cn(
-                    "flex h-5 w-5 shrink-0 items-center justify-center rounded font-mono text-[10px] font-bold",
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-xs font-bold",
                     i === 0 ? "bg-[#DAFF01] text-[#0E1909]" : "bg-[#0E1909]/8 text-[#0E1909]/60"
                   )}
                 >
                   {i + 1}
                 </span>
-                <FounderAvatar founder={f} size={28} />
+                <FounderAvatar founder={f} size={30} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-xs font-semibold text-[#0E1909]">
+                  <p className="truncate font-display text-[13px] font-semibold text-[#0E1909]">
                     {f.name}
                   </p>
-                  <p className="truncate font-mono text-[10px] text-[#0E1909]/50">@{f.handle}</p>
+                  <p className="truncate font-mono text-xs text-[#0E1909]/50">@{f.handle}</p>
                 </div>
-                <button className="tactile-flat font-mono text-[10px] font-semibold uppercase tracking-wider text-[#0E1909] hover:text-[#6f8a3e]">
+                <button className="tactile-flat font-mono text-xs font-semibold uppercase tracking-wider text-[#0E1909] hover:text-[#6f8a3e]">
                   follow →
                 </button>
               </li>
@@ -65,19 +65,19 @@ function WarRoomRail() {
 
       {/* Trending posts */}
       <div className="terminal-card">
-        <TerminalHeader label="trending · now" right={<TrendingUp size={13} className="text-[#0E1909]/40" />} />
+        <TerminalHeader label="trending · now" right={<TrendingUp size={14} className="text-[#0E1909]/40" />} />
         <div className="divide-y divide-[#0E1909]/8">
           {trendingTop.map((p) => (
-            <div key={p.id} className="hover-row cursor-pointer px-3 py-2.5">
+            <div key={p.id} className="hover-row cursor-pointer px-4 py-3">
               <div className="flex items-center gap-2">
-                <FounderAvatar founder={p.author} size={22} />
-                <span className="truncate font-display text-xs font-medium text-[#0E1909]">
+                <FounderAvatar founder={p.author} size={24} />
+                <span className="truncate font-display text-[13px] font-medium text-[#0E1909]">
                   {p.author.name}
                 </span>
-                <span className="font-mono text-[10px] text-[#0E1909]/40">{fmtRelative(p.createdAt)}</span>
+                <span className="font-mono text-xs text-[#0E1909]/45">{fmtRelative(p.createdAt)}</span>
               </div>
-              <p className="mt-1 line-clamp-2 text-xs text-[#0E1909]/70">{p.body ?? p.audioTitle}</p>
-              <div className="mt-1.5 flex items-center gap-1">
+              <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-[#0E1909]/70">{p.body ?? p.audioTitle}</p>
+              <div className="mt-2 flex items-center gap-1">
                 {p._count.reactions.handshake > 0 && (
                   <Tag>↪ {p._count.reactions.handshake} handshake</Tag>
                 )}
@@ -91,13 +91,13 @@ function WarRoomRail() {
       {me?.projects?.length ? (
         <div className="terminal-card">
           <TerminalHeader label="my-projects · status" />
-          <div className="space-y-1 p-3">
+          <div className="space-y-1.5 p-4">
             {me.projects.slice(0, 3).map((p) => (
-              <div key={p.id} className="hover-row -mx-1 flex items-center gap-2.5 rounded-md px-1 py-1">
-                <ProjectMark mark={p.logoMark} color={p.logoColor} size={30} />
+              <div key={p.id} className="hover-row -mx-1.5 flex items-center gap-2.5 rounded-md px-1.5 py-1.5">
+                <ProjectMark mark={p.logoMark} color={p.logoColor} size={32} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-xs font-semibold text-[#0E1909]">{p.name}</p>
-                  <p className="truncate font-mono text-[10px] text-[#0E1909]/50">{p.tagline}</p>
+                  <p className="truncate font-display text-[13px] font-semibold text-[#0E1909]">{p.name}</p>
+                  <p className="truncate font-mono text-xs text-[#0E1909]/50">{p.tagline}</p>
                 </div>
                 <StageChip stage={p.alphaStage} />
               </div>
@@ -134,22 +134,22 @@ function SynergyRail() {
             <Stat label="avg. stake" value={`${avgStake(open)}%`} />
           </div>
           <div>
-            <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/50">
+            <p className="mb-2 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">
               bounty mix
             </p>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {Object.entries(byBounty).map(([k, v]) => (
                 <div key={k} className="flex items-center gap-2">
-                  <span className="w-24 truncate font-mono text-[11px] text-[#0E1909]/70">
+                  <span className="w-28 truncate font-mono text-xs text-[#0E1909]/70">
                     {bountyLabels[k] ?? k}
                   </span>
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#0E1909]/8">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#0E1909]/8">
                     <div
                       className="h-full rounded-full bg-[#DAFF01]"
                       style={{ width: `${(v / open.length) * 100}%` }}
                     />
                   </div>
-                  <span className="w-4 text-right font-mono text-[11px] font-semibold text-[#0E1909]">
+                  <span className="w-5 text-right font-mono text-xs font-semibold text-[#0E1909]">
                     {v}
                   </span>
                 </div>
@@ -160,10 +160,10 @@ function SynergyRail() {
       </div>
 
       <div className="rounded-lg border border-[#0E1909]/12 bg-[#f4ffd6] p-4">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+        <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
           how synergy works
         </p>
-        <ol className="mt-2 space-y-1.5 text-xs text-[#0E1909]/80">
+        <ol className="mt-2.5 space-y-2 text-[13px] leading-relaxed text-[#0E1909]/80">
           <li><span className="font-mono text-[#0E1909]">01</span> Broadcast your bottleneck.</li>
           <li><span className="font-mono text-[#0E1909]">02</span> Set a bounty (equity, advisor shares, barter).</li>
           <li><span className="font-mono text-[#0E1909]">03</span> Receive handshakes from matched founders.</li>
@@ -181,19 +181,19 @@ function IdeaLabRail() {
   return (
     <>
       <div className="terminal-card">
-        <TerminalHeader label="idealab · live-now" right={<span className="font-mono text-[10px] text-[#e0463c]">●REC</span>} />
+        <TerminalHeader label="idealab · live-now" right={<span className="font-mono text-xs text-[#e0463c]">●REC</span>} />
         <div className="p-4">
           {live.length === 0 ? (
-            <p className="font-mono text-xs text-[#0E1909]/50">No live rooms. Schedule one →</p>
+            <p className="font-mono text-[13px] text-[#0E1909]/50">No live rooms. Schedule one →</p>
           ) : (
             <ul className="space-y-3">
               {live.map((s) => (
-                <li key={s.id} className="rounded-md border border-[#0E1909]/12 bg-[#0E1909] p-3">
+                <li key={s.id} className="rounded-md border border-[#0E1909]/12 bg-[#0E1909] p-3.5">
                   <StatusPill status="live" />
-                  <p className="mt-2 font-display text-sm font-semibold text-white">{s.title}</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <FounderAvatar founder={s.host} size={20} />
-                    <span className="font-mono text-[10px] text-[#DAFF01]/70">@{s.host.handle}</span>
+                  <p className="mt-2.5 font-display text-[15px] font-semibold leading-snug text-white">{s.title}</p>
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <FounderAvatar founder={s.host} size={22} />
+                    <span className="font-mono text-xs text-[#DAFF01]/70">@{s.host.handle}</span>
                   </div>
                 </li>
               ))}
@@ -204,8 +204,8 @@ function IdeaLabRail() {
 
       <div className="rounded-lg border border-[#0E1909]/12 bg-[#0E1909] p-4 text-white">
         <div className="flex items-center gap-2">
-          <Calendar size={14} className="text-[#DAFF01]" />
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#DAFF01]">
+          <Calendar size={15} className="text-[#DAFF01]" />
+          <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#DAFF01]">
             hosting etiquette
           </span>
         </div>
@@ -233,20 +233,20 @@ function ProjectsRail() {
       <div className="terminal-card">
         <TerminalHeader label="network · stage-distribution" />
         <div className="p-4">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/50">
+          <p className="mb-2.5 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">
             founders by alpha sub-stage
           </p>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {Object.entries(byStage).map(([stage, count]) => (
               <div key={stage} className="flex items-center gap-2">
-                <span className="w-32 truncate font-mono text-[11px] text-[#0E1909]/70">{stage}</span>
+                <span className="w-32 truncate font-mono text-xs text-[#0E1909]/70">{stage}</span>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#0E1909]/8">
                   <div
                     className="h-full rounded-full bg-[#DAFF01]"
                     style={{ width: `${(count / all.length) * 100}%` }}
                   />
                 </div>
-                <span className="w-4 text-right font-mono text-[11px] font-semibold text-[#0E1909]">
+                <span className="w-5 text-right font-mono text-xs font-semibold text-[#0E1909]">
                   {count}
                 </span>
               </div>
@@ -256,10 +256,10 @@ function ProjectsRail() {
       </div>
 
       <div className="rounded-lg border border-[#0E1909]/12 bg-[#f4ffd6] p-4">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+        <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
           alpha sub-stages
         </p>
-        <ul className="mt-2 space-y-1 text-xs text-[#0E1909]/75">
+        <ul className="mt-2.5 space-y-1.5 text-[13px] leading-relaxed text-[#0E1909]/75">
           <li><b className="font-mono text-[#0E1909]">CD</b> Customer Discovery — interviews, not product.</li>
           <li><b className="font-mono text-[#0E1909]">PV</b> Problem Validation — the kill/continue call.</li>
           <li><b className="font-mono text-[#0E1909]">PT</b> Prototyping — bench numbers, not users.</li>
@@ -274,9 +274,9 @@ function ProjectsRail() {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-md border border-[#0E1909]/10 bg-white p-2.5">
-      <p className="font-mono text-[9px] uppercase tracking-widest text-[#0E1909]/50">{label}</p>
-      <p className="mt-0.5 font-display text-xl font-bold text-[#0E1909]">{value}</p>
+    <div className="rounded-md border border-[#0E1909]/10 bg-white p-3">
+      <p className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">{label}</p>
+      <p className="mt-1 font-display text-2xl font-bold text-[#0E1909]">{value}</p>
     </div>
   );
 }

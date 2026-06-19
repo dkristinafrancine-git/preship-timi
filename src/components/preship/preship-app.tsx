@@ -28,8 +28,8 @@ export function PreshipApp() {
       <Header />
 
       {/* 3-column grid: left nav | center | right rail — max-width centered */}
-      <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-5 lg:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:gap-6">
+      <main className="mx-auto w-full max-w-[1320px] flex-1 px-5 py-8 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:gap-8">
           <Sidebar />
           <section className="min-w-0 px-0 lg:px-0">
             {view === "war-room" && <WarRoomView />}

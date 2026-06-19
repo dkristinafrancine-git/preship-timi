@@ -49,13 +49,13 @@ export function Sidebar() {
       <aside
         className={cn(
           // mobile: fixed drawer; lg+: sticky grid cell, scrolls under header
-          "fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col border-r border-[#0E1909]/10 bg-white transition-transform lg:sticky lg:top-[84px] lg:z-auto lg:h-[calc(100vh-84px)] lg:translate-x-0 lg:overflow-y-auto lg:pb-6 scroll-thin",
+          "fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col border-r border-[#0E1909]/10 bg-white transition-transform lg:sticky lg:top-[96px] lg:z-auto lg:h-[calc(100vh-96px)] lg:translate-x-0 lg:overflow-y-auto lg:pb-8 scroll-thin",
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* mobile close row (logo lives in global header on desktop) */}
-        <div className="flex items-center justify-between px-4 pt-4 lg:hidden">
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/50">
+        <div className="flex items-center justify-between px-5 pt-5 lg:hidden">
+          <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/50">
             navigate
           </span>
           <button
@@ -67,11 +67,11 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className="mt-2 flex-1 px-3 lg:mt-5">
-          <p className="mb-2 px-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/40">
+        <nav className="mt-3 flex-1 px-4 lg:mt-6">
+          <p className="mb-2.5 px-2 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
             Workspace
           </p>
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {NAV.map((item) => {
               const active = view === item.id;
               const Icon = item.icon;
@@ -80,18 +80,18 @@ export function Sidebar() {
                   <button
                     onClick={() => setView(item.id)}
                     className={cn(
-                      "tactile-flat group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left",
+                      "tactile-flat group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left",
                       active
                         ? "bg-[#0E1909] text-[#DAFF01] shadow-[0_2px_8px_rgba(14,25,9,0.12)]"
                         : "text-[#0E1909] hover:bg-[#f4ffd6]"
                     )}
                   >
-                    <Icon size={16} className={cn("transition-transform duration-150", active ? "text-[#DAFF01]" : "text-[#0E1909]/70 group-hover:scale-110")} />
-                    <span className="flex-1 font-display text-sm font-medium">{item.label}</span>
+                    <Icon size={17} className={cn("transition-transform duration-150", active ? "text-[#DAFF01]" : "text-[#0E1909]/70 group-hover:scale-110")} />
+                    <span className="flex-1 font-display text-[15px] font-medium">{item.label}</span>
                     <span
                       className={cn(
-                        "font-mono text-[9px] font-bold uppercase tracking-widest",
-                        active ? "text-[#DAFF01]/60" : "text-[#0E1909]/30"
+                        "font-mono text-xs font-bold uppercase tracking-widest",
+                        active ? "text-[#DAFF01]/60" : "text-[#0E1909]/35"
                       )}
                     >
                       {item.code}
@@ -102,18 +102,18 @@ export function Sidebar() {
             })}
           </ul>
 
-          <p className="mb-2 mt-6 px-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/40">
+          <p className="mb-2.5 mt-7 px-2 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
             Browse
           </p>
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {SECONDARY.map((item) => {
               const Icon = item.icon;
               return (
                 <li key={item.label}>
-                  <button className="tactile-flat group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-[#0E1909]/70 hover:bg-[#f4ffd6] hover:text-[#0E1909]">
-                    <Icon size={16} className="text-[#0E1909]/50 transition-transform duration-150 group-hover:scale-110" />
-                    <span className="flex-1 font-display text-sm font-medium">{item.label}</span>
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-[#0E1909]/25">
+                  <button className="tactile-flat group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[#0E1909]/70 hover:bg-[#f4ffd6] hover:text-[#0E1909]">
+                    <Icon size={17} className="text-[#0E1909]/50 transition-transform duration-150 group-hover:scale-110" />
+                    <span className="flex-1 font-display text-[15px] font-medium">{item.label}</span>
+                    <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/30">
                       {item.code}
                     </span>
                   </button>
@@ -125,25 +125,25 @@ export function Sidebar() {
 
         {/* current founder card */}
         {meData?.user && (
-          <div className="m-3 rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3 transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]">
-            <div className="flex items-center gap-2.5">
-              <FounderAvatar founder={meData.user} size={36} />
+          <div className="m-4 rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3.5 transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]">
+            <div className="flex items-center gap-3">
+              <FounderAvatar founder={meData.user} size={40} />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-sm font-semibold text-[#0E1909]">
+                <p className="truncate font-display text-[15px] font-semibold text-[#0E1909]">
                   {meData.user.name}
                 </p>
-                <p className="truncate font-mono text-[10px] text-[#0E1909]/55">
+                <p className="truncate font-mono text-xs text-[#0E1909]/55">
                   @{meData.user.handle}
                 </p>
               </div>
             </div>
-            <div className="mt-2 flex items-center justify-between border-t border-[#0E1909]/10 pt-2">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/50">
+            <div className="mt-2.5 flex items-center justify-between border-t border-[#0E1909]/10 pt-2.5">
+              <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">
                 {meData.projects.length} project{meData.projects.length === 1 ? "" : "s"}
               </span>
               <button
                 onClick={() => setView("projects")}
-                className="tactile-flat font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]"
+                className="tactile-flat font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]"
               >
                 manage →
               </button>

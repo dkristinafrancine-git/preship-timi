@@ -97,7 +97,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
             <StatusPill status={session.status} />
             <button
               onClick={copyInvite}
-              className="tactile-flat flex items-center gap-1.5 rounded-md border border-[#DAFF01]/25 bg-white/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-[#DAFF01] hover:bg-white/10 hover:border-[#DAFF01]/50"
+              className="tactile-flat flex items-center gap-1.5 rounded-md border border-[#DAFF01]/25 bg-white/5 px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#DAFF01] hover:bg-white/10 hover:border-[#DAFF01]/50"
             >
               {copied ? <Check size={11} /> : <Copy size={11} />}
               {session.inviteCode}
@@ -106,7 +106,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
           <h2 className="mt-2 font-display text-lg font-semibold leading-snug text-white">
             {session.title}
           </h2>
-          <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]/70">
+          <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-xs uppercase tracking-widest text-[#DAFF01]/70">
             <span className="flex items-center gap-1.5">
               <FounderAvatar founder={session.host} size={16} />
               @{session.host.handle} · host
@@ -121,7 +121,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
       <div className="flex-1 overflow-y-auto scroll-thin">
         {/* thesis */}
         <div className="border-b border-[#0E1909]/8 px-5 py-4">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/45">
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
             thesis
           </p>
           <p className="mt-1 font-display text-sm leading-relaxed text-[#0E1909]/85">
@@ -136,11 +136,11 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
         {isLive && (
           <div className="border-b border-[#0E1909]/8 bg-[#0E1909] px-5 py-4">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#DAFF01]">
+              <span className="flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-widest text-[#DAFF01]">
                 <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#e0463c]" />
                 live audio room
               </span>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]/60">
+              <span className="font-mono text-xs uppercase tracking-widest text-[#DAFF01]/60">
                 {signups.length} in room
               </span>
             </div>
@@ -185,7 +185,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                 >
                   <Hand size={16} />
                 </button>
-                <span className="ml-2 font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]/50">
+                <span className="ml-2 font-mono text-xs uppercase tracking-widest text-[#DAFF01]/50">
                   {muted ? "muted" : "live mic"} · {handRaised ? "hand raised" : "hand down"}
                 </span>
               </div>
@@ -196,7 +196,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
         {/* agenda */}
         {agendaLines.length > 0 && (
           <div className="border-b border-[#0E1909]/8 px-5 py-4">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/45">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
               agenda
             </p>
             <ul className="mt-2 space-y-1">
@@ -216,7 +216,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
         {/* open roles + register */}
         {!session.mySignup && seatsLeft > 0 && (
           <div className="border-b border-[#0E1909]/8 px-5 py-4">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/45">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
               register · pick your role
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -228,7 +228,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                     key={r.id}
                     onClick={() => setSignupRole(r.id)}
                     className={cn(
-                      "rounded-md border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-widest transition",
+                      "rounded-md border px-2.5 py-1.5 font-mono text-xs uppercase tracking-widest transition",
                       sel
                         ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                         : open
@@ -244,7 +244,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
             <Button
               size="sm"
               onClick={register}
-              className="mt-3 bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
+              className="mt-3 bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]"
             >
               register as {signupRole.replace("-", " ")} →
             </Button>
@@ -254,7 +254,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
         {/* signups list */}
         {signups.length > 0 && (
           <div className="border-b border-[#0E1909]/8 px-5 py-4">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/45">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
               in the room · {signups.length}
             </p>
             <ul className="mt-2 space-y-1.5">
@@ -262,7 +262,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                 <li key={s.id} className="flex items-center gap-2">
                   <FounderAvatar founder={s.user} size={22} />
                   <span className="font-display text-xs font-medium text-[#0E1909]">{s.user.name}</span>
-                  <span className="font-mono text-[10px] text-[#0E1909]/40">@{s.user.handle}</span>
+                  <span className="font-mono text-xs text-[#0E1909]/40">@{s.user.handle}</span>
                   <span className="ml-auto">
                     <RoleBadge role={s.role} filled={s.status === "confirmed"} />
                   </span>
@@ -283,17 +283,17 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                 className="min-h-[50px] resize-none border-[#0E1909]/12 bg-white font-display text-xs focus-visible:ring-[#DAFF01]"
               />
               <div className="mt-2 flex justify-end gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setShowInterest(false)} className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/55">
+                <Button size="sm" variant="ghost" onClick={() => setShowInterest(false)} className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/55">
                   <X size={11} /> cancel
                 </Button>
-                <Button size="sm" onClick={toggleInterest} className="bg-[#DAFF01] font-mono text-[10px] uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]">
+                <Button size="sm" onClick={toggleInterest} className="bg-[#DAFF01] font-mono text-xs uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600]">
                   <Check size={11} /> mark interest
                 </Button>
               </div>
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/45">
+              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
                 <Star size={11} />
                 {session._count.interests} founder{session._count.interests === 1 ? "" : "s"} interested
                 {session.myInterest && (
@@ -305,7 +305,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                   size="sm"
                   variant="outline"
                   onClick={() => setShowInterest(true)}
-                  className="border-[#0E1909]/20 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/70"
+                  className="border-[#0E1909]/20 font-mono text-xs uppercase tracking-widest text-[#0E1909]/70"
                 >
                   <Star size={11} /> mark interest
                 </Button>
@@ -315,7 +315,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                   size="sm"
                   variant="outline"
                   onClick={toggleInterest}
-                  className="border-[#0E1909]/20 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/70"
+                  className="border-[#0E1909]/20 font-mono text-xs uppercase tracking-widest text-[#0E1909]/70"
                 >
                   remove interest
                 </Button>
@@ -327,7 +327,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
 
       {/* footer actions */}
       <div className="flex items-center justify-between gap-2 border-t border-[#0E1909]/10 bg-[#f8f9f3] px-5 py-3">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+        <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
           {isHost ? "you are the host" : session.mySignup ? `registered · ${session.mySignup.role.replace("-", " ")}` : `${seatsLeft} seat${seatsLeft === 1 ? "" : "s"} left`}
         </span>
         <div className="flex items-center gap-2">
@@ -335,7 +335,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
             <Button
               size="sm"
               onClick={register}
-              className="cta-ink bg-[#e0463c] font-mono text-[11px] font-semibold uppercase tracking-widest text-white hover:bg-[#c93d34]"
+              className="cta-ink bg-[#e0463c] font-mono text-xs font-semibold uppercase tracking-widest text-white hover:bg-[#c93d34]"
             >
               <Volume2 size={12} /> join live room →
             </Button>
@@ -345,7 +345,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
               size="sm"
               onClick={() => setJoined((j) => !j)}
               className={cn(
-                "cta-ink font-mono text-[11px] font-semibold uppercase tracking-widest",
+                "cta-ink font-mono text-xs font-semibold uppercase tracking-widest",
                 joined ? "bg-[#0E1909] text-[#DAFF01] hover:bg-[#0E1909]/90" : "bg-[#e0463c] text-white hover:bg-[#c93d34]"
               )}
             >
@@ -361,7 +361,7 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
                   body: { status: "live" },
                 });
               }}
-              className="cta-ink bg-[#e0463c] font-mono text-[11px] font-semibold uppercase tracking-widest text-white hover:bg-[#c93d34]"
+              className="cta-ink bg-[#e0463c] font-mono text-xs font-semibold uppercase tracking-widest text-white hover:bg-[#c93d34]"
             >
               ● go live
             </Button>
@@ -385,7 +385,7 @@ function SpeakerTile({ signup }: { signup: IdeaLabSignup }) {
           </span>
         )}
       </div>
-      <span className="max-w-full truncate font-mono text-[9px] text-[#DAFF01]/70">
+      <span className="max-w-full truncate font-mono text-xs text-[#DAFF01]/70">
         @{signup.user.handle}
       </span>
       <span className="rounded bg-[#DAFF01]/15 px-1 font-mono text-[8px] uppercase tracking-widest text-[#DAFF01]">

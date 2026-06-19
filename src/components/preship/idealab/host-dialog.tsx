@@ -78,14 +78,14 @@ export function HostDialog({
               Host an IdeaLab session
             </DialogTitle>
           </div>
-          <DialogDescription className="font-mono text-[11px] uppercase tracking-widest text-white/50">
+          <DialogDescription className="font-mono text-xs uppercase tracking-widest text-white/50">
             invite-only · live audio · ideate a startup together
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[70vh] space-y-4 overflow-y-auto p-5 scroll-thin">
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               session title
             </Label>
             <Input
@@ -97,7 +97,7 @@ export function HostDialog({
           </div>
 
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               the thesis to pressure-test
             </Label>
             <Textarea
@@ -109,7 +109,7 @@ export function HostDialog({
           </div>
 
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               description (optional)
             </Label>
             <Textarea
@@ -122,7 +122,7 @@ export function HostDialog({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+              <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
                 <Calendar size={10} className="mr-1 inline" /> schedule
               </Label>
               <Input
@@ -133,7 +133,7 @@ export function HostDialog({
               />
             </div>
             <div>
-              <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+              <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
                 duration · minutes
               </Label>
               <Input
@@ -149,7 +149,7 @@ export function HostDialog({
           </div>
 
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               roles open
             </Label>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -160,7 +160,7 @@ export function HostDialog({
                     key={r.id}
                     onClick={() => toggleRole(r.id)}
                     className={cn(
-                      "rounded-md border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-widest transition",
+                      "rounded-md border px-2.5 py-1.5 font-mono text-xs uppercase tracking-widest transition",
                       on
                         ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                         : "border-[#0E1909]/15 bg-white text-[#0E1909]/50 hover:border-[#0E1909]"
@@ -174,7 +174,7 @@ export function HostDialog({
           </div>
 
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               agenda
             </Label>
             <Textarea
@@ -186,7 +186,7 @@ export function HostDialog({
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+              <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
                 max seats
               </Label>
               <Input
@@ -205,7 +205,7 @@ export function HostDialog({
                 onChange={(e) => setIsPublic(e.target.checked)}
                 className="accent-[#0E1909]"
               />
-              <span className="font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/70">
+              <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/70">
                 list on public board
               </span>
             </label>
@@ -213,7 +213,7 @@ export function HostDialog({
         </div>
 
         <div className="flex items-center justify-between border-t border-[#0E1909]/10 bg-[#f8f9f3] px-5 py-3">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             an invite code is generated on create
           </span>
           <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ export function HostDialog({
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60"
+              className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/60"
             >
               cancel
             </Button>
@@ -229,7 +229,7 @@ export function HostDialog({
               size="sm"
               onClick={submit}
               disabled={submitting || !title.trim() || !thesis.trim() || !scheduledAt}
-              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
+              className="bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
             >
               {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
               host session →

@@ -9,11 +9,11 @@ export function Footer() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Logo variant="lime" />
-            <span className="hidden font-mono text-[10px] uppercase tracking-widest text-white/40 sm:inline">
+            <span className="hidden font-mono text-xs uppercase tracking-widest text-white/40 sm:inline">
               · war room for alpha-stage founders
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[10px] uppercase tracking-widest text-white/45">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-widest text-white/45">
             <a className="cursor-pointer transition hover:text-[#DAFF01]">manifesto</a>
             <span className="text-white/15">·</span>
             <a className="cursor-pointer transition hover:text-[#DAFF01]">field notes</a>
@@ -26,10 +26,10 @@ export function Footer() {
           </div>
         </div>
         <div className="flex flex-col gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-white/35">
+          <p className="font-mono text-xs uppercase tracking-widest text-white/35">
             © preship · shipping in the dark, together
           </p>
-          <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest text-white/35">
+          <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-widest text-white/35">
             <span className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#DAFF01]" />
               all systems nominal

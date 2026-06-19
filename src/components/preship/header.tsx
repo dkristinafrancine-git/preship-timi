@@ -16,7 +16,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-[#0E1909]/10 bg-white/95 backdrop-blur">
       {/* main bar: logo left, auth right — full width, max-width constrained inner */}
-      <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-3 px-4 lg:px-6">
+      <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-3 px-5 lg:px-8">
         <button
           className="rounded-md p-1.5 text-[#0E1909] hover:bg-[#0E1909]/5 lg:hidden"
           onClick={() => setMobileNavOpen(true)}
@@ -27,31 +27,31 @@ export function Header() {
 
         <Logo />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2.5">
           <Button
             variant="ghost"
             size="sm"
-            className="tactile-flat hidden font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
+            className="tactile-flat hidden font-mono text-xs uppercase tracking-widest text-[#0E1909]/65 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
           >
-            <HelpCircle size={14} className="transition-transform duration-150 hover:scale-110" /> Docs
+            <HelpCircle size={15} className="transition-transform duration-150 hover:scale-110" /> Docs
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="tactile-flat relative hidden font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
+            className="tactile-flat relative hidden font-mono text-xs uppercase tracking-widest text-[#0E1909]/65 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
           >
-            <Bell size={14} className="transition-transform duration-150 hover:scale-110" />
-            <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#DAFF01] ring-1 ring-[#0E1909]" />
+            <Bell size={15} className="transition-transform duration-150 hover:scale-110" />
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#DAFF01] ring-1 ring-[#0E1909]" />
           </Button>
           <Button
             size="sm"
-            className="cta-ink hidden border border-[#0E1909] bg-[#0E1909] font-mono text-[11px] font-semibold uppercase tracking-widest text-white hover:bg-[#0E1909]/90 sm:inline-flex"
+            className="cta-ink hidden border border-[#0E1909] bg-[#0E1909] font-mono text-xs font-semibold uppercase tracking-widest text-white hover:bg-[#0E1909]/90 sm:inline-flex"
           >
             Log in
           </Button>
           <Button
             size="sm"
-            className="cta-lime bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
+            className="cta-lime bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
           >
             Invite founder →
           </Button>
@@ -95,11 +95,11 @@ function LiveTicker({ view }: { view: PreshipView }) {
 
   return (
     <div className="flex items-center gap-2 border-t border-[#0E1909]/8 bg-[#0E1909] px-4 py-1.5 lg:px-6">
-      <span className="flex shrink-0 items-center gap-1.5 font-mono text-[9px] font-bold uppercase tracking-widest text-[#DAFF01]">
+      <span className="flex shrink-0 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-[#DAFF01]">
         <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#DAFF01]" /> live
       </span>
       <div className="relative flex-1 overflow-hidden">
-        <div className={cn("flex whitespace-nowrap font-mono text-[11px] text-[#DAFF01]/80", "animate-ticker")}>
+        <div className={cn("flex whitespace-nowrap font-mono text-xs text-[#DAFF01]/80", "animate-ticker")}>
           {items.map((it, i) => (
             <span key={i} className="mx-4 inline-flex items-center gap-2">
               <span className="text-[#DAFF01]/40">›</span>

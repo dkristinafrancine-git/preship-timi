@@ -44,7 +44,7 @@ export function ProjectDialog({
               {isEdit ? "Edit project" : "Add a project"}
             </DialogTitle>
           </div>
-          <DialogDescription className="font-mono text-[11px] uppercase tracking-widest text-white/50">
+          <DialogDescription className="font-mono text-xs uppercase tracking-widest text-white/50">
             {isEdit ? "update your startup's stage & details" : "register your startup as a founder"}
           </DialogDescription>
         </DialogHeader>
@@ -109,18 +109,18 @@ function ProjectForm({
             <p className="font-display text-sm font-semibold text-[#0E1909]">
               {name || "Your startup"}
             </p>
-            <p className="truncate font-mono text-[11px] text-[#0E1909]/55">
+            <p className="truncate font-mono text-xs text-[#0E1909]/55">
               {tagline || "one-line tagline"}
             </p>
           </div>
-          <span className="ml-auto rounded border border-[#0E1909]/15 bg-white px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/70">
+          <span className="ml-auto rounded border border-[#0E1909]/15 bg-white px-1.5 py-0.5 font-mono text-xs uppercase tracking-widest text-[#0E1909]/70">
             {alphaStage.split(" ")[0]}
           </span>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               name
             </Label>
             <Input
@@ -131,7 +131,7 @@ function ProjectForm({
             />
           </div>
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               tagline
             </Label>
             <Input
@@ -144,7 +144,7 @@ function ProjectForm({
         </div>
 
         <div>
-          <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+          <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
             description
           </Label>
           <Textarea
@@ -157,7 +157,7 @@ function ProjectForm({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               category
             </Label>
             <div className="mt-1.5 flex flex-wrap gap-1">
@@ -166,7 +166,7 @@ function ProjectForm({
                   key={c}
                   onClick={() => setCategory(c)}
                   className={cn(
-                    "rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest tactile-flat",
+                    "rounded border px-2 py-1 font-mono text-xs uppercase tracking-widest tactile-flat",
                     category === c
                       ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
                       : "border-[#0E1909]/15 bg-white text-[#0E1909]/60 hover:border-[#0E1909]"
@@ -178,7 +178,7 @@ function ProjectForm({
             </div>
           </div>
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               website (optional)
             </Label>
             <Input
@@ -192,7 +192,7 @@ function ProjectForm({
 
         {/* alpha sub-stage */}
         <div>
-          <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+          <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
             current alpha sub-stage
           </Label>
           <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
@@ -237,7 +237,7 @@ function ProjectForm({
         {/* logo color + mark */}
         <div className="flex items-center gap-4">
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               brand color
             </Label>
             <div className="mt-1.5 flex gap-1.5">
@@ -256,7 +256,7 @@ function ProjectForm({
             </div>
           </div>
           <div className="flex-1">
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               monogram (optional)
             </Label>
             <Input
@@ -271,7 +271,7 @@ function ProjectForm({
       </div>
 
       <div className="flex items-center justify-between border-t border-[#0E1909]/10 bg-[#f8f9f3] px-5 py-3">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+        <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
           {isEdit ? "changes apply immediately" : "project is visible to the founder network"}
         </span>
         <div className="flex items-center gap-2">
@@ -279,7 +279,7 @@ function ProjectForm({
             variant="ghost"
             size="sm"
             onClick={onDone}
-            className="font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60"
+            className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/60"
           >
             cancel
           </Button>
@@ -287,7 +287,7 @@ function ProjectForm({
             size="sm"
             onClick={submit}
             disabled={submitting || !name.trim() || !tagline.trim()}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
+            className="bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
           >
             {submitting ? <Loader2 size={12} className="animate-spin" /> : isEdit ? null : <Boxes size={12} />}
             {isEdit ? "save changes →" : "add project →"}

@@ -43,61 +43,61 @@ export function SessionCard({
         "group block w-full overflow-hidden rounded-lg border text-left hover-lift",
         isLive
           ? "border-[#e0463c] shadow-[0_0_0_1px_rgba(224,70,60,0.2)] hover:shadow-[0_8px_24px_rgba(224,70,60,0.18),0_0_0_1px_rgba(224,70,60,0.3)]"
-          : "border-[#0E1909]/12 hover:border-[#0E1909]/30"
+          : "border-[#0E1909]/15 hover:border-[#0E1909]/35"
       )}
     >
       {/* cover */}
       <div
-        className={cn("relative px-4 py-3", isDark ? "bg-[#0E1909]" : "bg-[#DAFF01]")}
+        className={cn("relative px-5 py-4", isDark ? "bg-[#0E1909]" : "bg-[#DAFF01]")}
         style={!isDark && !isLive ? {} : { background: session.coverColor }}
       >
         <div className={cn(isDark ? "bg-grid-dark" : "")}>
           <div className="flex items-start justify-between gap-2">
             <StatusPill status={session.status} />
-            <div className={cn("flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest", isDark ? "text-[#DAFF01]/60" : "text-[#0E1909]/55")}>
-              <Users size={11} />
+            <div className={cn("flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest", isDark ? "text-[#DAFF01]/60" : "text-[#0E1909]/55")}>
+              <Users size={13} />
               {session._count.signups}/{session.maxSeats}
             </div>
           </div>
-          <h3 className={cn("mt-2 line-clamp-2 font-display text-base font-semibold leading-snug", isDark ? "text-white" : "text-[#0E1909]")}>
+          <h3 className={cn("mt-2.5 line-clamp-2 font-display text-[17px] font-semibold leading-snug", isDark ? "text-white" : "text-[#0E1909]")}>
             {session.title}
           </h3>
-          <div className={cn("mt-1.5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest", isDark ? "text-[#DAFF01]/70" : "text-[#0E1909]/60")}>
+          <div className={cn("mt-2 flex items-center gap-3 font-mono text-xs uppercase tracking-widest", isDark ? "text-[#DAFF01]/70" : "text-[#0E1909]/60")}>
             <span className="flex items-center gap-1">
-              <Calendar size={10} /> {sched.date} · {sched.time}
+              <Calendar size={12} /> {sched.date} · {sched.time}
             </span>
             <span className="flex items-center gap-1">
-              <Clock size={10} /> {sched.relative}
+              <Clock size={12} /> {sched.relative}
             </span>
           </div>
         </div>
         {isLive && (
-          <div className="absolute right-3 top-3">
+          <div className="absolute right-4 top-4">
             <WaveformMini waveform={Array.from({ length: 18 }, () => 0.4 + Math.random() * 0.6).join(",")} className="text-[#DAFF01]" />
           </div>
         )}
       </div>
 
       {/* body */}
-      <div className="p-4">
+      <div className="p-5">
         <div className="flex items-center gap-2">
-          <FounderAvatar founder={session.host} size={24} />
-          <span className="font-display text-xs font-medium text-[#0E1909]">
+          <FounderAvatar founder={session.host} size={26} />
+          <span className="font-display text-[13px] font-medium text-[#0E1909]">
             {session.host.name}
           </span>
-          <span className="font-mono text-[10px] text-[#0E1909]/45">@{session.host.handle}</span>
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <span className="font-mono text-xs text-[#0E1909]/50">@{session.host.handle}</span>
+          <span className="ml-auto font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
             host
           </span>
         </div>
 
-        <p className="mt-2.5 line-clamp-2 text-xs leading-relaxed text-[#0E1909]/70">
+        <p className="mt-3 line-clamp-2 text-[13px] leading-relaxed text-[#0E1909]/70">
           {session.thesis}
         </p>
 
         {roles.length > 0 && (
           <div className="mt-3">
-            <p className="mb-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest text-[#0E1909]/45">
+            <p className="mb-1.5 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/45">
               open roles
             </p>
             <div className="flex flex-wrap gap-1">
@@ -105,7 +105,7 @@ export function SessionCard({
                 <RoleBadge key={r} role={r as any} />
               ))}
               {roles.length > 4 && (
-                <span className="rounded border border-dashed border-[#0E1909]/25 px-1.5 py-0.5 font-mono text-[10px] text-[#0E1909]/50">
+                <span className="rounded border border-dashed border-[#0E1909]/25 px-1.5 py-0.5 font-mono text-xs text-[#0E1909]/50">
                   +{roles.length - 4}
                 </span>
               )}
@@ -114,7 +114,7 @@ export function SessionCard({
         )}
 
         <div className="mt-3 flex items-center justify-between border-t border-[#0E1909]/8 pt-2.5">
-          <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/45">
+          <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
             <span className="flex items-center gap-1">
               <Star size={10} /> {session._count.interests} interest
             </span>
@@ -127,12 +127,12 @@ export function SessionCard({
               </span>
             )}
           </div>
-          <span className="flex items-center gap-1 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] transition-all duration-200 group-hover:gap-2 group-hover:text-[#6f8a3e]">
+          <span className="flex items-center gap-1 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] transition-all duration-200 group-hover:gap-2 group-hover:text-[#6f8a3e]">
             enter <ArrowRight size={11} className="transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>
         </div>
         {seatsLeft <= 3 && seatsLeft > 0 && (
-          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest text-[#e0463c]">
+          <p className="mt-1.5 font-mono text-xs uppercase tracking-widest text-[#e0463c]">
             only {seatsLeft} seat{seatsLeft === 1 ? "" : "s"} left
           </p>
         )}

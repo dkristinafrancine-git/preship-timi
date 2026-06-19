@@ -49,14 +49,14 @@ export function OfferDialog({
               Offer a handshake
             </DialogTitle>
           </div>
-          <DialogDescription className="font-mono text-[11px] uppercase tracking-widest text-white/50">
+          <DialogDescription className="font-mono text-xs uppercase tracking-widest text-white/50">
             {requestTitle}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 p-5">
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               your pitch
             </Label>
             <Textarea
@@ -67,7 +67,7 @@ export function OfferDialog({
             />
           </div>
           <div>
-            <Label className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/60">
+            <Label className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
               counter-offer (optional)
             </Label>
             <Textarea
@@ -84,7 +84,7 @@ export function OfferDialog({
             variant="ghost"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60"
+            className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/60"
           >
             cancel
           </Button>
@@ -92,7 +92,7 @@ export function OfferDialog({
             size="sm"
             onClick={submit}
             disabled={submitting || !pitch.trim()}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
+            className="bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
           >
             {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
             send handshake →

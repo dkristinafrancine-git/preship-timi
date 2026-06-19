@@ -26,41 +26,41 @@ export function FeedPost({ post }: { post: FeedPost }) {
   return (
     <article className="terminal-card">
       {/* header */}
-      <div className="flex items-start gap-3 p-4 pb-3">
+      <div className="flex items-start gap-3.5 p-5 pb-3.5">
         <FounderAvatar founder={post.author} size={44} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="font-display text-sm font-semibold text-[#0E1909]">
+            <span className="font-display text-[15px] font-semibold text-[#0E1909]">
               {post.author.name}
             </span>
-            <span className="font-mono text-xs text-[#0E1909]/45">@{post.author.handle}</span>
-            <span className="font-mono text-xs text-[#0E1909]/30">·</span>
-            <span className="font-mono text-xs text-[#0E1909]/45">{fmtRelative(post.createdAt)}</span>
+            <span className="font-mono text-[13px] text-[#0E1909]/50">@{post.author.handle}</span>
+            <span className="font-mono text-[13px] text-[#0E1909]/35">·</span>
+            <span className="font-mono text-[13px] text-[#0E1909]/50">{fmtRelative(post.createdAt)}</span>
           </div>
-          <p className="truncate font-mono text-[11px] text-[#0E1909]/50">{post.author.title}</p>
+          <p className="truncate font-mono text-xs text-[#0E1909]/55">{post.author.title}</p>
         </div>
         {post.project && (
-          <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] px-2 py-1">
+          <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] px-2.5 py-1.5">
             <ProjectMark mark={post.project.logoMark} color={post.project.logoColor} size={20} />
             <div className="hidden sm:block">
-              <p className="font-display text-xs font-semibold leading-tight text-[#0E1909]">
+              <p className="font-display text-[13px] font-semibold leading-tight text-[#0E1909]">
                 {post.project.name}
               </p>
               <StageChip stage={post.project.alphaStage} className="mt-0.5 !px-1 !py-0" />
             </div>
           </div>
         )}
-        <button className="tactile-flat rounded p-1 text-[#0E1909]/30 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
-          <MoreHorizontal size={16} />
+        <button className="tactile-flat rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
+          <MoreHorizontal size={18} />
         </button>
       </div>
 
       {/* body */}
-      <div className="px-4 pb-3">
+      <div className="px-5 pb-4">
         {post.type === "audio" ? (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {post.body && (
-              <p className="whitespace-pre-wrap font-display text-[15px] leading-relaxed text-[#0E1909]/85">
+              <p className="whitespace-pre-wrap font-display text-[15px] leading-[1.65] text-[#0E1909]/85">
                 {post.body}
               </p>
             )}
@@ -71,13 +71,13 @@ export function FeedPost({ post }: { post: FeedPost }) {
             />
           </div>
         ) : (
-          <p className="whitespace-pre-wrap font-display text-[15px] leading-relaxed text-[#0E1909]/90">
+          <p className="whitespace-pre-wrap font-display text-[16px] leading-[1.65] text-[#0E1909]/90">
             {post.body}
           </p>
         )}
 
         {tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1">
+          <div className="mt-3.5 flex flex-wrap gap-1.5">
             {tags.map((t) => (
               <Tag key={t}>#{t}</Tag>
             ))}
@@ -86,7 +86,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
       </div>
 
       {/* reactions */}
-      <div className="flex items-center gap-1 border-t border-[#0E1909]/8 px-2 py-1.5">
+      <div className="flex items-center gap-1 border-t border-[#0E1909]/8 px-3 py-2">
         <ReactionBtn
           icon={Heart}
           label="like"
@@ -159,17 +159,17 @@ function ReactionBtn({
     <button
       onClick={onClick}
       className={cn(
-        "tactile-flat group flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs",
+        "tactile-flat group flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-mono text-[13px]",
         highlight && !active
           ? "text-[#0E1909]/70 hover:bg-[#DAFF01] hover:text-[#0E1909]"
           : active
           ? cn("font-semibold", activeColor)
-          : "text-[#0E1909]/50 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
+          : "text-[#0E1909]/55 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
       )}
     >
-      <Icon size={15} className={cn("transition-transform duration-150 group-hover:scale-110", active && activeColor.includes("bg") && "text-[#0E1909]")} />
-      <span className="uppercase tracking-wider">{count}</span>
-      <span className="hidden uppercase tracking-wider text-[10px] opacity-50 sm:inline">
+      <Icon size={16} className={cn("transition-transform duration-150 group-hover:scale-110", active && activeColor.includes("bg") && "text-[#0E1909]")} />
+      <span className="tabular-nums">{count}</span>
+      <span className="hidden uppercase tracking-wider text-xs opacity-55 sm:inline">
         {label}
       </span>
     </button>
@@ -197,29 +197,29 @@ function CommentsSection({ postId }: { postId: string }) {
   };
 
   return (
-    <div className="border-t border-[#0E1909]/8 bg-[#f8f9f3] p-3">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/50">
+    <div className="border-t border-[#0E1909]/8 bg-[#f8f9f3] p-4">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/50">
           thread · {data?.comments?.length ?? 0}
         </span>
       </div>
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {loading ? (
-          <p className="font-mono text-xs text-[#0E1909]/40">loading thread…</p>
+          <p className="font-mono text-[13px] text-[#0E1909]/40">loading thread…</p>
         ) : (
           data?.comments?.map((c) => (
-            <div key={c.id} className="flex gap-2">
-              <FounderAvatar founder={c.user} size={24} />
-              <div className="flex-1 rounded-md border border-[#0E1909]/8 bg-white px-2.5 py-1.5 transition-colors duration-150 hover:border-[#0E1909]/15 hover:bg-[#f8f9f3]">
+            <div key={c.id} className="flex gap-2.5">
+              <FounderAvatar founder={c.user} size={28} />
+              <div className="flex-1 rounded-md border border-[#0E1909]/8 bg-white px-3 py-2 transition-colors duration-150 hover:border-[#0E1909]/15 hover:bg-[#f8f9f3]">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-display text-xs font-semibold text-[#0E1909]">
+                  <span className="font-display text-[13px] font-semibold text-[#0E1909]">
                     {c.user.name}
                   </span>
-                  <span className="font-mono text-[10px] text-[#0E1909]/40">
+                  <span className="font-mono text-xs text-[#0E1909]/45">
                     @{c.user.handle} · {fmtRelative(c.createdAt)}
                   </span>
                 </div>
-                <p className="mt-0.5 text-xs text-[#0E1909]/80">{c.body}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-[#0E1909]/80">{c.body}</p>
               </div>
             </div>
           ))
@@ -227,8 +227,8 @@ function CommentsSection({ postId }: { postId: string }) {
       </div>
 
       {/* composer */}
-      <div className="mt-3 flex items-center gap-2">
-        {me.data?.user && <FounderAvatar founder={me.data.user} size={24} />}
+      <div className="mt-3.5 flex items-center gap-2">
+        {me.data?.user && <FounderAvatar founder={me.data.user} size={28} />}
         <input
           value={body}
           onChange={(e) => setBody(e.target.value)}
@@ -239,15 +239,15 @@ function CommentsSection({ postId }: { postId: string }) {
             }
           }}
           placeholder="Add to the thread…"
-          className="flex-1 rounded-md border border-[#0E1909]/12 bg-white px-2.5 py-1.5 font-display text-xs text-[#0E1909] outline-none placeholder:text-[#0E1909]/30 focus-visible:border-[#0E1909]"
+          className="h-9 flex-1 rounded-md border border-[#0E1909]/12 bg-white px-3 font-display text-[13px] text-[#0E1909] outline-none placeholder:text-[#0E1909]/35 focus-visible:border-[#0E1909]"
         />
         <Button
           size="sm"
           onClick={submit}
           disabled={submitting || !body.trim()}
-          className="h-7 bg-[#DAFF01] font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600] disabled:opacity-50"
+          className="cta-lime h-9 bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600] disabled:opacity-50"
         >
-          {submitting ? <Loader2 size={11} className="animate-spin" /> : "reply →"}
+          {submitting ? <Loader2 size={13} className="animate-spin" /> : "reply →"}
         </Button>
       </div>
     </div>

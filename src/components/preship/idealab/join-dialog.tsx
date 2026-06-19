@@ -46,7 +46,7 @@ export function JoinDialog({
               Join with invite code
             </DialogTitle>
           </div>
-          <DialogDescription className="font-mono text-[11px] uppercase tracking-widest text-white/50">
+          <DialogDescription className="font-mono text-xs uppercase tracking-widest text-white/50">
             enter the code shared by the host
           </DialogDescription>
         </DialogHeader>
@@ -61,7 +61,7 @@ export function JoinDialog({
             className="border-[#0E1909]/12 bg-[#f8f9f3] font-mono text-sm font-semibold uppercase tracking-widest text-[#0E1909] focus-visible:ring-[#DAFF01]"
             autoFocus
           />
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+          <p className="mt-2 font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             codes look like PRESHIP-AB-07
           </p>
         </div>
@@ -70,7 +70,7 @@ export function JoinDialog({
             variant="ghost"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/60"
+            className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/60"
           >
             cancel
           </Button>
@@ -78,7 +78,7 @@ export function JoinDialog({
             size="sm"
             onClick={submit}
             disabled={submitting || !code.trim()}
-            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
+            className="bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] cta-lime hover:bg-[#c4e600] disabled:opacity-50"
           >
             {submitting ? <Loader2 size={12} className="animate-spin" /> : <ArrowRight size={12} />}
             join room

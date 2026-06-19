@@ -136,7 +136,7 @@ export function WaveformPlayer({
       </div>
 
       {!compact && (
-        <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]/50">
+        <div className="mt-2 flex items-center justify-between font-mono text-xs uppercase tracking-widest text-[#DAFF01]/50">
           <span>preship / audio</span>
           <span>{playing ? "playing" : progress > 0 ? "paused" : "ready"}</span>
         </div>
