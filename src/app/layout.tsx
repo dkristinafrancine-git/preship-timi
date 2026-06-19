@@ -3,6 +3,7 @@ import { Funnel_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { Providers } from "@/components/preship/providers";
 
 const funnel = Funnel_Display({
   variable: "--font-funnel",
@@ -61,7 +62,9 @@ export default function RootLayout({
       <body
         className={`${funnel.variable} ${jetbrains.variable} antialiased bg-background text-foreground`}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <Toaster />
         <SonnerToaster />
       </body>

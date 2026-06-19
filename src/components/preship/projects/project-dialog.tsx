@@ -12,7 +12,7 @@ import { compressAndUpload } from "@/lib/image-compress";
 import type { Project } from "@/lib/preship-types";
 import { ProjectMark } from "../avatars";
 import { cn } from "@/lib/utils";
-import { Loader2, Boxes, Pencil, Plus, Camera, Upload, X } from "lucide-react";
+import { Loader2, Boxes, Pencil, Plus, Camera, Upload, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 // fallback tile color when no logo is uploaded
@@ -342,9 +342,27 @@ function ProjectForm({
       </div>
 
       <div className="flex items-center justify-between border-t border-[#0E1909]/10 bg-[#f8f9f3] px-5 py-3">
-        <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
-          {isEdit ? "changes apply immediately" : "project is visible to the founder network"}
-        </span>
+        {isEdit ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              if (!confirm(`Delete "${project?.name}"? This cannot be undone.`)) return;
+              const res = await mutate(`/api/projects/${project!.id}`, { method: "DELETE" });
+              if (res.ok) {
+                toast.success("Project deleted →");
+                onDone();
+              }
+            }}
+            className="font-mono text-xs font-semibold uppercase tracking-widest text-[#e0463c] hover:bg-[#e0463c]/5"
+          >
+            <Trash2 size={12} /> delete project
+          </Button>
+        ) : (
+          <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
+            project is visible to the founder network
+          </span>
+        )}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"

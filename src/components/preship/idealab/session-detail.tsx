@@ -13,7 +13,7 @@ import { fmtRelative, IDEA_ROLES } from "@/lib/preship";
 import { FounderAvatar } from "../avatars";
 import { StatusPill, RoleBadge, TerminalHeader } from "../badges";
 import { WaveformPlayer } from "../waveform";
-import { Loader2, Mic, MicOff, Hand, Copy, Check, Star, X, Volume2 } from "lucide-react";
+import { Loader2, Mic, MicOff, Hand, Copy, Check, Star, X, Volume2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function SessionDetail({
@@ -40,14 +40,14 @@ export function SessionDetail({
             <Loader2 size={20} className="animate-spin text-[#0E1909]/40" />
           </div>
         ) : (
-          <SessionBody session={session} isHost={me?.id === session.hostId} />
+          <SessionBody session={session} isHost={me?.id === session.hostId} onOpenChange={onOpenChange} />
         )}
       </DialogContent>
     </Dialog>
   );
 }
 
-function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boolean }) {
+function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSession; isHost: boolean; onOpenChange: (v: boolean) => void }) {
   const [joined, setJoined] = useState(false);
   const [muted, setMuted] = useState(true);
   const [handRaised, setHandRaised] = useState(false);
@@ -331,6 +331,20 @@ function SessionBody({ session, isHost }: { session: IdeaLabSession; isHost: boo
           {isHost ? "you are the host" : session.mySignup ? `registered · ${session.mySignup.role.replace("-", " ")}` : `${seatsLeft} seat${seatsLeft === 1 ? "" : "s"} left`}
         </span>
         <div className="flex items-center gap-2">
+          {isHost && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                if (!confirm("Delete this session? This cannot be undone.")) return;
+                await mutate(`/api/idealab/${session.id}`, { method: "DELETE" });
+                onOpenChange(false);
+              }}
+              className="font-mono text-xs font-semibold uppercase tracking-widest text-[#e0463c] hover:bg-[#e0463c]/5"
+            >
+              <Trash2 size={12} /> delete
+            </Button>
+          )}
           {isLive && !session.mySignup && (
             <Button
               size="sm"

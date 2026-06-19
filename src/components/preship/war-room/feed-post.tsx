@@ -10,13 +10,22 @@ import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
 import { useMutate } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
-import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2 } from "lucide-react";
+import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { usePreship } from "@/lib/preship-store";
 
 export function FeedPost({ post }: { post: FeedPost }) {
   const [showComments, setShowComments] = useState(false);
   const mutate = useMutate();
+  const me = usePreship((s) => s.me);
+  const isAuthor = me?.id === post.authorId;
 
   const react = async (kind: "like" | "repost" | "handshake") => {
     await mutate(`/api/posts/${post.id}/react`, { method: "POST", body: { kind } });
@@ -51,9 +60,40 @@ export function FeedPost({ post }: { post: FeedPost }) {
             </div>
           </div>
         )}
-        <button className="tactile-flat rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
-          <MoreHorizontal size={18} />
-        </button>
+        {isAuthor ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="tactile-flat rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
+                <MoreHorizontal size={18} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40 border-[#0E1909]/15">
+              <DropdownMenuItem
+                onClick={() => toast.info("Edit mode coming soon →")}
+                className="cursor-pointer font-mono text-xs uppercase tracking-widest text-[#0E1909]/70"
+              >
+                <Pencil size={13} /> edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async () => {
+                  const res = await mutate(`/api/posts/${post.id}`, { method: "DELETE" });
+                  if (res.ok) toast.success("Post deleted →");
+                }}
+                className="cursor-pointer font-mono text-xs uppercase tracking-widest text-[#e0463c] focus:text-[#e0463c]"
+              >
+                <Trash2 size={13} /> delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button
+            onClick={() => toast.success("Link copied →")}
+            className="tactile-flat rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
+            aria-label="Share"
+          >
+            <Share size={16} />
+          </button>
+        )}
       </div>
 
       {/* body */}
@@ -211,7 +251,7 @@ function CommentsSection({ postId }: { postId: string }) {
           data?.comments?.map((c) => (
             <div key={c.id} className="flex gap-2.5">
               <FounderAvatar founder={c.user} size={28} />
-              <div className="flex-1 rounded-md border border-[#0E1909]/8 bg-white px-3 py-2 transition-colors duration-150 hover:border-[#0E1909]/15 hover:bg-[#f8f9f3]">
+              <div className="group flex-1 rounded-md border border-[#0E1909]/8 bg-white px-3 py-2 transition-colors duration-150 hover:border-[#0E1909]/15 hover:bg-[#f8f9f3]">
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-display text-[13px] font-semibold text-[#0E1909]">
                     {c.user.name}
@@ -219,6 +259,17 @@ function CommentsSection({ postId }: { postId: string }) {
                   <span className="font-mono text-xs text-[#0E1909]/45">
                     @{c.user.handle} · {fmtRelative(c.createdAt)}
                   </span>
+                  {me.data?.user && c.user.id === me.data.user.id && (
+                    <button
+                      onClick={async () => {
+                        await mutate(`/api/posts/${postId}/comment/${c.id}`, { method: "DELETE" });
+                      }}
+                      className="ml-auto rounded p-0.5 text-[#0E1909]/25 opacity-0 transition hover:text-[#e0463c] group-hover:opacity-100"
+                      aria-label="Delete comment"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
                 <p className="mt-1 text-[13px] leading-relaxed text-[#0E1909]/80">{c.body}</p>
               </div>

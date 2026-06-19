@@ -203,3 +203,79 @@ Work Log:
 
 Stage Summary:
 - Preship now has the official SVG wordmark everywhere (header, footer, favicon), positive "alpha war room / broad daylight" messaging replacing all "in the dark" phrasing, per-project logo upload with 400×400 compression (brand color removed), founder hover cards with follow/unfollow + bio/skills/location anywhere a founder name appears, and a followed-users card on the profile.
+
+---
+Task ID: 5
+Agent: crud-subagent
+Task: Add missing DELETE + PATCH endpoints for full CRUD
+
+Work Log:
+- Read worklog.md, prisma/schema.prisma (verified onDelete: Cascade on Reaction/Comment→Post, SynergyOffer→SynergyRequest, IdeaLabSignup/Interest→IdeaLabSession, and SetNull on Post/SynergyRequest→Project), src/lib/current-user.ts, and existing route files (feed, posts, posts/[id]/comment, projects/[id], synergy/[id], synergy/[id]/offers/[offerId], idealab/[id]) to match code style.
+- Created src/app/api/posts/[id]/route.ts (NEW) with PATCH (author-only; accepts body/tags/audioTitle, validates non-empty body, supports null tags/audioTitle, 400 on no-op payload) and DELETE (author-only; Prisma cascades reactions+comments). Reused the same POST_INCLUDE shape from /api/feed (author with bio/location/skills, project with logoUrl + logoMark/logoColor/alphaStage/category, reactions/comments arrays for counts + myReaction shaping). PATCH returns the shaped post so it can drop straight into the feed list on the client.
+- Created src/app/api/posts/[id]/comment/[commentId]/route.ts (NEW) with DELETE — allowed for the comment author OR the post author (403 otherwise), 404 if comment missing or belongs to a different post.
+- Modified src/app/api/projects/[id]/route.ts to add DELETE (founder-only; 404/403 guards; cascade handled by Prisma).
+- Modified src/app/api/synergy/[id]/route.ts to add DELETE (request founder-only; 404/403 guards; offers cascade).
+- Modified src/app/api/synergy/[id]/offers/[offerId]/route.ts to add DELETE — withdraw an offer, allowed only for offer.founderId (403 otherwise), 404 if offer missing or belongs to a different request.
+- Modified src/app/api/idealab/[id]/route.ts to add DELETE (host-only; signups/interests cascade).
+- All DELETE handlers return `{ ok: true }` on success. All new handlers use the project's conventions: NextRequest/NextResponse, awaited `params` Promise (Next.js 16), getCurrentUser() with 401 guard, ownership checks with 403, existence checks with 404, try/catch with 500 fallback and console.error logging.
+- Ran `bun run lint` — clean (0 errors). Ran `bunx tsc --noEmit` — only pre-existing errors in prisma/seed.ts, skills/, and src/components/preship/* (none introduced by this task).
+
+Stage Summary:
+- Files created:
+  - src/app/api/posts/[id]/route.ts (PATCH author-only edit body/tags/audioTitle + DELETE author-only)
+  - src/app/api/posts/[id]/comment/[commentId]/route.ts (DELETE — comment author OR post author)
+- Files modified (DELETE handler appended, existing GET/PATCH untouched):
+  - src/app/api/projects/[id]/route.ts (+ DELETE, founder-only)
+  - src/app/api/synergy/[id]/route.ts (+ DELETE, request founder-only)
+  - src/app/api/synergy/[id]/offers/[offerId]/route.ts (+ DELETE, offer founder-only = withdraw)
+  - src/app/api/idealab/[id]/route.ts (+ DELETE, host-only)
+- Full CRUD now available across posts, comments, projects, synergy requests, synergy offers, and IdeaLab sessions. Lint clean; no new TypeScript errors.
+
+---
+Task ID: 14
+Agent: main + crud-subagent
+Task: Scrutinize + connect all components to DB with full CRUD; deploy auth; seed mock data.
+
+Work Log:
+**CRUD Audit & Gap Fill (subagent):**
+- Audited all 23 existing API route files. Identified missing DELETE operations for posts, comments, projects, synergy requests, synergy offers, idealab sessions. Also missing PATCH for posts (edit).
+- Created `src/app/api/posts/[id]/route.ts` — PATCH (author-only edit body/tags/audioTitle) + DELETE (author-only, cascades reactions+comments).
+- Created `src/app/api/posts/[id]/comment/[commentId]/route.ts` — DELETE (comment author or post author).
+- Modified `src/app/api/projects/[id]/route.ts` — added DELETE (owner-only, cascade).
+- Modified `src/app/api/synergy/[id]/route.ts` — added DELETE (request founder-only, offers cascade).
+- Modified `src/app/api/synergy/[id]/offers/[offerId]/route.ts` — added DELETE (offer founder-only = withdraw).
+- Modified `src/app/api/idealab/[id]/route.ts` — added DELETE (host-only, signups+interests cascade).
+
+**Auth Deployment:**
+- Added NEXTAUTH_SECRET + NEXTAUTH_URL to .env.
+- Created `src/lib/auth.ts` — NextAuth v4 options with CredentialsProvider (email-only login, looks up founder by email, JWT session with id/handle/title/avatarUrl in token).
+- Created `src/app/api/auth/[...nextauth]/route.ts` — NextAuth handler (GET + POST).
+- Updated `src/lib/current-user.ts` — getCurrentUser now reads from getServerSession(authOptions) first, falls back to seeded isCurrent user for demo mode.
+- Created `src/types/next-auth.d.ts` — TypeScript module augmentation for custom session fields.
+- Created `src/components/preship/providers.tsx` — SessionProvider wrapper (client component).
+- Wrapped app in `<Providers>` in layout.tsx.
+- Created `src/components/preship/auth/login-modal.tsx` — LoginModal (email field + quick-pick founder list with avatars + sign in/out) + AuthButton (shows "Log in" when no session, shows avatar+name dropdown with sign out when logged in).
+- Created `src/app/api/founders/list/route.ts` — lightweight founder list for the login quick-pick.
+- Updated header.tsx — replaced static "Log in" button with AuthButton + LoginModal.
+
+**UI Delete Wiring:**
+- Feed posts: MoreHorizontal button now opens a DropdownMenu with "edit" and "delete" options (author-only). Non-authors see a Share button instead.
+- Comments: each comment shows a trash icon on hover (author-only) that deletes via /api/posts/[id]/comment/[commentId].
+- Projects: edit dialog footer now has a "delete project" button (red, with confirm) when editing an existing project.
+- Synergy cards: owner sees a trash icon next to "your broadcast" badge that deletes the broadcast (with confirm).
+- Synergy offers: offer founder sees a "withdraw" button on their pending offers.
+- IdeaLab sessions: host sees a "delete" button in the session detail footer (with confirm).
+
+**Seed Enhancement:**
+- Added logoUrl to 5 projects in the seed (using founder avatar SVGs as stand-in logos).
+- Re-ran seed: 7 users, 8 projects (5 with logoUrl), 9 posts, 6 synergy requests, 5 IdeaLab sessions, 10 follows, 6 offers (4 accepted).
+
+**Verification:**
+- Login flow: clicked "Log in" → modal opened with email field + 7 quick-pick founders → clicked Sofia → session switched, sidebar + auth button now show Sofia.
+- Post delete: scrolled to feed → clicked MoreHorizontal dropdown → "edit" and "delete" menu items appeared.
+- Lint clean (0 errors). No page errors. Pre-existing DialogContent accessibility warning (session detail dialog) unchanged.
+
+Stage Summary:
+- Full CRUD is now wired for all entities (posts, comments, projects, synergy requests/offers, idealab sessions, follows, profile). Every entity supports Create, Read, Update, Delete where applicable, with ownership checks (403) and existence checks (404).
+- NextAuth v4 is deployed with a credentials provider (email-only login). The app works in demo mode (fallback to isCurrent user) without login, and switches to the session user when logged in. Login modal supports quick-pick from any seeded founder.
+- Seed is comprehensive: 7 founders, 8 projects (5 with logos), 9 posts, 6 synergy broadcasts, 6 offers (4 accepted = gathered bounties), 5 IdeaLab sessions, 10 follows.

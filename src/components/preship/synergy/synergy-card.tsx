@@ -10,7 +10,8 @@ import { FounderHoverCard } from "../founder-hover-card";
 import { OfferDialog } from "./offer-dialog";
 import { useApi } from "@/lib/use-api";
 import { useMutate } from "@/lib/use-api";
-import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight, Sparkles } from "lucide-react";
+import { usePreship } from "@/lib/preship-store";
+import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -26,6 +27,7 @@ export function SynergyCard({
   const [expanded, setExpanded] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
   const mutate = useMutate();
+  const me = usePreship((s) => s.me);
 
   const { data, loading } = useApi<{ offers: SynergyOffer[] }>(
     expanded ? `/api/synergy/${request.id}/offers` : null
@@ -171,9 +173,21 @@ export function SynergyCard({
             </Button>
           )}
           {isOwner && request.status === "open" && (
-            <span className="rounded-md bg-[#0E1909] px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#DAFF01]">
-              your broadcast
-            </span>
+            <>
+              <span className="rounded-md bg-[#0E1909] px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#DAFF01]">
+                your broadcast
+              </span>
+              <button
+                onClick={async () => {
+                  if (!confirm("Delete this broadcast? This cannot be undone.")) return;
+                  await mutate(`/api/synergy/${request.id}`, { method: "DELETE" });
+                }}
+                className="tactile-flat rounded-md border border-[#0E1909]/15 bg-white px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50 hover:border-[#e0463c] hover:text-[#e0463c]"
+                title="Delete broadcast"
+              >
+                <Trash2 size={12} />
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -250,6 +264,20 @@ export function SynergyCard({
                         className="cta-ink h-7 bg-[#0E1909] font-mono text-xs uppercase tracking-widest text-[#DAFF01] hover:bg-[#0E1909]/90"
                       >
                         <Check size={11} /> accept handshake
+                      </Button>
+                    </div>
+                  )}
+                  {!isOwner && me?.id === o.founderId && o.status === "pending" && (
+                    <div className="mt-2 flex items-center justify-end gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={async () => {
+                          await mutate(`/api/synergy/${request.id}/offers/${o.id}`, { method: "DELETE" });
+                        }}
+                        className="h-7 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50 hover:text-[#e0463c]"
+                      >
+                        <Trash2 size={11} /> withdraw
                       </Button>
                     </div>
                   )}

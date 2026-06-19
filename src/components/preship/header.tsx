@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { usePreship } from "@/lib/preship-store";
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,11 @@ import { useApi } from "@/lib/use-api";
 import type { FeedPost, SynergyRequest, IdeaLabSession } from "@/lib/preship-types";
 import { useMemo } from "react";
 import { Logo } from "./logo";
+import { AuthButton, LoginModal } from "./auth/login-modal";
 
 export function Header() {
   const setMobileNavOpen = usePreship((s) => s.setMobileNavOpen);
+  const [loginOpen, setLoginOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#0E1909]/10 bg-white/95 backdrop-blur">
@@ -42,14 +45,10 @@ export function Header() {
             <Bell size={15} className="transition-transform duration-150 hover:scale-110" />
             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#DAFF01] ring-1 ring-[#0E1909]" />
           </Button>
+          <AuthButton onOpenLogin={() => setLoginOpen(true)} />
           <Button
             size="sm"
-            className="cta-ink hidden border border-[#0E1909] bg-[#0E1909] font-mono text-xs font-semibold uppercase tracking-widest text-white hover:bg-[#0E1909]/90 sm:inline-flex"
-          >
-            Log in
-          </Button>
-          <Button
-            size="sm"
+            onClick={() => setLoginOpen(true)}
             className="cta-lime bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
           >
             Invite founder →
@@ -58,6 +57,7 @@ export function Header() {
       </div>
 
       <LiveTicker />
+      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
     </header>
   );
 }

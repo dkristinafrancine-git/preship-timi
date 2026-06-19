@@ -122,3 +122,43 @@ export async function PATCH(
     );
   }
 }
+
+// DELETE /api/synergy/[id]/offers/[offerId] — withdraw an offer (offer founder only)
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string; offerId: string }> }
+) {
+  try {
+    const { id, offerId } = await params;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const offer = await db.synergyOffer.findUnique({
+      where: { id: offerId },
+      select: { id: true, requestId: true, founderId: true },
+    });
+
+    if (!offer || offer.requestId !== id) {
+      return NextResponse.json({ error: "Offer not found" }, { status: 404 });
+    }
+
+    if (offer.founderId !== currentUser.id) {
+      return NextResponse.json(
+        { error: "Only the offer founder can withdraw this offer" },
+        { status: 403 }
+      );
+    }
+
+    await db.synergyOffer.delete({ where: { id: offerId } });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[DELETE /api/synergy/[id]/offers/[offerId]]", err);
+    return NextResponse.json(
+      { error: "Failed to withdraw offer" },
+      { status: 500 }
+    );
+  }
+}

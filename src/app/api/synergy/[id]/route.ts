@@ -207,3 +207,48 @@ export async function PATCH(
     );
   }
 }
+
+// DELETE /api/synergy/[id] — delete a request (owner only)
+// Prisma cascades offers via onDelete: Cascade on SynergyOffer.request.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const existing = await db.synergyRequest.findUnique({
+      where: { id },
+      select: { founderId: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Synergy request not found" },
+        { status: 404 }
+      );
+    }
+
+    if (existing.founderId !== currentUser.id) {
+      return NextResponse.json(
+        { error: "Only the request owner can delete this" },
+        { status: 403 }
+      );
+    }
+
+    await db.synergyRequest.delete({ where: { id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[DELETE /api/synergy/[id]]", err);
+    return NextResponse.json(
+      { error: "Failed to delete synergy request" },
+      { status: 500 }
+    );
+  }
+}

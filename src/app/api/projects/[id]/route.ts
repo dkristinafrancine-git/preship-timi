@@ -125,3 +125,42 @@ export async function PATCH(
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+// DELETE /api/projects/[id] — delete a project (owner only)
+// Prisma cascades posts (SetNull on projectId) and synergyRequests (SetNull
+// on projectId) per the schema; child reactions/comments on those posts
+// cascade through their own Post relation.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "No current user" }, { status: 401 });
+    }
+
+    const existing = await db.project.findUnique({
+      where: { id },
+      select: { founderId: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+    if (existing.founderId !== user.id) {
+      return NextResponse.json(
+        { error: "You can only delete your own projects" },
+        { status: 403 }
+      );
+    }
+
+    await db.project.delete({ where: { id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[DELETE /api/projects/[id]]", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

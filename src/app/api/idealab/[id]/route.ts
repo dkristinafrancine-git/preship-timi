@@ -203,3 +203,43 @@ export async function PATCH(
     );
   }
 }
+
+// DELETE /api/idealab/[id] — delete a session (host only)
+// Prisma cascades signups and interests via onDelete: Cascade.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "No current user" }, { status: 401 });
+    }
+
+    const existing = await db.ideaLabSession.findUnique({
+      where: { id },
+      select: { hostId: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
+    if (existing.hostId !== user.id) {
+      return NextResponse.json(
+        { error: "Only the host can delete this session" },
+        { status: 403 }
+      );
+    }
+
+    await db.ideaLabSession.delete({ where: { id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[DELETE /api/idealab/[id]]", err);
+    return NextResponse.json(
+      { error: "Failed to delete session" },
+      { status: 500 }
+    );
+  }
+}
