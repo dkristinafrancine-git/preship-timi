@@ -6,9 +6,10 @@ import { SessionCard } from "./session-card";
 import { SessionDetail } from "./session-detail";
 import { HostDialog } from "./host-dialog";
 import { JoinDialog } from "./join-dialog";
+import { ViewHeader } from "../view-header";
 import type { IdeaLabSession } from "@/lib/preship-types";
+import { Button } from "@/components/ui/button";
 import { Loader2, Mic, Plus, KeyRound, Calendar } from "lucide-react";
-import { StatusPill } from "../badges";
 
 export function IdeaLabView() {
   const [hostOpen, setHostOpen] = useState(false);
@@ -37,41 +38,30 @@ export function IdeaLabView() {
 
   return (
     <div className="space-y-5">
-      {/* Hero */}
-      <div className="overflow-hidden rounded-lg border border-[#0E1909]/12 bg-[#0E1909]">
-        <div className="bg-grid-dark px-5 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Mic size={14} className="text-[#DAFF01]" />
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#DAFF01]">
-                  idealab · invite-only audio
-                </span>
-              </div>
-              <h2 className="mt-1 font-display text-lg font-semibold text-white">
-                Ideate a new startup. Together. Live.
-              </h2>
-              <p className="mt-0.5 font-mono text-xs text-white/55">
-                host a room · set the agenda · build the team · one prototype leaves
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setJoinOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-[#DAFF01]/30 bg-white/5 px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#DAFF01] transition hover:bg-white/10"
-              >
-                <KeyRound size={13} /> join with code
-              </button>
-              <button
-                onClick={() => setHostOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-[#DAFF01] px-3.5 py-2 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] transition hover:bg-[#c4e600]"
-              >
-                <Plus size={13} /> host a session →
-              </button>
-            </div>
+      <ViewHeader
+        title="IdeaLab"
+        code="/idea-lab"
+        sub="invite-only live audio · host a room · set the agenda · build the team"
+        action={
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setJoinOpen(true)}
+              className="border-[#0E1909]/20 bg-white font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#f4ffd6]"
+            >
+              <KeyRound size={13} /> join
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setHostOpen(true)}
+              className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+            >
+              <Plus size={13} /> host →
+            </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Live now */}
       <section>
@@ -94,7 +84,7 @@ export function IdeaLabView() {
             </span>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3">
             {liveSessions.map((s) => (
               <SessionCard key={s.id} session={s} onOpen={() => openDetail(s.id)} />
             ))}
@@ -118,7 +108,7 @@ export function IdeaLabView() {
             no upcoming sessions · host the first one →
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3">
             {scheduled.map((s) => (
               <SessionCard key={s.id} session={s} onOpen={() => openDetail(s.id)} />
             ))}

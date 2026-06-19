@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { usePreship, type PreshipView } from "@/lib/preship-store";
-import { Logo } from "./logo";
 import { FounderAvatar } from "./avatars";
 import { useApi } from "@/lib/use-api";
 import type { Founder, Project } from "@/lib/preship-types";
@@ -49,12 +48,16 @@ export function Sidebar() {
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-[#0E1909]/10 bg-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
+          // mobile: fixed drawer; lg+: sticky grid cell, scrolls under header
+          "fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col border-r border-[#0E1909]/10 bg-white transition-transform lg:sticky lg:top-[84px] lg:z-auto lg:h-[calc(100vh-84px)] lg:translate-x-0 lg:overflow-y-auto lg:pb-6 scroll-thin",
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between px-5 pt-5">
-          <Logo />
+        {/* mobile close row (logo lives in global header on desktop) */}
+        <div className="flex items-center justify-between px-4 pt-4 lg:hidden">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/50">
+            navigate
+          </span>
           <button
             className="rounded p-1 text-[#0E1909]/50 hover:bg-[#0E1909]/5 lg:hidden"
             onClick={() => setMobileNavOpen(false)}
@@ -64,7 +67,7 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className="mt-6 flex-1 px-3">
+        <nav className="mt-2 flex-1 px-3 lg:mt-5">
           <p className="mb-2 px-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#0E1909]/40">
             Workspace
           </p>

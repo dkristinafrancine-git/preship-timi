@@ -12,7 +12,7 @@ import { TrendingUp, Flame, Users, Calendar, ArrowRight } from "lucide-react";
 export function RightRail() {
   const view = usePreship((s) => s.view);
   return (
-    <aside className="hidden w-80 shrink-0 space-y-4 xl:block">
+    <aside className="hidden w-[320px] shrink-0 space-y-4 lg:sticky lg:top-[84px] lg:h-[calc(100vh-84px)] lg:block lg:overflow-y-auto lg:pb-6 scroll-thin">
       {view === "war-room" && <WarRoomRail />}
       {view === "synergy" && <SynergyRail />}
       {view === "idealab" && <IdeaLabRail />}

@@ -5,8 +5,10 @@ import { useApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
 import { ProjectCard } from "./project-card";
 import { ProjectDialog } from "./project-dialog";
+import { ViewHeader } from "../view-header";
 import type { Project } from "@/lib/preship-types";
 import { ALPHA_STAGES } from "@/lib/preship";
+import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Boxes, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,33 +35,20 @@ export function ProjectsView() {
 
   return (
     <div className="space-y-4">
-      {/* Hero */}
-      <div className="overflow-hidden rounded-lg border border-[#0E1909]/12 bg-[#0E1909]">
-        <div className="bg-grid-dark px-5 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Boxes size={14} className="text-[#DAFF01]" />
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#DAFF01]">
-                  projects · your startups
-                </span>
-              </div>
-              <h2 className="mt-1 font-display text-lg font-semibold text-white">
-                Multiple projects. Separate sub-stages.
-              </h2>
-              <p className="mt-0.5 font-mono text-xs text-white/55">
-                register each startup · set its alpha sub-stage · post & broadcast as the founder
-              </p>
-            </div>
-            <button
-              onClick={openNew}
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#DAFF01] px-3.5 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] transition hover:bg-[#c4e600]"
-            >
-              <Plus size={13} /> add a project →
-            </button>
-          </div>
-        </div>
-      </div>
+      <ViewHeader
+        title="Projects"
+        code="/projects"
+        sub="register each startup · set its alpha sub-stage · post & broadcast as the founder"
+        action={
+          <Button
+            size="sm"
+            onClick={openNew}
+            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+          >
+            <Plus size={13} /> add →
+          </Button>
+        }
+      />
 
       {/* Scope + stage filter */}
       <div className="flex flex-wrap items-center gap-2">
@@ -109,7 +98,7 @@ export function ProjectsView() {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Grid — single column in the narrower center column */}
       {loading && projects.length === 0 ? (
         <div className="flex items-center justify-center py-16 text-[#0E1909]/40">
           <Loader2 size={18} className="animate-spin" />
@@ -123,7 +112,7 @@ export function ProjectsView() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4">
           {projects.map((p) => (
             <ProjectCard
               key={p.id}

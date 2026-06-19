@@ -6,9 +6,11 @@ import { useApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
 import { SynergyCard } from "./synergy-card";
 import { BroadcastDialog } from "./broadcast-dialog";
-import type { SynergyRequest, Founder } from "@/lib/preship-types";
+import { ViewHeader } from "../view-header";
+import type { SynergyRequest } from "@/lib/preship-types";
 import { BOUNTY_TYPES } from "@/lib/preship";
-import { Loader2, Zap, Plus, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Plus } from "lucide-react";
 
 type Filter = "all" | "mine" | "open";
 
@@ -29,33 +31,20 @@ export function SynergyView() {
 
   return (
     <div className="space-y-4">
-      {/* Hero / intro */}
-      <div className="overflow-hidden rounded-lg border border-[#0E1909]/12 bg-[#0E1909]">
-        <div className="bg-grid-dark px-5 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Zap size={14} className="text-[#DAFF01]" />
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#DAFF01]">
-                  synergy · bottleneck-broadcast
-                </span>
-              </div>
-              <h2 className="mt-1 font-display text-lg font-semibold text-white">
-                Trade bounties for handshakes.
-              </h2>
-              <p className="mt-0.5 font-mono text-xs text-white/55">
-                broadcast a blocker · receive matched offers · pick your collaborator
-              </p>
-            </div>
-            <button
-              onClick={() => setBroadcastOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#DAFF01] px-3.5 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] transition hover:bg-[#c4e600]"
-            >
-              <Plus size={13} /> broadcast a bottleneck →
-            </button>
-          </div>
-        </div>
-      </div>
+      <ViewHeader
+        title="Synergy"
+        code="/synergy"
+        sub="broadcast a blocker · receive matched offers · pick your collaborator"
+        action={
+          <Button
+            size="sm"
+            onClick={() => setBroadcastOpen(true)}
+            className="bg-[#DAFF01] font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] shadow-none hover:bg-[#c4e600]"
+          >
+            <Plus size={13} /> broadcast →
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">

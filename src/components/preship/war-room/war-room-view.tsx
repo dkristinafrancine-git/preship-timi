@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useApi } from "@/lib/use-api";
 import { PostComposer } from "./post-composer";
 import { FeedPost } from "./feed-post";
+import { ViewHeader } from "../view-header";
 import type { FeedPost as FeedPostType } from "@/lib/preship-types";
 import { Loader2, Filter, Signal } from "lucide-react";
 
@@ -17,36 +18,11 @@ export function WarRoomView() {
 
   return (
     <div className="space-y-4">
-      {/* Hero strip — war room intro */}
-      <div className="overflow-hidden rounded-lg border border-[#0E1909]/12 bg-[#0E1909]">
-        <div className="bg-grid-dark">
-          <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#DAFF01]">
-                  war-room · session-active
-                </span>
-                <span className="flex h-1.5 w-1.5">
-                  <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#DAFF01]" />
-                </span>
-              </div>
-              <h2 className="mt-1 font-display text-lg font-semibold text-white">
-                Where alpha founders ship in the dark, together.
-              </h2>
-              <p className="mt-0.5 font-mono text-xs text-white/55">
-                high-intent posts · text + audio · handshake over like
-              </p>
-            </div>
-            <div className="flex items-center gap-4 rounded-md border border-[#DAFF01]/20 bg-white/5 px-4 py-2.5">
-              <Metric label="founders" value="7" />
-              <span className="h-8 w-px bg-[#DAFF01]/15" />
-              <Metric label="posts" value="9" />
-              <span className="h-8 w-px bg-[#DAFF01]/15" />
-              <Metric label="handshakes" value="12" />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ViewHeader
+        title="War Room"
+        code="/war-room"
+        sub="high-signal feed · text + audio · handshake over like"
+      />
 
       <PostComposer />
 
@@ -93,15 +69,6 @@ export function WarRoomView() {
           posts.map((p) => <FeedPost key={p.id} post={p} />)
         )}
       </div>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="text-center">
-      <p className="font-display text-xl font-bold text-[#DAFF01]">{value}</p>
-      <p className="font-mono text-[9px] uppercase tracking-widest text-white/45">{label}</p>
     </div>
   );
 }

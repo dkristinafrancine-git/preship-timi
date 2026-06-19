@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { usePreship } from "@/lib/preship-store";
 import { useApi } from "@/lib/use-api";
+import { Header } from "./header";
 import { Sidebar } from "./sidebar";
-import { Topbar } from "./topbar";
 import { RightRail } from "./right-rail";
 import { Footer } from "./footer";
 import { WarRoomView } from "./war-room/war-room-view";
@@ -24,21 +24,23 @@ export function PreshipApp() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex flex-1">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar />
-          <main className="flex flex-1 gap-8 px-4 py-6 lg:px-8">
-            <div className="min-w-0 flex-1">
-              {view === "war-room" && <WarRoomView />}
-              {view === "synergy" && <SynergyView />}
-              {view === "idealab" && <IdeaLabView />}
-              {view === "projects" && <ProjectsView />}
-            </div>
-            <RightRail />
-          </main>
+      {/* full-width sticky header: logo + auth + live ticker */}
+      <Header />
+
+      {/* 3-column grid: left nav | center | right rail — max-width centered */}
+      <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-5 lg:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:gap-6">
+          <Sidebar />
+          <section className="min-w-0 px-0 lg:px-0">
+            {view === "war-room" && <WarRoomView />}
+            {view === "synergy" && <SynergyView />}
+            {view === "idealab" && <IdeaLabView />}
+            {view === "projects" && <ProjectsView />}
+          </section>
+          <RightRail />
         </div>
-      </div>
+      </main>
+
       <Footer />
     </div>
   );

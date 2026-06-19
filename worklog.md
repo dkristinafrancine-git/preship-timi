@@ -108,3 +108,22 @@ Work Log:
 Stage Summary:
 - Preship is feature-complete and browser-verified. Single `/` route, 4 client-switched views, full CRUD via API, seeded with 7 founders / 8 projects / 9 posts / 6 synergy broadcasts / 5 IdeaLab sessions.
 - Lint clean (0 errors). Dev server runs on :3000.
+
+---
+Task ID: 10
+Agent: main
+Task: Rearrange layout to Peerlist-style 3-column grid.
+
+Work Log:
+- VLM-analyzed the Peerlist.io reference screenshot for exact structure: full-width sticky header (logo left, auth right) + 3-col grid (220px / 1fr / 320px) centered at ~1280px, view title in center column (not header), sticky sidebars below header.
+- Created new `header.tsx`: slim full-width sticky header — Logo left, Docs/Bell/Log in/Invite founder right, live-ticker strip below. Removed view title (moves to center).
+- Created new `view-header.tsx`: slim center-column header (Peerlist "Scroll"-style) — view title + mono route code + subtitle + optional CTA action on the right. Sticky at top-[84px].
+- Reworked `sidebar.tsx`: removed Logo from top (it's in the header now); sidebar is now a sticky grid cell (top-[84px], h-[calc(100vh-84px)], overflow-y-auto) on lg+, fixed drawer on mobile.
+- Reworked `right-rail.tsx`: visible on lg+ (was xl), sticky grid cell with scroll.
+- Reworked `preship-app.tsx`: Header (full width) → main with `grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:gap-6` max-w-[1280px] centered → Footer.
+- Updated all 4 views to remove the dark hero strips; each now renders a <ViewHeader> at top with the view's CTA (broadcast/host/join/add) in the action slot. War Room keeps composer+tabs+feed; Synergy keeps filters+cards; IdeaLab keeps live+upcoming sections (single-column cards in narrower center); Projects keeps scope+stage filters (single-column cards).
+- Removed old `topbar.tsx`.
+- Lint clean. Agent Browser verified: 3-col grid renders, logo in header, right rail visible alongside center, view title in center, all 4 views switch correctly with contextual right-rail swaps. VLM confirmed structure matches Peerlist.
+
+Stage Summary:
+- Layout now matches Peerlist.io: full-width sticky header + centered 3-col grid (220/1fr/320) + sticky sidebars. On-brand Preship styling preserved (white/lime/ink, Funnel Display, live ticker, developer aesthetic).
