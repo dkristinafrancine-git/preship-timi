@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
+import { notify } from "@/lib/notify";
 
 const VALID_OFFER_STATUSES = ["accepted", "declined"];
 
@@ -86,6 +87,18 @@ export async function PATCH(
           select: { id: true, status: true },
         }),
       ]);
+
+      // notify the offer founder that their handshake was accepted (bounty gathered!)
+      if (updatedOffer.founder.id !== currentUser.id) {
+        await notify(
+          updatedOffer.founder.id,
+          "offer-accepted",
+          `Handshake accepted — bounty gathered!`,
+          `Your offer on "${request.id}" was accepted. The bounty is yours.`,
+          "synergy",
+          id
+        );
+      }
 
       return NextResponse.json({
         offer: updatedOffer,

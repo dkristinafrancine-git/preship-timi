@@ -19,6 +19,7 @@ export function RightRail() {
       {view === "idealab" && <IdeaLabRail />}
       {view === "projects" && <ProjectsRail />}
       {view === "profile" && <ProfileRail />}
+      {(view === "search" || view === "brain-dump" || view === "settings" || view === "docs") && <GenericRail />}
     </aside>
   );
 }
@@ -341,6 +342,39 @@ function avgStake(reqs: SynergyRequest[]): number {
   const withStake = reqs.filter((r) => r.stake != null && r.stake > 0);
   if (withStake.length === 0) return 0;
   return Math.round(withStake.reduce((a, r) => a + (r.stake ?? 0), 0) / withStake.length);
+}
+
+/** Generic rail for views that don't have a custom rail (search, brain-dump, settings, docs). */
+function GenericRail() {
+  const view = usePreship((s) => s.view);
+  const label =
+    view === "search" ? "search · tips" :
+    view === "brain-dump" ? "brain-dump · about" :
+    view === "settings" ? "settings · info" :
+    "docs · index";
+  return (
+    <>
+      <div className="terminal-card">
+        <TerminalHeader label={label} />
+        <div className="p-4">
+          <p className="text-[13px] leading-relaxed text-[#0E1909]/70">
+            {view === "search" && "Search across founders, projects, posts, synergy broadcasts, and articles. Start typing in the search bar — results update as you type."}
+            {view === "brain-dump" && "Brain Dump is where founders write long-form articles about their build-in-public journey. Write teardowns, retros, hot takes, and field notes."}
+            {view === "settings" && "Settings are preferences only — theme, notifications, and display. To edit your identity (name, bio, avatar, skills), go to your Profile."}
+            {view === "docs" && "Docs is the Preship glossary. Every feature is defined with its goals and intended use. Start here if you're new to the alpha war room."}
+          </p>
+        </div>
+      </div>
+      <div className="rounded-lg border border-[#0E1909]/12 bg-[#f4ffd6] p-4">
+        <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60">
+          the alpha war room
+        </p>
+        <p className="mt-2 text-[13px] leading-relaxed text-[#0E1909]/75">
+          A high-velocity tactical command center where pre-launch founders collaborate, back, and trade leverage in broad daylight.
+        </p>
+      </div>
+    </>
+  );
 }
 
 const TOP_FOUNDERS: Founder[] = [

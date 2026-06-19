@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePreship } from "@/lib/preship-store";
 import { useApi } from "@/lib/use-api";
 import { Header } from "./header";
@@ -12,6 +12,11 @@ import { SynergyView } from "./synergy/synergy-view";
 import { IdeaLabView } from "./idealab/idealab-view";
 import { ProjectsView } from "./projects/projects-view";
 import { ProfileView } from "./profile/profile-view";
+import { SearchView } from "./search/search-view";
+import { BrainDumpView } from "./brain-dump/brain-dump-view";
+import { SettingsView } from "./settings/settings-view";
+import { DocsView } from "./docs/docs-view";
+import { OnboardingWizard } from "./auth/onboarding-wizard";
 import type { Founder } from "@/lib/preship-types";
 
 export function PreshipApp() {
@@ -34,8 +39,14 @@ export function PreshipApp() {
     }
   }, [navigate]);
 
+  const user = meData?.user;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {user && !user.onboarded && user.title === "" && (
+        <OnboardingWizard user={user} />
+      )}
+
       {/* full-width sticky header: logo + auth + live ticker */}
       <Header />
 
@@ -49,6 +60,10 @@ export function PreshipApp() {
             {view === "idealab" && <IdeaLabView />}
             {view === "projects" && <ProjectsView />}
             {view === "profile" && <ProfileView />}
+            {view === "search" && <SearchView />}
+            {view === "brain-dump" && <BrainDumpView />}
+            {view === "settings" && <SettingsView />}
+            {view === "docs" && <DocsView />}
           </section>
           <RightRail />
         </div>

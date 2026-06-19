@@ -15,6 +15,7 @@ datasource db {
 model User {
   id          String   @id @default(cuid())
   email       String   @unique
+  passwordHash String? // null for demo/seeded users (credentials provider allows email-only)
   handle      String   @unique
   name        String
   title       String   // e.g. "Founder @ Acme", "Solo Builder"
@@ -24,6 +25,12 @@ model User {
   skills      String?  // comma separated
   bountiesPublic Boolean @default(true) // show gathered bounties on shareable profile
   isCurrent   Boolean  @default(false) // the "logged in" founder in this demo
+  // preferences (Settings page)
+  prefTheme          String   @default("system") // system | light | dark
+  prefNotifications  Boolean  @default(true)
+  prefEmailDigest    Boolean  @default(false)
+  prefCompactMode    Boolean  @default(false)
+  onboarded          Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -38,6 +45,9 @@ model User {
   interests          IdeaLabInterest[]
   following          Follow[]           @relation("Follower")
   followers          Follow[]           @relation("Following")
+  notifications      Notification[]
+  articles           Article[]
+  articleClaps       ArticleClap[]
 }
 
 model Follow {
@@ -197,3 +207,48 @@ model IdeaLabInterest {
 
   @@unique([sessionId, userId])
 }
+
+// ---- Notifications ----
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String   // reaction | comment | handshake-offer | offer-accepted | follow | session-starting | session-live | bounty-gathered
+  title     String
+  body      String
+  linkView  String?  // war-room | synergy | idealab | projects | profile
+  linkId    String?  // postId / synergyId / sessionId / founderId
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ---- Brain Dump (articles) ----
+
+model Article {
+  id          String   @id @default(cuid())
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title       String
+  subtitle    String?
+  body        String   // markdown-ish plain text
+  tags        String?  // comma-separated
+  published   Boolean  @default(false)
+  coverColor  String   @default("#0E1909")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  claps ArticleClap[]
+}
+
+model ArticleClap {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
+}
+

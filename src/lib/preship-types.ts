@@ -12,6 +12,7 @@ export type Founder = {
   skills?: string | null;
   bountiesPublic?: boolean;
   isCurrent: boolean;
+  onboarded?: boolean;
 };
 
 export type Project = {
@@ -137,4 +138,24 @@ export type IdeaLabSignup = {
   role: IdeaRole;
   status: string;
   user: Founder;
+};
+
+export type Article = {
+  id: string;
+  authorId: string;
+  title: string;
+  subtitle: string | null;
+  body: string;
+  tags: string | null;
+  published: boolean;
+  coverColor: string;
+  createdAt: string;
+  updatedAt: string;
+  author: Pick<
+    Founder,
+    "id" | "name" | "handle" | "title" | "avatarUrl"
+  > &
+    Partial<Pick<Founder, "bio" | "location" | "skills">>;
+  _count: { claps: number };
+  myClap?: boolean;
 };

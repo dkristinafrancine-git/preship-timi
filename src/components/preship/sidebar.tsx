@@ -11,9 +11,10 @@ import {
   Mic,
   Boxes,
   Search,
-  BookOpen,
+  PenLine,
   Settings,
   User,
+  BookText,
   X,
 } from "lucide-react";
 
@@ -22,13 +23,14 @@ const NAV: { id: PreshipView; label: string; code: string; icon: typeof Radio }[
   { id: "synergy", label: "Synergy", code: "SY", icon: Zap },
   { id: "idealab", label: "IdeaLab", code: "IL", icon: Mic },
   { id: "projects", label: "Projects", code: "PR", icon: Boxes },
+  { id: "brain-dump", label: "Brain Dump", code: "BD", icon: PenLine },
   { id: "profile", label: "Profile", code: "PF", icon: User },
 ];
 
-const SECONDARY = [
-  { label: "Search", code: "SE", icon: Search },
-  { label: "Field Notes", code: "FN", icon: BookOpen },
-  { label: "Settings", code: "ST", icon: Settings },
+const SECONDARY: { id: PreshipView; label: string; code: string; icon: typeof Radio }[] = [
+  { id: "search", label: "Search", code: "SE", icon: Search },
+  { id: "docs", label: "Docs", code: "DC", icon: BookText },
+  { id: "settings", label: "Settings", code: "ST", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -109,13 +111,22 @@ export function Sidebar() {
           </p>
           <ul className="space-y-1">
             {SECONDARY.map((item) => {
+              const active = view === item.id;
               const Icon = item.icon;
               return (
-                <li key={item.label}>
-                  <button className="tactile-flat group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[#0E1909]/70 hover:bg-[#f4ffd6] hover:text-[#0E1909]">
-                    <Icon size={17} className="text-[#0E1909]/50 transition-transform duration-150 group-hover:scale-110" />
+                <li key={item.id}>
+                  <button
+                    onClick={() => setView(item.id)}
+                    className={cn(
+                      "tactile-flat group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition",
+                      active
+                        ? "bg-[#0E1909] text-[#DAFF01] shadow-[0_2px_8px_rgba(14,25,9,0.12)]"
+                        : "text-[#0E1909]/70 hover:bg-[#f4ffd6] hover:text-[#0E1909]"
+                    )}
+                  >
+                    <Icon size={17} className={active ? "text-[#DAFF01]" : "text-[#0E1909]/50 transition-transform duration-150 group-hover:scale-110"} />
                     <span className="flex-1 font-display text-[15px] font-medium">{item.label}</span>
-                    <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/30">
+                    <span className={cn("font-mono text-xs uppercase tracking-widest", active ? "text-[#DAFF01]/60" : "text-[#0E1909]/30")}>
                       {item.code}
                     </span>
                   </button>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
+import { notify } from "@/lib/notify";
 
 /**
  * POST /api/follows
@@ -32,6 +33,16 @@ export async function POST(req: NextRequest) {
     }
 
     await db.follow.create({ data: { followerId: me.id, followingId: targetId } });
+
+    // notify the followed founder
+    await notify(
+      targetId,
+      "follow",
+      `${me.name} started following you`,
+      `${me.name} is now following your founder journey.`,
+      "profile",
+      me.id
+    );
     return NextResponse.json({ following: true });
   } catch (err) {
     console.error("[POST /api/follows]", err);

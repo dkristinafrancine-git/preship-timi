@@ -25,7 +25,7 @@ export function StageChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-widest",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded border px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-widest",
         active
           ? "border-[#0E1909] bg-[#DAFF01] text-[#0E1909]"
           : "border-[#0E1909]/15 bg-[#f4ffd6] text-[#0E1909]",
@@ -124,7 +124,7 @@ export function BountyBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded border font-mono font-semibold uppercase tracking-wider",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded border font-mono font-semibold uppercase tracking-wider",
         size === "sm" ? "px-2 py-1 text-xs" : "px-2.5 py-1 text-xs",
         isBarter
           ? "border-[#0E1909]/20 bg-white text-[#0E1909]"
@@ -174,7 +174,7 @@ export function RoleBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-wider",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded border px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-wider",
         filled
           ? "border-[#0E1909] bg-[#0E1909] text-[#DAFF01]"
           : "border-dashed border-[#0E1909]/30 bg-[#f4ffd6] text-[#0E1909]/70",
@@ -201,7 +201,7 @@ export function Tag({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded px-2 py-1 font-mono text-xs uppercase tracking-wider",
+        "inline-flex shrink-0 items-center whitespace-nowrap rounded px-2 py-1 font-mono text-xs uppercase tracking-wider",
         active ? "bg-[#DAFF01] text-[#0E1909]" : "bg-[#0E1909]/5 text-[#0E1909]/65",
         className
       )}
@@ -236,7 +236,7 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-xs font-semibold uppercase tracking-widest",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 font-mono text-xs font-semibold uppercase tracking-widest",
         m.cls,
         isLive && "animate-softpulse",
         className

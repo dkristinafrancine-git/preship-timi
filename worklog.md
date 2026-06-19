@@ -300,3 +300,211 @@ Stage Summary:
 - DialogContent accessibility error eliminated (sr-only DialogTitle + Description added to session detail).
 - All right-rail interactive elements now have proper click handlers (trending → war room, my-projects → projects view).
 - Post edit is now functional (inline editor with PATCH). Session end-live and synergy close/reopen added. All entities now have complete CRUD.
+
+---
+Task ID: 4
+Agent: notifications-search-subagent
+Task: Build the Notifications API (list / mark-read / delete) + a global Search API + a notify() helper for the Preship Next.js 16 App Router.
+
+Work Log:
+- Read worklog.md, prisma/schema.prisma (Notification, User, Project, Post, SynergyRequest, Article models), src/lib/current-user.ts, src/lib/db.ts, and existing route files (feed, posts/[id], synergy) to match code style and Prisma include shapes.
+- Created src/lib/notify.ts — exported `async function notify(userId, kind, title, body, linkView?, linkId?)` that creates a Notification row. Wrapped in try/catch so a notify failure never breaks the parent request (best-effort, log + return null on error). Ready to be imported by other API routes (reactions, comments, offers, follows).
+- Created src/app/api/notifications/route.ts — GET returns current user's notifications (newest first, take 30), selects id/kind/title/body/linkView/linkId/read/createdAt. Runs a `count` in parallel via Promise.all to include `unreadCount` (read=false). 401 if no current user.
+- Created src/app/api/notifications/read/route.ts — POST marks notifications as read. Reads optional `{ id }` from the JSON body (uses .catch(() => ({})) so empty bodies don't throw). If `id` provided: verify ownership (404 if missing, 403 if not owner), then `updateMany` with `read: false` filter so `updated` reflects actual state change. If no `id`: `updateMany` across all of the current user's unread notifications. Returns `{ ok: true, updated: N }` (N from `result.count`).
+- Created src/app/api/notifications/[id]/route.ts — DELETE single notification. Awaits `params` (Next.js 16 Promise). Owner-only check (notification.userId === currentUser.id) with 404/403 guards. Returns `{ ok: true }`.
+- Created src/app/api/search/route.ts — GET with `?q=<query>`. Returns `{ founders, projects, posts, synergy, articles }`. Empty arrays if q is missing/< 2 chars. SQLite + Prisma `contains` is case-sensitive for ASCII, so to give correct case-insensitive UX I fetch a bounded candidate pool per category (take 200, newest first) and JS-filter with `.toLowerCase().includes(needle)`, then slice to 5. Search fields: founders → name/handle/title/bio/skills; projects → name/tagline/description/category/alphaStage/logoMark (+ include founder); posts (type=text only) → body/tags/audioTitle (+ include author + project + shaped _count with reactions like/repost/handshake + comments count); synergy → title/bottleneck/need/bountyDetail/tags (+ include founder + project + _count.offers); articles (published=true only) → title/subtitle/body/tags (+ include author). Reused the feed's reaction-count shaping pattern for posts so the search results drop straight into existing post cards.
+- All new handlers use the project's conventions: NextRequest/NextResponse, awaited `params` Promise where applicable, getCurrentUser() with 401 guard, try/catch with 500 fallback and `console.error("[ROUTE]", err)` logging.
+- Ran `bun run lint` — clean (0 errors). Ran `bunx tsc --noEmit` — only pre-existing errors (prisma/seed.ts, skills/, src/components/preship/badges.tsx, src/components/preship/profile/bounties-gathered.tsx); none introduced by this task.
+
+Stage Summary:
+- Files created:
+  - src/lib/notify.ts (notify() helper — best-effort, swallows errors)
+  - src/app/api/notifications/route.ts (GET — list 30 newest + unreadCount)
+  - src/app/api/notifications/read/route.ts (POST — mark one or all as read, returns { ok, updated })
+  - src/app/api/notifications/[id]/route.ts (DELETE — owner-only, returns { ok })
+  - src/app/api/search/route.ts (GET ?q= — founders/projects/posts/synergy/articles, 5 each, case-insensitive via JS post-filter, includes the relations + _count needed by existing UI cards)
+- Notifications + search backend ready. The main agent can now wire `notify()` into the existing reaction/comment/offer/follow POST handlers and build the notification bell + search bar UI on top of these endpoints.
+
+---
+Task ID: 3
+Agent: auth-onboarding-subagent
+Task: Build real auth signup + onboarding API (signup, onboarding, preferences) and upgrade the NextAuth credentials provider with scrypt password verification.
+
+Work Log:
+- Read worklog.md, prisma/schema.prisma (confirmed User.passwordHash?, onboarded, prefTheme/prefNotifications/prefEmailDigest/prefCompactMode, handle unique), src/lib/current-user.ts, src/lib/auth.ts, src/app/api/me/route.ts, src/app/api/projects/[id]/route.ts for conventions (NextRequest/NextResponse, awaited params Promise, getCurrentUser with 401, try/catch + console.error, 500 fallback).
+- Modified src/lib/auth.ts:
+  - Imported randomBytes, scryptSync, timingSafeEqual from node:crypto.
+  - Added `hashPassword(plain)` -> `salt:hash` hex (16-byte salt, 64-byte scrypt key).
+  - Added `verifyPassword(plain, stored)` that splits on `:`, recomputes scrypt, and uses timingSafeEqual (length-safe).
+  - Updated CredentialsProvider to also declare a `password` credential.
+  - `authorize` now fetches `passwordHash` along with the user. If `passwordHash` is set, the supplied password is required and verified; if verification fails (or no password supplied) returns null. If `passwordHash` is null (seeded demo user), email-only login still works (backward compat with the existing quick-pick login modal).
+  - Existing JWT/session callbacks and custom session fields preserved.
+- Created src/app/api/auth/signup/route.ts (POST):
+  - Validates email (regex), password (>=6 chars), name (non-empty), handle (3-20 chars, alphanumeric+dash, lowercase, unique). Also checks email uniqueness.
+  - Hashes password via `hashPassword()` and stores as `passwordHash`.
+  - Creates the user with `onboarded: false`, `title: ""`, leaves `isCurrent` at default false (the session owns "current user").
+  - Returns 201 with `{ user: { id, email, name, handle } }`. Proper 400/500 with try/catch.
+- Created src/app/api/onboarding/route.ts (GET + POST):
+  - GET: returns `{ onboarded: boolean }` for the current user (401 if no session).
+  - POST: validates `name` (non-empty), `handle` (format + uniqueness only if changed), accepts `title`, `bio`, `location`, `skills` (array -> comma-separated, also accepts string), `avatarUrl`. Sets `onboarded: true`. Returns the updated user. Falls back to existing values for optional fields that aren't provided.
+- Created src/app/api/preferences/route.ts (GET + PATCH):
+  - GET: returns `{ prefTheme, prefNotifications, prefEmailDigest, prefCompactMode }` for the current user.
+  - PATCH: accepts any subset of those 4 fields. Validates `prefTheme` ∈ {system, light, dark} and the three booleans. Returns the updated preferences object (only the 4 pref fields).
+- Ran `bun run lint` -> 0 errors. Ran `bunx tsc --noEmit` -> no errors in any file I created or modified (all remaining errors are pre-existing in prisma/seed.ts, skills/, and src/components/preship/*).
+
+Stage Summary:
+- Files created:
+  - src/app/api/auth/signup/route.ts (POST — create account, scrypt-hashed password)
+  - src/app/api/onboarding/route.ts (GET status + POST complete onboarding)
+  - src/app/api/preferences/route.ts (GET + PATCH the 4 preference fields)
+- Files modified:
+  - src/lib/auth.ts (+ hashPassword/verifyPassword exports, + password credential + scrypt verification in authorize, backward-compatible email-only login for seeded users preserved)
+- Auth flow now supports real signup+login (email+password) alongside the existing email-only quick-pick for seeded demo founders. After signup the client calls `signIn("credentials", { email, password })` and the provider verifies the password against the stored scrypt `salt:hash`. Lint clean; no new TypeScript errors.
+
+---
+Task ID: 6
+Agent: braindump-subagent
+Task: Build the Brain Dump (articles) API — list/create, get/patch/delete, clap toggle — and seed a few articles.
+
+Work Log:
+- Read worklog.md, prisma/schema.prisma (Article: id, authorId, title, subtitle, body, tags, published, coverColor, createdAt, updatedAt, claps[]; ArticleClap: id, articleId, userId, createdAt, unique [articleId, userId]), src/lib/current-user.ts, src/lib/db.ts, and existing route files (posts, posts/[id], posts/[id]/react, projects, projects/[id], feed) to match code style.
+- Created src/app/api/articles/route.ts:
+  - GET: lists published articles, newest first. Supports ?authorId=<id> filter. Includes author (id, name, handle, title, avatarUrl) and _count of claps. Returns { articles: [...] }.
+  - POST: creates an article as the current user. Body: { title, subtitle?, body, tags?, published?, coverColor? }. Validates title + body non-empty. published defaults to false. coverColor defaults to #0E1909. Returns 201 with the created article (author + _count).
+- Created src/app/api/articles/[id]/route.ts:
+  - GET: one article with author (incl. bio/location/skills for hover-card parity), _count of claps, and myClap boolean (whether current user clapped). 404 if not found or unpublished (unless the current user is the author — draft visibility).
+  - PATCH: author-only (404/403 guards). Accepts title, subtitle (string|null), body, tags (string|null), published (boolean), coverColor. Validates each field; 400 on no-op payload. Returns updated article (author + _count + myClap).
+  - DELETE: author-only (404/403 guards). Prisma cascades ArticleClap via onDelete: Cascade. Returns { ok: true }.
+- Created src/app/api/articles/[id]/clap/route.ts:
+  - POST: toggles a clap. If a clap exists for (articleId, currentUserId), delete it (un-clap). Otherwise create it (clap). Returns { clapped: boolean }. 404 if article missing or unpublished-for-non-author (same visibility rule as GET).
+- Updated prisma/seed.ts:
+  - Added `articleClap` + `article` to the top-of-seed wipe block so re-seeds stay clean.
+  - Added a Brain Dump section at the end of main() that creates 6 articles (5 published + 1 draft by Maya for draft-visibility testing) with realistic founder-perspective content covering distribution, beta lessons, customer discovery, edge ML, community-first design, and an internal onboarding draft.
+  - Seeded 15 claps across the 5 published articles (Maya's article gets 4 claps from other founders, etc.) so the _count field isn't all zero.
+  - Extended the final console.log to include articles count.
+- Ran `bun run lint` — clean (0 errors). Ran `bunx tsc --noEmit` and filtered for api/articles — no new TS errors (only pre-existing seed.ts never[] inference errors as noted by Task 5). Ran the seed via `bunx tsx prisma/seed.ts` — succeeded with 6 articles and 15 claps, verified by querying the DB directly.
+
+Stage Summary:
+- Files created:
+  - src/app/api/articles/route.ts (GET list published + POST create)
+  - src/app/api/articles/[id]/route.ts (GET one with myClap, PATCH author-only, DELETE author-only)
+  - src/app/api/articles/[id]/clap/route.ts (POST toggle clap → { clapped: boolean })
+- Files modified:
+  - prisma/seed.ts (+ articleClap/article wipe; + Brain Dump seed: 6 articles, 15 claps)
+- API surface for Brain Dump is complete: list, create, read (with author-aware visibility + myClap), update (author-only), delete (author-only, cascades claps), and clap toggle. Seeded with 6 articles (5 published, 1 draft) authored by Maya/Sofia/Tobi/Devrishi/Nina, plus 15 claps distributed across the published ones. Lint clean; no new TS errors introduced.
+
+---
+Task ID: 5b
+Agent: settings-docs-onboarding-ui
+Task: Build the Settings view, Docs (glossary) view, and Onboarding wizard for the Preship Next.js 16 app.
+
+Work Log:
+- Read worklog.md, preship-app.tsx, view-header.tsx, profile-view.tsx, skills-editor.tsx, avatar-upload.tsx, badges.tsx, preship-store.ts, use-api.ts, preship-types.ts, /api/preferences/route.ts, /api/onboarding/route.ts, /api/me/route.ts, current-user.ts, sidebar.tsx, header.tsx, login-modal.tsx, switch.tsx, button.tsx, globals.css, preship.ts, avatars.tsx to match code style + API contracts.
+- Added `onboarded?: boolean` to the `Founder` type in src/lib/preship-types.ts. The full User row (incl. onboarded) is already returned by /api/me + /api/onboarding POST; the type was missing the field, so preship-app.tsx already had a TS error on `user.onboarded`.
+- Modified src/components/preship/preship-app.tsx — inlined the onboarding guard as `{user && !user.onboarded && user.title === "" && <OnboardingWizard user={user} />}` so TS narrows `user` from `Founder | undefined` to `Founder` inside the JSX (the previous `const needsOnboarding = …` form broke narrowing and failed `user={user}` prop-type check).
+- Created src/components/preship/docs/docs-view.tsx — static glossary. ViewHeader (title="Docs", code="/docs", sub="glossary · feature definitions · goals"). Manifesto strip + 8 sections (Alpha War Room overview, War Room, Synergy, IdeaLab, Brain Dump, Projects, Profile, Alpha Sub-Stages with CD/PV/PT/CB/PB/PL definitions). Each section: terminal-card with TerminalHeader (feature · CODE), icon, heading, definition paragraph, and a "goals" bullet list with `→` arrows. No API calls.
+- Created src/components/preship/settings/settings-view.tsx — preferences only (not profile). Loads /api/preferences via useApi, PATCHes on save. 4 cards: (1) theme picker — 3 buttons System/Light/Dark with Monitor/Sun/Moon icons, (2) in-app notifications Switch, (3) weekly email digest Switch, (4) compact mode Switch. shadcn Switch from @/components/ui/switch, themed ink-on-check. Save button in ViewHeader action is only enabled when dirty; reset button appears when dirty. Footer note nudges identity edits to the Profile tab.
+- Created src/components/preship/auth/onboarding-wizard.tsx — full-screen overlay (fixed inset-0 z-50 bg-white, role=dialog aria-modal). 4-step wizard: (1) name + handle with validation (name non-empty, handle /^[a-z0-9-]{3,20}$/), (2) title + bio + location, (3) skills via reused SkillsEditor, (4) avatar via reused AvatarUpload. Progress indicator with circular nodes (active=lime, done=ink, future=bordered). Preship logo + "Welcome to the Alpha War Room" headline + step hint. Continue → / ← Back nav. Final step "complete onboarding →" POSTs /api/onboarding with all collected fields, setMe(updated), bump() to refetch, toast success. Reads initial user prop to pre-fill all fields.
+- Ran `bun run lint` — clean (0 errors). Ran `bunx tsc --noEmit` — only pre-existing errors remain (prisma/seed.ts, badges.tsx BountyType import, bounties-gathered.tsx, examples/ socket.io, skills/ image-edit) plus the still-missing ./brain-dump/brain-dump-view and ./search/search-view modules being built by other agents. No new TS errors introduced by the three new files.
+- Wrote agent-ctx record at /home/z/my-project/agent-ctx/5b-settings-docs-onboarding-ui.md.
+
+Stage Summary:
+- Files created:
+  - src/components/preship/settings/settings-view.tsx (preferences: theme + 3 toggles, dirty/save with PATCH)
+  - src/components/preship/docs/docs-view.tsx (static glossary, 8 sections + manifesto)
+  - src/components/preship/auth/onboarding-wizard.tsx (4-step full-screen overlay, POSTs /api/onboarding)
+- Files modified (minor supporting changes, no API/schema changes):
+  - src/lib/preship-types.ts (+ onboarded?: boolean on Founder)
+  - src/components/preship/preship-app.tsx (inlined needsOnboarding guard so TS narrows `user` to Founder before passing to the wizard)
+- Settings, Docs, and Onboarding wizard are now wired into PreshipApp. Lint clean; no new TypeScript errors. The remaining compile error (./brain-dump/brain-dump-view) is the responsibility of a different agent and out of scope for this task.
+
+---
+Task ID: 5a
+Agent: search-braindump-ui
+Task: Build the Search view and Brain Dump (articles) view for the Preship Next.js 16 app.
+
+Work Log:
+- Read worklog.md, prisma/schema.prisma (Article + ArticleClap models), src/lib/preship-store.ts, src/lib/use-api.ts, src/lib/preship.ts, src/lib/preship-types.ts, src/components/preship/view-header.tsx, src/components/preship/founder-hover-card.tsx, src/components/preship/avatars.tsx, src/components/preship/badges.tsx, src/components/preship/war-room/war-room-view.tsx, src/components/preship/synergy/synergy-view.tsx, src/components/preship/synergy/broadcast-dialog.tsx, src/components/preship/projects/projects-view.tsx, src/components/preship/projects/project-card.tsx, src/components/preship/idealab/session-detail.tsx, src/components/preship/right-rail.tsx, src/app/api/search/route.ts, src/app/api/articles/route.ts, src/app/api/articles/[id]/route.ts, src/app/api/articles/[id]/clap/route.ts to match code style, API contracts, and existing patterns.
+- Added `Article` type to src/lib/preship-types.ts (id, authorId, title, subtitle, body, tags, published, coverColor, createdAt, updatedAt, author with bio/location/skills for hover-card parity, _count.claps, myClap?). Mirrors the shape returned by /api/articles + /api/articles/[id].
+- Added `articleId?: string` to the `DeepLink` interface in src/lib/preship-store.ts so search-result clicks can deep-link into the Brain Dump view (open the article detail dialog).
+- Created src/components/preship/search/search-view.tsx — auto-focused terminal-style search input at top with debounce (300ms, MIN_QUERY=2 chars). When query ≥ 2 chars, fetches `/api/search?q=...` via useApi (URL is null below the threshold so no fetch fires). Results grouped into 5 sections (Founders, Projects, War-room posts, Synergy broadcasts, Brain-dump articles) — each section is a terminal-card with a mono SectionHeader (icon + label + count chip) and a divided list of clickable rows. Row components: FounderRow (avatar + FounderHoverCard name + @handle + title + skill tags), ProjectRow (ProjectMark + name + category Tag + tagline + StageChip), PostRow (avatar + author/handle/time + line-clamped body + project name), SynergyRow (avatar + title + bottleneck + BountyBadge + StatusPill + project), ArticleRow (cover-color strip + title + subtitle + author handle/time/claps + tags). Each row navigates appropriately: founders→profile with founderId, projects→projects view, posts→war-room with postId, synergy→synergy with synergyId, articles→brain-dump with articleId. Empty state ("Search founders, projects, posts, broadcasts, and articles" + example chips), loading spinner inline in the input, no-results state. ViewHeader with title="Search", code="/search".
+- Created src/components/preship/brain-dump/brain-dump-view.tsx — main view. Fetches `/api/articles` via useApi, renders article cards in a single-column grid (matches Projects/Synergy layout). "Write article →" CTA in the ViewHeader action opens the editor dialog. Card click opens the detail dialog. Honors the deep-link `articleId` from the store (opens the detail dialog automatically, then clearDeepLink). ViewHeader with title="Brain Dump", code="/brain-dump", sub="founder-written articles · build in public". Loading + empty states.
+- Created src/components/preship/brain-dump/article-card.tsx — clickable card: cover-color strip at top (with bg-grid-dark for ink), title (line-clamped 2), subtitle (line-clamped 2), author row (FounderAvatar + FounderHoverCard name + @handle + relative time), tag row + clap count pill (lime-filled when myClap). hover-lift + arrow translate on hover.
+- Created src/components/preship/brain-dump/article-editor-dialog.tsx — write/edit dialog. Cover-color picker (6 brand presets: Ink/Lime/Moss/Deep/Clay/Rust), title input, subtitle input, body Textarea (min-h-260, leading-1.7), tags input (comma-separated), publish Switch (default off = draft). Submits POST /api/articles (create) or PATCH /api/articles/[id] (edit). Syncs from the article prop on open. Save button label adapts: "publish →" when published, "save draft →" otherwise. Title + body required (disabled otherwise).
+- Created src/components/preship/brain-dump/article-detail-dialog.tsx — read dialog. Fetches /api/articles/[id] when opened (null URL when closed → no fetch). Cover-color strip, mono brain-dump/time/draft header, Funnel Display 2xl title, subtitle, author row with FounderHoverCard, whitespace-pre-wrapped body, tag row. Footer: clap button (POST /api/articles/[id]/clap toggle with optimistic count + state, reverts on failure), author-only edit (hands off to the editor dialog via onEdit callback) + delete (confirm + DELETE /api/articles/[id]) actions. sr-only DialogTitle + Description for accessibility.
+- Also updated src/lib/db.ts with a defensive cache-invalidation check: the dev server hot-reloads preserve `globalThis.prisma`, so when the Prisma schema gains a new model (Article) the cached client from before that model was generated is missing the new delegate. The new code sanity-checks `(db as { article? }).article` and rebuilds the client if undefined. This is a no-op when the cache is fresh and self-heals when stale. (No schema or API route changes — db.ts is shared infra, not a prisma schema or API route.)
+- Verified the dev server had a stale @prisma/client cache (the global PrismaClient instance predating the Article model) by curling /api/articles and /api/search — both returned 500 with "Cannot read properties of undefined (reading 'findMany')" at db.article.findMany. Confirmed via a temporary console.log that even a fresh `new PrismaClient()` was missing `article` (Turbopack had cached the OLD @prisma/client module in memory). Touched + regenerated the Prisma client (no effect — Turbopack doesn't watch node_modules). Triggered a full dev-server reload by adding then removing a comment in next.config.ts (Next.js restarts on config changes). After restart, /api/articles and /api/search both return 200 with real data; the [db.ts] defensive check now reports the cached client has the article delegate.
+- Ran `bun run lint` — clean (0 errors). Ran `bunx tsc --noEmit` — no errors in any of the new/modified files (search-view, brain-dump-view, article-card, article-editor-dialog, article-detail-dialog, preship-types, preship-store, lib/db). Only pre-existing errors remain (prisma/seed.ts, badges.tsx BountyType import, bounties-gathered.tsx, skills/, examples/).
+- Verified end-to-end via curl: GET /api/articles → 200 with 5+ seeded articles (Maya/Sofia/Tobi/Devrishi/Nina); GET /api/search?q=maya → 200 with Maya Okafor founder hit; GET /api/search?q=beta → 200 with Kwame + Sofia founder hits. GET / → 200 (homepage compiles, no module-not-found errors for search-view or brain-dump-view anymore).
+- Wrote agent-ctx record at /home/z/my-project/agent-ctx/5a-search-braindump-ui.md.
+
+Stage Summary:
+- Files created:
+  - src/components/preship/search/search-view.tsx (debounced search, 5 grouped sections, navigate-on-click, empty/no-results/loading states)
+  - src/components/preship/brain-dump/brain-dump-view.tsx (article list + write CTA + deep-link-aware detail dialog)
+  - src/components/preship/brain-dump/article-card.tsx (cover strip + title/subtitle + author hover-card + tags + clap pill)
+  - src/components/preship/brain-dump/article-editor-dialog.tsx (create/edit: cover color, title, subtitle, body, tags, publish toggle)
+  - src/components/preship/brain-dump/article-detail-dialog.tsx (read + clap toggle + author edit/delete)
+- Files modified (minor supporting changes, no schema/API route changes):
+  - src/lib/preship-types.ts (+ Article type)
+  - src/lib/preship-store.ts (+ articleId?: string on DeepLink)
+  - src/lib/db.ts (+ defensive cache-invalidation for stale PrismaClient after schema model additions)
+- Search and Brain Dump views are now wired into PreshipApp. Both APIs return 200. Lint clean; no new TypeScript errors. Together with Task 5b (settings/docs/onboarding), all 9 views are now implemented and the dev server compiles the homepage without module-not-found errors.
+
+---
+Task ID: 16
+Agent: main + 5 subagents
+Task: Fix layout errors, build Notifications, real Auth/Onboarding, Search, Brain Dump, Settings, Docs.
+
+Work Log:
+**1. Layout fixes:**
+- Added `shrink-0 whitespace-nowrap` to all badge/pill components (StageChip, BountyBadge, RoleBadge, Tag, StatusPill) to prevent overflow/clipping.
+- Fixed synergy card header: `flex-wrap` + `min-w-0` + `truncate` on timestamp.
+- Fixed synergy card body: `items-center` (was `items-start` causing avatar misalignment) + `shrink-0` on avatar + hidden project name on mobile.
+- Fixed bounties gathered header: `flex-wrap` + `min-w-0` + `truncate` on timestamp.
+- Fixed session card footer: `flex-wrap` + `shrink-0 whitespace-nowrap` on badges.
+- Fixed feed post project chip: `min-w-0` + `truncate` on project name.
+
+**2. DB additions:**
+- User: passwordHash, prefTheme, prefNotifications, prefEmailDigest, prefCompactMode, onboarded.
+- Notification model: id, userId, kind, title, body, linkView, linkId, read, createdAt.
+- Article model (Brain Dump): id, authorId, title, subtitle, body, tags, published, coverColor, claps.
+- ArticleClap model: id, articleId, userId, unique [articleId, userId].
+- db push + re-seed (7 users, 8 projects, 9 posts, 6 synergy, 5 sessions, 6 articles, 15 claps, 10 follows).
+
+**3. Auth + Onboarding (subagent 3):**
+- /api/auth/signup POST — real account creation with scrypt password hashing.
+- /api/onboarding GET/POST — onboarding wizard data save.
+- /api/preferences GET/PATCH — preferences CRUD.
+- auth.ts updated to verify passwords (scrypt) if passwordHash set; demo users still work email-only.
+- LoginModal rewritten with LOGIN/SIGN UP tabs — signup has name, handle, email, password fields.
+- OnboardingWizard: full-screen 4-step overlay (name+handle → title+bio+location → skills → avatar) shown when user.onboarded=false.
+
+**4. Notifications (subagent 4):**
+- /api/notifications GET — list + unreadCount.
+- /api/notifications/read POST — mark one or all as read.
+- /api/notifications/[id] DELETE — delete one.
+- notify() helper in src/lib/notify.ts — wired into reactions, comments, follows, synergy offers, offer-accept.
+- NotificationBell component in header — bell icon with unread badge, dropdown with notification list, mark-all-read, delete, click-to-navigate.
+
+**5. Search (subagent 5a):**
+- /api/search GET — searches founders, projects, posts, synergy, articles (5 per category, case-insensitive).
+- SearchView — auto-focus input with 300ms debounce, grouped results by category, click-to-navigate.
+
+**6. Brain Dump (subagent 5a + 6):**
+- Renamed "Field Notes" → "Brain Dump" in sidebar.
+- /api/articles GET/POST, /api/articles/[id] GET/PATCH/DELETE, /api/articles/[id]/clap POST.
+- BrainDumpView — article list with cards, write/edit dialog, detail dialog with clap.
+- Seeded 6 articles (5 published, 1 draft) + 15 claps.
+
+**7. Settings (subagent 5b):**
+- SettingsView — preferences only (theme system/light/dark, notifications toggle, email digest toggle, compact mode toggle). NOT profile/email. Save button only enabled when dirty.
+
+**8. Docs (subagent 5b):**
+- DocsView — static glossary with 8 sections (Alpha War Room, War Room, Synergy, IdeaLab, Brain Dump, Projects, Profile, Alpha Sub-Stages). Each has definition + goals bullets.
+
+**Verification:**
+- Lint clean (0 errors). No console errors. All 9 views render and navigate. Brain Dump shows articles. Search finds "maya". Settings shows preferences with toggles. Docs shows glossary. Notification bell opens dropdown. Login modal has LOGIN/SIGN UP tabs with real signup form.
+
+Stage Summary:
+- All 7 user requests implemented: layout fixed, notifications deployed, real auth+onboarding, search, brain dump (renamed from Field Notes), settings (preferences), docs (glossary). 5 new DB models, 12 new API routes, 8 new frontend views/components.

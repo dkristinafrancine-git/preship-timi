@@ -4,12 +4,13 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { usePreship } from "@/lib/preship-store";
 import { Button } from "@/components/ui/button";
-import { Menu, Bell, HelpCircle } from "lucide-react";
+import { Menu, HelpCircle } from "lucide-react";
 import { useApi } from "@/lib/use-api";
 import type { FeedPost, SynergyRequest, IdeaLabSession } from "@/lib/preship-types";
 import { useMemo } from "react";
 import { Logo } from "./logo";
 import { AuthButton, LoginModal } from "./auth/login-modal";
+import { NotificationBell } from "./notifications/notification-bell";
 
 export function Header() {
   const setMobileNavOpen = usePreship((s) => s.setMobileNavOpen);
@@ -37,14 +38,9 @@ export function Header() {
           >
             <HelpCircle size={15} className="transition-transform duration-150 hover:scale-110" /> Docs
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="tactile-flat relative hidden font-mono text-xs uppercase tracking-widest text-[#0E1909]/65 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
-          >
-            <Bell size={15} className="transition-transform duration-150 hover:scale-110" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#DAFF01] ring-1 ring-[#0E1909]" />
-          </Button>
+          <div className="hidden md:block">
+            <NotificationBell />
+          </div>
           <AuthButton onOpenLogin={() => setLoginOpen(true)} />
           <Button
             size="sm"

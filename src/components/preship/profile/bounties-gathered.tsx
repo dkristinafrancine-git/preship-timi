@@ -43,10 +43,10 @@ export function BountiesGathered({
               onClick={() => onOpenRequest?.(r.id)}
               className="terminal-card group block w-full p-5 text-left hover:border-[#0E1909]/25"
             >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <StatusPill status="accepted" />
-                  <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
+                  <span className="truncate font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
                     gathered {fmtRelative(b.createdAt)} ago
                   </span>
                 </div>

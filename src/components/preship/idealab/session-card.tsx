@@ -114,21 +114,21 @@ export function SessionCard({
           </div>
         )}
 
-        <div className="mt-3 flex items-center justify-between border-t border-[#0E1909]/8 pt-2.5">
-          <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
-            <span className="flex items-center gap-1">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#0E1909]/8 pt-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
+            <span className="flex shrink-0 items-center gap-1">
               <Star size={10} /> {session._count.interests} interest
             </span>
             {session.myInterest && (
-              <span className="rounded bg-[#f4ffd6] px-1.5 py-0.5 text-[#0E1909]/70">interested</span>
+              <span className="shrink-0 whitespace-nowrap rounded bg-[#f4ffd6] px-1.5 py-0.5 text-[#0E1909]/70">interested</span>
             )}
             {session.mySignup && (
-              <span className="rounded bg-[#0E1909] px-1.5 py-0.5 text-[#DAFF01]">
+              <span className="shrink-0 whitespace-nowrap rounded bg-[#0E1909] px-1.5 py-0.5 text-[#DAFF01]">
                 registered · {session.mySignup.role.replace("-", " ")}
               </span>
             )}
           </div>
-          <span className="flex items-center gap-1 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] transition-all duration-200 group-hover:gap-2 group-hover:text-[#6f8a3e]">
+          <span className="flex shrink-0 items-center gap-1 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] transition-all duration-200 group-hover:gap-2 group-hover:text-[#6f8a3e]">
             enter <ArrowRight size={11} className="transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>
         </div>

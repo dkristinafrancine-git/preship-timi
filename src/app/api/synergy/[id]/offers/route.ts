@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
+import { notify } from "@/lib/notify";
 
 // GET /api/synergy/[id]/offers — list offers for a request
 export async function GET(
@@ -136,6 +137,16 @@ export async function POST(
         },
       },
     });
+
+    // notify the request owner
+    await notify(
+      request.founderId,
+      "handshake-offer",
+      `${currentUser.name} offered a handshake`,
+      pitch.trim(),
+      "synergy",
+      id
+    );
 
     return NextResponse.json({ offer: created }, { status: 201 });
   } catch (err) {

@@ -70,8 +70,8 @@ export function FeedPost({ post }: { post: FeedPost }) {
         {post.project && (
           <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] px-2.5 py-1.5">
             <ProjectMark mark={post.project.logoMark} color={post.project.logoColor} logoUrl={post.project.logoUrl} name={post.project.name} size={20} />
-            <div className="hidden sm:block">
-              <p className="font-display text-[13px] font-semibold leading-tight text-[#0E1909]">
+            <div className="hidden min-w-0 sm:block">
+              <p className="truncate font-display text-[13px] font-semibold leading-tight text-[#0E1909]" title={post.project.name}>
                 {post.project.name}
               </p>
               <StageChip stage={post.project.alphaStage} className="mt-0.5 !px-1 !py-0" />

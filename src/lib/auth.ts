@@ -1,13 +1,43 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
+
+/**
+ * Hash a plaintext password using scrypt with a random 16-byte salt.
+ * Returns `salt:hash` (both hex) for storage in the User.passwordHash column.
+ */
+export function hashPassword(plain: string): string {
+  const salt = randomBytes(16);
+  const hash = scryptSync(plain, salt, 64);
+  return `${salt.toString("hex")}:${hash.toString("hex")}`;
+}
+
+/**
+ * Verify a plaintext password against a stored `salt:hash` string
+ * produced by hashPassword(). Returns false if either side is malformed
+ * or the hashes do not match. Uses timingSafeEqual to avoid leaking
+ * timing information.
+ */
+export function verifyPassword(plain: string, stored: string): boolean {
+  const sep = stored.indexOf(":");
+  if (sep <= 0 || sep === stored.length - 1) return false;
+  const salt = Buffer.from(stored.slice(0, sep), "hex");
+  const expectedHash = Buffer.from(stored.slice(sep + 1), "hex");
+  if (salt.length === 0 || expectedHash.length === 0) return false;
+
+  const actualHash = scryptSync(plain, salt, expectedHash.length);
+  if (actualHash.length !== expectedHash.length) return false;
+  return timingSafeEqual(actualHash, expectedHash);
+}
 
 /**
  * NextAuth options for Preship.
  *
- * Credentials provider: email-only login (no password for this demo).
- * Looks up the founder by email in the DB; if found, creates a session.
- * The session exposes { id, email, name, handle, avatarUrl }.
+ * Credentials provider:
+ * - Email-only login is supported for seeded/demo users (no passwordHash).
+ * - Real signed-up users (passwordHash set) MUST also provide a password,
+ *   which is verified against the scrypt salt:hash storage.
  */
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,6 +46,7 @@ export const authOptions: NextAuthOptions = {
       name: "Founder Login",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "you@preship.app" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const email = credentials?.email?.trim().toLowerCase();
@@ -30,9 +61,18 @@ export const authOptions: NextAuthOptions = {
             handle: true,
             title: true,
             avatarUrl: true,
+            passwordHash: true,
           },
         });
         if (!user) return null;
+
+        // If the user has a password hash, a password MUST be supplied and match.
+        if (user.passwordHash) {
+          const password = credentials?.password;
+          if (!password) return null;
+          if (!verifyPassword(password, user.passwordHash)) return null;
+        }
+        // No passwordHash → seeded demo user; allow email-only login (backward compat).
 
         return {
           id: user.id,

@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import type { Founder } from "@/lib/preship-types";
 
-export type PreshipView = "war-room" | "synergy" | "idealab" | "projects" | "profile";
+export type PreshipView = "war-room" | "synergy" | "idealab" | "projects" | "profile" | "search" | "brain-dump" | "settings" | "docs";
 
 /** A deep-link target — clicking a ticker item can set these to navigate
  *  the user to the relevant view + open a detail. */
@@ -13,6 +13,7 @@ interface DeepLink {
   synergyId?: string;
   sessionId?: string;
   founderId?: string;
+  articleId?: string;
 }
 
 interface PreshipStore {

@@ -20,6 +20,8 @@ async function main() {
   console.log("Seeding Preship...");
 
   // wipe
+  await db.articleClap.deleteMany();
+  await db.article.deleteMany();
   await db.ideaLabInterest.deleteMany();
   await db.ideaLabSignup.deleteMany();
   await db.ideaLabSession.deleteMany();
@@ -671,8 +673,173 @@ async function main() {
     } catch {}
   }
 
+  // ---------- Brain Dump (articles) ----------
+  await db.articleClap.deleteMany();
+  await db.article.deleteMany();
+  const articles = await Promise.all([
+    db.article.create({
+      data: {
+        authorId: maya.id,
+        title: "Distribution-led dev: ship the landing page first",
+        subtitle:
+          "Why I write the waitlist page before the first line of product code — and how it changes what I build.",
+        body: [
+          "I used to build the product first and the landing page second. Every time, the landing page was a rushed afterthought tacked on a Sunday night.",
+          "",
+          "This year I flipped it: the landing page ships before the product. The waitlist button is the first commit.",
+          "",
+          "Three things happen:",
+          "",
+          "1. The page forces a one-sentence pitch. If I can't write the headline, the idea isn't sharp enough yet.",
+          "2. The waitlist becomes the experiment. A 4% sign-up rate from cold traffic means the wedge is real. A 0.4% rate means I keep digging.",
+          "3. By the time the first build is usable, there are already 100 founders asking when they can log in. The launch is a non-event because it already happened.",
+          "",
+          "It's not a trick. It's a forcing function. The landing page is the cheapest, most honest version of the product.",
+        ].join("\n"),
+        tags: "distribution,build-in-public,gtm",
+        published: true,
+        coverColor: "#0E1909",
+      },
+    }),
+    db.article.create({
+      data: {
+        authorId: sofia.id,
+        title: "Waveform-first editing: notes from 38 closed-beta creators",
+        subtitle:
+          "What I learned watching podcasters cut audio by editing text — and the three workflows that stuck.",
+        body: [
+          "Loomwave's bet is that you should edit a podcast by editing the transcript, not the waveform. After 38 closed-beta creators, here's what stuck:",
+          "",
+          "1. Filler-word removal is the killer feature. One button. \"Um,\" \"uh,\" and long pauses collapse. Creators would pay for this alone.",
+          "2. Nobody trusts the auto-cut. They want a preview, not a black box. We rebuilt the cut review UI three times before it felt honest.",
+          "3. The waveform still matters. Even in transcript-first mode, creators scrub the waveform to verify a cut. Removing it was a regression — we put it back as a secondary surface.",
+          "",
+          "NPS sits at 62. The thing that moved it most wasn't a model improvement — it was adding an \"undo last cut\" shortcut. Humans want escape hatches.",
+        ].join("\n"),
+        tags: "audio,product,beta",
+        published: true,
+        coverColor: "#DAFF01",
+      },
+    }),
+    db.article.create({
+      data: {
+        authorId: tobi.id,
+        title: "Tooling debt is a buy signal",
+        subtitle:
+          "22 ops interviews in. The pattern: teams don't want another builder — they want to delete the builder they already have.",
+        body: [
+          "I'm 22 interviews into customer discovery for Stackpile. The original thesis was \"ops teams want to build internal tools faster.\" Wrong.",
+          "",
+          "What they actually want is to delete the tool they built last quarter. The one held together with a cron job, a Google Sheet, and a person named Priya who is going on vacation.",
+          "",
+          "The signal: when an ops lead describes their tooling debt and laughs, that's a buy signal. When they describe it and look tired, that's a champion.",
+          "",
+          "I'm reshaping the pitch from \"build in 60s\" to \"replace in 60s.\" Same product. Different door.",
+        ].join("\n"),
+        tags: "discovery,b2b,ops",
+        published: true,
+        coverColor: "#6f8a3e",
+      },
+    }),
+    db.article.create({
+      data: {
+        authorId: devrishi.id,
+        title: "4-bit models on ESP32-S3: bench notes",
+        subtitle:
+          "Where the latency actually goes when you ship inference to a microcontroller — and what I gave up to hit 80ms.",
+        body: [
+          "Helm Labs runs 4-bit quantized models on ESP32-S3. Here are the bench notes from the last sprint.",
+          "",
+          "- Cold start: 240ms (mostly weights unpacking). Warm: 80ms.",
+          "- The bottleneck is RAM bandwidth, not compute. We can shave another 15ms by interleaving weights with the activation buffer.",
+          "- We gave up dynamic batching. Microcontrollers don't have multiple in-flight requests anyway.",
+          "- Power: 320mW peak. Acceptable for battery-backed sensors, painful for always-on.",
+          "",
+          "Next sprint: trying a 2-bit experiment on the embeddings only. If recall holds, we ship it.",
+        ].join("\n"),
+        tags: "ml,edge,infra",
+        published: true,
+        coverColor: "#0E1909",
+      },
+    }),
+    db.article.create({
+      data: {
+        authorId: nina.id,
+        title: "The community is the product (until the product is the community)",
+        subtitle:
+          "Murmur pre-launch notes: what 1,200 waitlist sign-ups told me about the order of operations for a community-first app.",
+        body: [
+          "Murmur has 1,200 people on the waitlist. None of them have seen the product. Here's what they told me in 30 calls:",
+          "",
+          "- They don't want features. They want the right 8 people in the room.",
+          "- They will pay for curation, not for tools.",
+          "- The app is mostly a permission slip — a reason to start the conversation they already wanted to have.",
+          "",
+          "So I'm building the curation layer first. Invites, vetting, roles, rituals. The chat is the last thing I'll ship.",
+          "",
+          "Counter-intuitive for a \"social\" app. But the community has to be the product before the product can be the community.",
+        ].join("\n"),
+        tags: "community,pre-launch,strategy",
+        published: true,
+        coverColor: "#DAFF01",
+      },
+    }),
+    db.article.create({
+      data: {
+        authorId: maya.id,
+        title: "Draft: the Ledgerline onboarding script",
+        subtitle: "Internal — testing the first-60-seconds flow before I ship it.",
+        body: [
+          "Draft. Not for public yet. Testing what the first 60 seconds feel like for a solo operator who just installed Ledgerline.",
+          "",
+          "1. Detect their bank connection (the wow moment).",
+          "2. Auto-categorize the last 30 days (the value moment).",
+          "3. Show one terminal command they can copy (the habit moment).",
+          "",
+          "Will revise after 5 test sessions.",
+        ].join("\n"),
+        tags: "onboarding,draft",
+        published: false,
+        coverColor: "#0E1909",
+      },
+    }),
+  ]);
+
+  // a few claps so the counters aren't all zero
+  const clapMatrix: [number, string][] = [
+    [0, sofia.id],
+    [0, tobi.id],
+    [0, nina.id],
+    [0, kwame.id],
+    [1, maya.id],
+    [1, tobi.id],
+    [1, ren.id],
+    [2, maya.id],
+    [2, devrishi.id],
+    [2, nina.id],
+    [3, maya.id],
+    [3, ren.id],
+    [4, maya.id],
+    [4, sofia.id],
+    [4, devrishi.id],
+  ];
+  for (const [ai, uid] of clapMatrix) {
+    try {
+      await db.articleClap.create({
+        data: { articleId: articles[ai as number].id, userId: uid as string },
+      });
+    } catch {}
+  }
+
   console.log("Preship seed complete.");
-  console.log({ users: users.length, projects: projects.length, posts: createdPosts.length, synergy: synergy.length, sessions: sessions.length });
+  console.log({
+    users: users.length,
+    projects: projects.length,
+    posts: createdPosts.length,
+    synergy: synergy.length,
+    sessions: sessions.length,
+    articles: articles.length,
+  });
 }
 
 main()

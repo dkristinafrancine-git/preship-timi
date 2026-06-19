@@ -52,10 +52,10 @@ export function SynergyCard({
   return (
     <div className="terminal-card hover:border-[#0E1909]/20">
       {/* header strip */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#0E1909]/8 bg-[#f8f9f3] px-4 py-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#0E1909]/8 bg-[#f8f9f3] px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-2">
           <StatusPill status={request.status} />
-          <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
+          <span className="truncate font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
             broadcast · {fmtRelative(request.createdAt)} ago
           </span>
         </div>
@@ -64,8 +64,8 @@ export function SynergyCard({
 
       {/* body */}
       <div className="p-5">
-        <div className="flex items-start gap-3.5">
-          <FounderAvatar founder={request.founder} size={44} />
+        <div className="flex items-center gap-3.5">
+          <FounderAvatar founder={request.founder} size={44} className="shrink-0" />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline gap-x-2">
               <FounderHoverCard founder={request.founder} className="font-display text-[15px] font-semibold text-[#0E1909]">
@@ -78,10 +78,9 @@ export function SynergyCard({
           {request.project && (
             <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-white px-2 py-1">
               <ProjectMark mark={request.project.logoMark} color={request.project.logoColor} logoUrl={request.project.logoUrl} name={request.project.name} size={18} />
-              <span className="font-display text-xs font-semibold text-[#0E1909]">
+              <span className="hidden font-display text-xs font-semibold text-[#0E1909] md:inline">
                 {request.project.name}
               </span>
-              <StageChip stage={request.project.alphaStage} className="ml-1 !px-1 !py-0 hidden sm:inline-flex" />
             </div>
           )}
         </div>

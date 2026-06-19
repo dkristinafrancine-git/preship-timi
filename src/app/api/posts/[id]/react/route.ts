@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 import { POST_REACTIONS } from "@/lib/preship";
+import { notify } from "@/lib/notify";
 
 export async function POST(
   req: NextRequest,
@@ -47,6 +48,21 @@ export async function POST(
     await db.reaction.create({
       data: { postId: id, userId: user.id, kind },
     });
+
+    // notify the post author (don't notify self)
+    if (post.authorId !== user.id) {
+      const kindLabel = kind === "handshake" ? "handshake" : kind === "repost" ? "repost" : "like";
+      await notify(
+        post.authorId,
+        "reaction",
+        `${user.name} ${kindLabel}ed your post`,
+        kind === "handshake"
+          ? `${user.name} offered a handshake on your post.`
+          : `${user.name} ${kindLabel}ed your post.`,
+        "war-room",
+        id
+      );
+    }
     return NextResponse.json({ reacted: true, kind });
   } catch (err) {
     console.error("[POST /api/posts/[id]/react]", err);

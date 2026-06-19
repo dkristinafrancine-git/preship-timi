@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
+import { notify } from "@/lib/notify";
 
 export async function GET(
   _req: NextRequest,
@@ -70,6 +71,18 @@ export async function POST(
         },
       },
     });
+
+    // notify the post author (don't notify self)
+    if (post.authorId !== user.id) {
+      await notify(
+        post.authorId,
+        "comment",
+        `${user.name} replied to your post`,
+        commentBody.trim(),
+        "war-room",
+        id
+      );
+    }
 
     return NextResponse.json({ comment }, { status: 201 });
   } catch (err) {
