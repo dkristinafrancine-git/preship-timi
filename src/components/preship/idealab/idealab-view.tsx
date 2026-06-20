@@ -7,6 +7,7 @@ import { SessionDetail } from "./session-detail";
 import { HostDialog } from "./host-dialog";
 import { JoinDialog } from "./join-dialog";
 import { ViewHeader } from "../view-header";
+import { ApiErrorState } from "../api-error-state";
 import type { IdeaLabSession } from "@/lib/preship-types";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mic, Plus, KeyRound, Calendar } from "lucide-react";
@@ -21,10 +22,10 @@ export function IdeaLabView() {
   const deepLink = usePreship((s) => s.deepLink);
   const clearDeepLink = usePreship((s) => s.clearDeepLink);
 
-  const { data: liveData, loading: liveLoading } = useApi<{ sessions: IdeaLabSession[] }>(
+  const { data: liveData, loading: liveLoading, error: liveError, refetch: refetchLive } = useApi<{ sessions: IdeaLabSession[] }>(
     "/api/idealab?status=live"
   );
-  const { data: schedData, loading: schedLoading } = useApi<{ sessions: IdeaLabSession[] }>(
+  const { data: schedData, loading: schedLoading, error: schedError, refetch: refetchSched } = useApi<{ sessions: IdeaLabSession[] }>(
     "/api/idealab?status=scheduled&public=1"
   );
   const liveSessions = liveData?.sessions ?? [];
@@ -89,7 +90,13 @@ export function IdeaLabView() {
             · {liveSessions.length} room{liveSessions.length === 1 ? "" : "s"} on air
           </span>
         </div>
-        {liveLoading ? (
+        {liveError && liveSessions.length === 0 ? (
+          <ApiErrorState
+            compact
+            onRetry={refetchLive}
+            message="Couldn't load live rooms."
+          />
+        ) : liveLoading ? (
           <LoadingRow />
         ) : liveSessions.length === 0 ? (
           <div className="terminal-card flex items-center gap-2 px-4 py-5 text-[#0E1909]/40">
@@ -116,7 +123,13 @@ export function IdeaLabView() {
             · {scheduled.length} scheduled
           </span>
         </div>
-        {schedLoading ? (
+        {schedError && scheduled.length === 0 ? (
+          <ApiErrorState
+            compact
+            onRetry={refetchSched}
+            message="Couldn't load upcoming sessions."
+          />
+        ) : schedLoading ? (
           <LoadingRow />
         ) : scheduled.length === 0 ? (
           <div className="terminal-card px-4 py-5 text-center font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">

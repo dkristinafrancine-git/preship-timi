@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useApi, useMutate } from "@/lib/use-api";
 import { ViewHeader } from "../view-header";
+import { ApiErrorState } from "../api-error-state";
 import { TerminalHeader } from "../badges";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -41,7 +42,7 @@ const THEME_OPTIONS: {
 ];
 
 export function SettingsView() {
-  const { data, loading } = useApi<Preferences>("/api/preferences");
+  const { data, loading, error, refetch } = useApi<Preferences>("/api/preferences");
   const mutate = useMutate();
 
   const [prefs, setPrefs] = useState<Preferences | null>(null);
@@ -107,10 +108,11 @@ export function SettingsView() {
 
   if (!prefs) {
     return (
-      <div className="mx-auto max-w-2xl py-16 text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/40">
-          could not load preferences · try again
-        </p>
+      <div className="mx-auto max-w-2xl py-16">
+        <ApiErrorState
+          onRetry={refetch}
+          message={error ? `Couldn't load preferences (${error}).` : "Couldn't load preferences."}
+        />
       </div>
     );
   }

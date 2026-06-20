@@ -7,6 +7,7 @@ import { usePreship } from "@/lib/preship-store";
 import { SynergyCard } from "./synergy-card";
 import { BroadcastDialog } from "./broadcast-dialog";
 import { ViewHeader } from "../view-header";
+import { ApiErrorState } from "../api-error-state";
 import type { SynergyRequest } from "@/lib/preship-types";
 import { BOUNTY_TYPES } from "@/lib/preship";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export function SynergyView() {
       : bountyFilter !== "all"
       ? `/api/synergy?status=open&bountyType=${bountyFilter}`
       : "/api/synergy?status=open";
-  const { data, loading } = useApi<{ requests: SynergyRequest[] }>(url, [filter, bountyFilter]);
+  const { data, loading, error, refetch } = useApi<{ requests: SynergyRequest[] }>(url, [filter, bountyFilter]);
 
   // for "match" filter, keep only requests whose tags overlap with my skills
   let requests = data?.requests ?? [];
@@ -139,7 +140,12 @@ export function SynergyView() {
 
       {/* List */}
       <div className="space-y-5">
-        {loading && requests.length === 0 ? (
+        {error && requests.length === 0 ? (
+          <ApiErrorState
+            onRetry={refetch}
+            message="Couldn't load synergy broadcasts."
+          />
+        ) : loading && requests.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-[#0E1909]/40">
             <Loader2 size={18} className="animate-spin" />
             <span className="ml-2 font-mono text-xs uppercase tracking-widest">

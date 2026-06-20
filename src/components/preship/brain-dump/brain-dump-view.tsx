@@ -8,6 +8,7 @@ import { ArticleCard } from "./article-card";
 import { ArticleEditorDialog } from "./article-editor-dialog";
 import { ArticleDetailDialog } from "./article-detail-dialog";
 import { TerminalHeader, Tag } from "../badges";
+import { ApiErrorState } from "../api-error-state";
 import type { Article } from "@/lib/preship-types";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, PenLine, FileEdit, ArrowRight } from "lucide-react";
@@ -16,7 +17,7 @@ export function BrainDumpView() {
   const deepLink = usePreship((s) => s.deepLink);
   const clearDeepLink = usePreship((s) => s.clearDeepLink);
 
-  const { data, loading } = useApi<{ articles: Article[] }>("/api/articles");
+  const { data, loading, error, refetch } = useApi<{ articles: Article[] }>("/api/articles");
   const { data: draftsData } = useApi<{ articles: Article[] }>("/api/articles?drafts=1");
   const articles = data?.articles ?? [];
   const drafts = draftsData?.articles ?? [];
@@ -124,7 +125,12 @@ export function BrainDumpView() {
           </span>
         </div>
 
-        {loading && articles.length === 0 ? (
+        {error && articles.length === 0 ? (
+          <ApiErrorState
+            onRetry={refetch}
+            message="Couldn't load articles."
+          />
+        ) : loading && articles.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-[#0E1909]/40">
             <Loader2 size={18} className="animate-spin" />
             <span className="ml-2 font-mono text-xs uppercase tracking-widest">

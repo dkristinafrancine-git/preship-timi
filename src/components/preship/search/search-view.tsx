@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
 import { ViewHeader } from "../view-header";
+import { ApiErrorState } from "../api-error-state";
 import { FounderAvatar, ProjectMark } from "../avatars";
 import { FounderHoverCard } from "../founder-hover-card";
 import { Tag, StatusPill, BountyBadge, StageChip } from "../badges";
@@ -68,7 +69,7 @@ export function SearchView() {
   const url = shouldFetch ? `/api/search?q=${encodeURIComponent(debounced)}` : null;
 
   // useApi accepts a `string | null` URL — null skips the fetch entirely.
-  const { data, loading } = useApi<SearchResults>(url, [debounced]);
+  const { data, loading, error, refetch } = useApi<SearchResults>(url, [debounced]);
 
   const results = data ?? EMPTY;
   const total =
@@ -206,6 +207,11 @@ export function SearchView() {
       {/* Body */}
       {showEmpty ? (
         <EmptyState />
+      ) : error && !loading ? (
+        <ApiErrorState
+          onRetry={refetch}
+          message={`Couldn't run the search.`}
+        />
       ) : showNoResults ? (
         <NoResults query={debounced} />
       ) : (

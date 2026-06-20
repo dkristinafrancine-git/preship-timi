@@ -6,6 +6,7 @@ import { usePreship } from "@/lib/preship-store";
 import { ProjectCard } from "./project-card";
 import { ProjectDialog } from "./project-dialog";
 import { ViewHeader } from "../view-header";
+import { ApiErrorState } from "../api-error-state";
 import type { Project } from "@/lib/preship-types";
 import { ALPHA_STAGES } from "@/lib/preship";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ export function ProjectsView() {
   const [editing, setEditing] = useState<Project | null>(null);
 
   const url = scope === "mine" && me ? `/api/projects?founderId=${me.id}` : "/api/projects";
-  const { data, loading } = useApi<{ projects: Project[] }>(url, [scope, stageFilter]);
+  const { data, loading, error, refetch } = useApi<{ projects: Project[] }>(url, [scope, stageFilter]);
   const all = data?.projects ?? [];
   const projects = stageFilter === "all" ? all : all.filter((p) => p.alphaStage === stageFilter);
 
@@ -99,7 +100,12 @@ export function ProjectsView() {
       </div>
 
       {/* Grid — single column in the narrower center column */}
-      {loading && projects.length === 0 ? (
+      {error && projects.length === 0 ? (
+        <ApiErrorState
+          onRetry={refetch}
+          message="Couldn't load projects."
+        />
+      ) : loading && projects.length === 0 ? (
         <div className="flex items-center justify-center py-16 text-[#0E1909]/40">
           <Loader2 size={18} className="animate-spin" />
           <span className="ml-2 font-mono text-xs uppercase tracking-widest">loading projects…</span>

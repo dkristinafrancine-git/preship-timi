@@ -7,6 +7,7 @@ import { usePreship } from "@/lib/preship-store";
 import { PostComposer } from "./post-composer";
 import { FeedPost } from "./feed-post";
 import { ViewHeader } from "../view-header";
+import { ApiErrorState } from "../api-error-state";
 import type { FeedPost as FeedPostType } from "@/lib/preship-types";
 import { Loader2, Filter, Signal } from "lucide-react";
 
@@ -14,7 +15,7 @@ type Sort = "newest" | "trending";
 
 export function WarRoomView() {
   const [sort, setSort] = useState<Sort>("newest");
-  const { data, loading } = useApi<{ posts: FeedPostType[] }>(`/api/feed?sort=${sort}`, [sort]);
+  const { data, loading, error, refetch } = useApi<{ posts: FeedPostType[] }>(`/api/feed?sort=${sort}`, [sort]);
   const posts = data?.posts ?? [];
   const deepLink = usePreship((s) => s.deepLink);
   const clearDeepLink = usePreship((s) => s.clearDeepLink);
@@ -68,7 +69,12 @@ export function WarRoomView() {
 
       {/* Feed */}
       <div className="space-y-5">
-        {loading && posts.length === 0 ? (
+        {error && posts.length === 0 ? (
+          <ApiErrorState
+            onRetry={refetch}
+            message="Couldn't load the war room feed."
+          />
+        ) : loading && posts.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-[#0E1909]/40">
             <Loader2 size={18} className="animate-spin" />
             <span className="ml-2 font-mono text-xs uppercase tracking-widest">

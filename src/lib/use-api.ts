@@ -4,12 +4,27 @@ import { useEffect, useState, useCallback } from "react";
 import { usePreship } from "@/lib/preship-store";
 import { toast } from "sonner";
 
-/** Fetch hook that refetches whenever the global `tick` bumps (after mutations). */
+/**
+ * Fetch hook that refetches whenever the global `tick` bumps (after mutations).
+ *
+ * Returns `{ data, loading, error, refetch }`.
+ *
+ * - `error` is set whenever the request fails (non-2xx or network error) so
+ *   callers can render an explicit error state instead of silently falling
+ *   through to an empty list. Previously every consumer ignored `error`, which
+ *   made a server failure (e.g. a missing DATABASE_URL in production) look
+ *   identical to "there is no data" — see <ApiErrorState> for the fix.
+ * - `refetch()` re-runs the request on demand (used by the Retry button).
+ */
 export function useApi<T>(url: string | null, deps: unknown[] = []) {
   const tick = usePreship((s) => s.tick);
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // bumped to force a manual refetch (e.g. from the error-state Retry button)
+  const [reloadCounter, setReloadCounter] = useState(0);
+
+  const refetch = useCallback(() => setReloadCounter((n) => n + 1), []);
 
   // Data-fetch effect: synchronous setState here is the standard SWR-style
   // pattern (loading flags + async result), not cascading derived state.
@@ -18,6 +33,7 @@ export function useApi<T>(url: string | null, deps: unknown[] = []) {
     let alive = true;
     if (!url) {
       setLoading(false);
+      setError(null);
       return;
     }
     setLoading(true);
@@ -33,7 +49,7 @@ export function useApi<T>(url: string | null, deps: unknown[] = []) {
         }
       })
       .catch((e) => {
-        if (alive) setError(e.message ?? "Failed to load");
+        if (alive) setError(e instanceof Error ? e.message : "Failed to load");
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -41,10 +57,10 @@ export function useApi<T>(url: string | null, deps: unknown[] = []) {
     return () => {
       alive = false;
     };
-  }, [url, tick, ...deps]);
+  }, [url, tick, reloadCounter, ...deps]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 }
 
 /** POST/PATCH/DELETE helper. Returns { ok, data, error } and bumps the store on success. */
