@@ -12,7 +12,8 @@ import type { IdeaLabSession, IdeaLabSignup, Founder } from "@/lib/preship-types
 import { fmtRelative, IDEA_ROLES } from "@/lib/preship";
 import { FounderAvatar } from "../avatars";
 import { StatusPill, RoleBadge, TerminalHeader } from "../badges";
-import { Loader2, Mic, MicOff, Hand, Copy, Check, Star, X, Volume2, Trash2 } from "lucide-react";
+import { LiveAudioRoom } from "./live-audio-room";
+import { Loader2, Copy, Check, Star, X, Volume2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function SessionDetail({
@@ -52,8 +53,6 @@ export function SessionDetail({
 
 function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSession; isHost: boolean; onOpenChange: (v: boolean) => void }) {
   const [joined, setJoined] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [handRaised, setHandRaised] = useState(false);
   const [copied, setCopied] = useState(false);
   const [signupRole, setSignupRole] = useState<string>("participant");
   const [interestNote, setInterestNote] = useState("");
@@ -137,55 +136,42 @@ function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSessio
 
         {/* live audio room */}
         {isLive && (
-          <div className="border-b border-[#0E1909]/8 bg-[#0E1909] px-5 py-4">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-widest text-[#DAFF01]">
-                <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#e0463c]" />
-                live audio room
-              </span>
-              <span className="font-mono text-xs uppercase tracking-widest text-[#DAFF01]/60">
-                {signups.length} in room
-              </span>
-            </div>
-            {/* speakers grid */}
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {signups.slice(0, 8).map((s) => (
-                <SpeakerTile key={s.id} signup={s} />
-              ))}
-              {signups.length === 0 && (
-                <p className="col-span-full py-4 text-center font-mono text-xs text-[#DAFF01]/40">
-                  no one in the room yet
+          <>
+            {joined ? (
+              // Real LiveKit audio room — owns its own connection lifecycle.
+              <LiveAudioRoom
+                sessionId={session.id}
+                isHost={isHost}
+                onLeave={() => setJoined(false)}
+              />
+            ) : (
+              // Static preview of who's registered (no fake speaking indicators).
+              <div className="border-b border-[#0E1909]/8 bg-[#0E1909] px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-widest text-[#DAFF01]">
+                    <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#e0463c]" />
+                    live audio room
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-widest text-[#DAFF01]/60">
+                    {signups.length} registered
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {signups.slice(0, 8).map((s) => (
+                    <SpeakerTile key={s.id} signup={s} />
+                  ))}
+                  {signups.length === 0 && (
+                    <p className="col-span-full py-4 text-center font-mono text-xs text-[#DAFF01]/40">
+                      no one registered yet
+                    </p>
+                  )}
+                </div>
+                <p className="mt-3 text-center font-mono text-[11px] uppercase tracking-widest text-[#DAFF01]/40">
+                  click “join live room →” to connect your mic
                 </p>
-              )}
-            </div>
-            <LiveAudioMeter />
-            {/* audio controls */}
-            {joined && (
-              <div className="mt-3 flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setMuted((m) => !m)}
-                  className={cn(
-                    "tactile flex h-11 w-11 items-center justify-center rounded-full border-2",
-                    muted ? "border-[#DAFF01]/30 bg-transparent text-[#DAFF01]/50 hover:border-[#DAFF01]/60" : "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909] hover:shadow-[0_0_16px_rgba(218,255,1,0.4)]"
-                  )}
-                >
-                  {muted ? <MicOff size={16} /> : <Mic size={16} />}
-                </button>
-                <button
-                  onClick={() => setHandRaised((h) => !h)}
-                  className={cn(
-                    "tactile flex h-11 w-11 items-center justify-center rounded-full border-2",
-                    handRaised ? "border-[#DAFF01] bg-[#DAFF01] text-[#0E1909] hover:shadow-[0_0_16px_rgba(218,255,1,0.4)]" : "border-[#DAFF01]/30 bg-transparent text-[#DAFF01]/50 hover:border-[#DAFF01]/60"
-                  )}
-                >
-                  <Hand size={16} />
-                </button>
-                <span className="ml-2 font-mono text-xs uppercase tracking-widest text-[#DAFF01]/50">
-                  {muted ? "muted" : "live mic"} · {handRaised ? "hand raised" : "hand down"}
-                </span>
               </div>
             )}
-          </div>
+          </>
         )}
 
         {/* agenda */}
@@ -395,17 +381,15 @@ function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSessio
   );
 }
 
+/** Static speaker tile used in the pre-join "who's registered" preview.
+ *  Live speaking indicators are handled by LiveAudioRoom once connected. */
 function SpeakerTile({ signup }: { signup: IdeaLabSignup }) {
   const isHost = signup.role === "host";
-  // In a real implementation, this would reflect actual WebRTC audio level.
-  // For now, the host is always shown as "speaking" and others show based on
-  // their signup status (confirmed = active, registered = idle).
-  const speaking = isHost || signup.status === "confirmed";
   return (
     <div className="flex flex-col items-center gap-1 rounded-md border border-[#DAFF01]/15 bg-white/5 p-2">
       <div className="relative">
         <FounderAvatar founder={signup.user} size={36} />
-        {speaking && (
+        {isHost && (
           <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#DAFF01] ring-2 ring-[#0E1909]">
             <Volume2 size={7} className="text-[#0E1909]" />
           </span>
@@ -417,34 +401,6 @@ function SpeakerTile({ signup }: { signup: IdeaLabSignup }) {
       <span className="rounded bg-[#DAFF01]/15 px-1 font-mono text-[8px] uppercase tracking-widest text-[#DAFF01]">
         {signup.role.split("-")[0]}
       </span>
-    </div>
-  );
-}
-
-/** Animated "live audio" meter for the live session detail.
- *  Purely decorative — no play button, no timer, no seek. Just pulsing bars
- *  to signal that the room is broadcasting. */
-function LiveAudioMeter() {
-  const bars = Array.from({ length: 20 });
-  return (
-    <div className="mt-3 flex items-center gap-3 rounded-lg border border-[#DAFF01]/15 bg-[#162414] px-3 py-2.5">
-      <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-[#DAFF01]">
-        <span className="h-1.5 w-1.5 animate-blink rounded-full bg-[#e0463c]" />
-        on air
-      </span>
-      <div className="ml-auto flex h-7 items-end gap-[3px]">
-        {bars.map((_, i) => (
-          <span
-            key={i}
-            className="block w-[3px] rounded-full bg-[#DAFF01] animate-live-audio-bar"
-            style={{
-              height: "100%",
-              animationDelay: `${(i % 7) * 80}ms`,
-              animationDuration: `${480 + (i % 4) * 140}ms`,
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 }
