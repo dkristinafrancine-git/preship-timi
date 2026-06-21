@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { usePreship } from "@/lib/preship-store";
 import { useApi } from "@/lib/use-api";
 import { Header } from "./header";
@@ -16,18 +17,27 @@ import { SearchView } from "./search/search-view";
 import { BrainDumpView } from "./brain-dump/brain-dump-view";
 import { SettingsView } from "./settings/settings-view";
 import { DocsView } from "./docs/docs-view";
-import { OnboardingWizard } from "./auth/onboarding-wizard";
 import type { Founder } from "@/lib/preship-types";
 
 export function PreshipApp() {
   const view = usePreship((s) => s.view);
   const setMe = usePreship((s) => s.setMe);
   const navigate = usePreship((s) => s.navigate);
+  const router = useRouter();
   const { data: meData } = useApi<{ user: Founder }>("/api/me");
 
   useEffect(() => {
     if (meData?.user) setMe(meData.user);
   }, [meData, setMe]);
+
+  // Not-yet-onboarded founders are sent to the dedicated /onboarding path
+  // instead of an overlay. (Middleware guarantees a session by the time we
+  // reach here; meData resolves to the user once /api/me lands.)
+  useEffect(() => {
+    if (meData?.user && !meData.user.onboarded && meData.user.title === "") {
+      router.replace("/onboarding");
+    }
+  }, [meData, router]);
 
   // on first mount, honor a ?founder=<id> shareable link by opening the profile
   useEffect(() => {
@@ -39,14 +49,8 @@ export function PreshipApp() {
     }
   }, [navigate]);
 
-  const user = meData?.user;
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {user && !user.onboarded && user.title === "" && (
-        <OnboardingWizard user={user} />
-      )}
-
       {/* full-width sticky header: logo + auth + live ticker */}
       <Header />
 

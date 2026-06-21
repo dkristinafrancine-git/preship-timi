@@ -118,7 +118,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    // no custom sign-in page — we use a modal
-    signIn: "/",
+    signIn: "/login",
   },
 };

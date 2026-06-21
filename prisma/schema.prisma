@@ -54,10 +54,33 @@ model User {
   notifications      Notification[]
   articles           Article[]
   articleClaps       ArticleClap[]
+  invitesSent        Invite[]           @relation("InviteSender")
+  invitesAccepted    Invite[]           @relation("InviteAcceptor")
 
   @@index([isCurrent])
   @@index([handle])
   @@index([email])
+}
+
+// ---- Invites: a founder emails an invite to a new founder ----
+
+model Invite {
+  id           String    @id @default(cuid())
+  email        String    // invitee email (lowercased)
+  token        String    @unique // opaque token in the signup link
+  inviterId    String
+  inviter      User      @relation("InviteSender", fields: [inviterId], references: [id], onDelete: Cascade)
+  note         String?   // optional personal note from the inviter
+  status       String    @default("sent") // sent | accepted
+  acceptedById String?
+  acceptedBy   User?     @relation("InviteAcceptor", fields: [acceptedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([inviterId, email]) // one outstanding invite per (inviter, email)
+  @@index([email])
+  @@index([token])
+  @@index([inviterId, createdAt])
 }
 
 model Follow {

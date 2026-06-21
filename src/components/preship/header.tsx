@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { usePreship } from "@/lib/preship-store";
 import { Button } from "@/components/ui/button";
@@ -9,12 +11,25 @@ import { useApi } from "@/lib/use-api";
 import type { FeedPost, SynergyRequest, IdeaLabSession } from "@/lib/preship-types";
 import { useMemo } from "react";
 import { Logo } from "./logo";
-import { AuthButton, LoginModal } from "./auth/login-modal";
+import { AuthButton } from "./auth/login-modal";
+import { InviteFounderModal } from "./auth/invite-founder-modal";
 import { NotificationBell } from "./notifications/notification-bell";
 
 export function Header() {
   const setMobileNavOpen = usePreship((s) => s.setMobileNavOpen);
-  const [loginOpen, setLoginOpen] = useState(false);
+  const router = useRouter();
+  const { status } = useSession();
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  // "Invite founder" opens the email-invite form when signed in; otherwise
+  // it sends the visitor to /login (the invite action needs a sender).
+  function onInviteClick() {
+    if (status === "authenticated") {
+      setInviteOpen(true);
+    } else {
+      router.push("/login?callbackUrl=/");
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#0E1909]/10 bg-white/95 backdrop-blur">
@@ -41,10 +56,10 @@ export function Header() {
           <div className="hidden md:block">
             <NotificationBell />
           </div>
-          <AuthButton onOpenLogin={() => setLoginOpen(true)} />
+          <AuthButton onOpenLogin={() => router.push("/login")} />
           <Button
             size="sm"
-            onClick={() => setLoginOpen(true)}
+            onClick={onInviteClick}
             className="cta-lime bg-[#DAFF01] font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:bg-[#c4e600]"
           >
             Invite founder →
@@ -53,7 +68,7 @@ export function Header() {
       </div>
 
       <LiveTicker />
-      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+      <InviteFounderModal open={inviteOpen} onOpenChange={setInviteOpen} />
     </header>
   );
 }
