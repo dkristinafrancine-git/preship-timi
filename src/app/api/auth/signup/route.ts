@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { email, password, name, handle } = body as Record<string, unknown>;
+    const { email, password, name, handle, inviteToken } = body as Record<string, unknown>;
 
     // --- Validate email ---
     if (typeof email !== "string") {
@@ -145,6 +145,29 @@ export async function POST(req: NextRequest) {
         }
       }
       throw err;
+    }
+
+    // --- mark an invite as accepted, if a valid token was supplied ---
+    //
+    // The signup link from an invite email includes ?invite=<token>. We look
+    // it up by token; if it matches this signup's email we mark it accepted
+    // and link it to the new user. Failures here are non-fatal — the account
+    // is already created — so we only log.
+    if (typeof inviteToken === "string" && inviteToken.trim()) {
+      try {
+        const invite = await db.invite.findUnique({
+          where: { token: inviteToken.trim() },
+          select: { id: true, email: true, status: true },
+        });
+        if (invite && invite.email === emailNorm && invite.status !== "accepted") {
+          await db.invite.update({
+            where: { id: invite.id },
+            data: { status: "accepted", acceptedById: user.id },
+          });
+        }
+      } catch (inviteErr) {
+        console.error("[POST /api/auth/signup] invite acceptance failed", inviteErr);
+      }
     }
 
     return NextResponse.json({ user }, { status: 201 });

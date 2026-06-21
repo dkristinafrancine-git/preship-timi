@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { usePreship } from "@/lib/preship-store";
 import { Logo } from "../logo";
@@ -79,6 +80,7 @@ const STEPS: StepMeta[] = [
 export function OnboardingWizard({ user }: { user: Founder }) {
   const bump = usePreship((s) => s.bump);
   const setMe = usePreship((s) => s.setMe);
+  const router = useRouter();
 
   // pre-fill name/handle from the user prop (e.g. signup just created them)
   const [step, setStep] = useState(1);
@@ -145,8 +147,10 @@ export function OnboardingWizard({ user }: { user: Founder }) {
       const updated = (json as { user: Founder }).user;
       if (updated) setMe(updated);
       toast.success("Onboarding complete → welcome to the war room");
-      // bump the store so every useApi consumer refetches (incl. /api/me)
+      // bump the store so every useApi consumer refetches (incl. /api/me),
+      // then head to the app (we're on /onboarding now, not an overlay).
       bump();
+      router.push("/");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Network error";
       toast.error(msg);
