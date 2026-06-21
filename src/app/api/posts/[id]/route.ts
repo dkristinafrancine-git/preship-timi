@@ -3,8 +3,9 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 
-// Same include shape used by /api/feed so a patched post can be dropped
-// straight into the feed list on the client.
+// Same payload shape as /api/feed so a patched post can be dropped straight
+// into the feed list on the client. Uses _count aggregation (one COUNT per
+// relation) instead of selecting every reaction/comment row — see feed/route.ts.
 const POST_INCLUDE = {
   author: {
     select: {
@@ -29,30 +30,46 @@ const POST_INCLUDE = {
       category: true,
     },
   },
-  reactions: { select: { id: true, userId: true, kind: true } },
-  comments: { select: { id: true } },
+  _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
 type FeedPost = Prisma.PostGetPayload<{ include: typeof POST_INCLUDE }>;
 
-function shapePost(post: FeedPost, currentUserId?: string) {
-  const counts = (post.reactions ?? []).reduce<Record<string, number>>(
-    (acc, r) => {
-      acc[r.kind] = (acc[r.kind] ?? 0) + 1;
-      return acc;
-    },
-    { like: 0, repost: 0, handshake: 0 }
-  );
+/** Aggregate per-kind reaction counts + the current user's reactions for one post. */
+async function reactionsForPost(postId: string, userId?: string) {
+  const [grouped, mine] = await Promise.all([
+    db.reaction.groupBy({
+      by: ["kind"],
+      where: { postId },
+      _count: { _all: true },
+    }),
+    userId
+      ? db.reaction.findMany({
+          where: { postId, userId },
+          select: { kind: true },
+        })
+      : Promise.resolve([]),
+  ]);
+  const counts = { like: 0, repost: 0, handshake: 0 };
+  for (const g of grouped) {
+    if (g.kind === "like" || g.kind === "repost" || g.kind === "handshake") {
+      counts[g.kind] = g._count._all;
+    }
+  }
+  return {
+    counts,
+    myReaction: mine.map((r) => r.kind),
+  };
+}
 
-  const myReaction = (post.reactions ?? [])
-    .filter((r) => r.userId === currentUserId)
-    .map((r) => r.kind);
-
+async function shapePost(post: FeedPost, currentUserId?: string) {
+  const { counts, myReaction } = await reactionsForPost(post.id, currentUserId);
   return {
     id: post.id,
     type: post.type,
     body: post.body,
     audioTitle: post.audioTitle,
+    audioUrl: post.audioUrl,
     audioDuration: post.audioDuration,
     audioWaveform: post.audioWaveform,
     tags: post.tags,
@@ -64,7 +81,7 @@ function shapePost(post: FeedPost, currentUserId?: string) {
     project: post.project,
     _count: {
       reactions: counts,
-      comments: (post.comments ?? []).length,
+      comments: post._count.comments,
     },
     myReaction,
   };
@@ -158,7 +175,7 @@ export async function PATCH(
       include: POST_INCLUDE,
     });
 
-    return NextResponse.json({ post: shapePost(updated, user.id) });
+    return NextResponse.json({ post: await shapePost(updated, user.id) });
   } catch (err) {
     console.error("[PATCH /api/posts/[id]]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

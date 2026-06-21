@@ -5,6 +5,14 @@
 // used at runtime; DIRECT_URL points at the session-mode pooler used by
 // `prisma migrate` (migrations need a real session and cannot run through
 // PgBouncer in transaction mode).
+//
+// NOTE on indexes: the @@index declarations below are Prisma-managed B-tree
+// indexes (exact-match + prefix range scans). Leading-wildcard ILIKE search
+// (`%term%`) is NOT accelerated by B-tree indexes, so the trigram (pg_trgm)
+// GIN indexes that power /api/feed?tag and /api/search live in a raw SQL
+// migration (20260621120000_add_trgm_search_indexes) — Prisma can't express
+// them. When adding a new ILIKE-searched column, add a matching GIN trigram
+// index in a raw migration, not here.
 
 generator client {
   provider = "prisma-client-js"

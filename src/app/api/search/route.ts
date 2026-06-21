@@ -99,6 +99,10 @@ export async function GET(req: NextRequest) {
       }),
 
       // --- Posts (text only) ---
+      // Use _count aggregation (one COUNT per relation) instead of selecting
+      // every reaction/comment row. Also drop the heavy audioWaveform blob and
+      // truncate body to a preview snippet so we don't ship full post text for
+      // every search hit.
       db.post
         .findMany({
           where: {
@@ -107,38 +111,40 @@ export async function GET(req: NextRequest) {
           },
           orderBy: { createdAt: "desc" },
           take: 5,
-          include: {
+          select: {
+            id: true,
+            type: true,
+            body: true,
+            tags: true,
+            audioTitle: true,
+            projectId: true,
+            authorId: true,
+            createdAt: true,
             author: { select: FOUNDER_SELECT },
             project: PROJECT_RELATION,
-            reactions: { select: { id: true, userId: true, kind: true } },
-            comments: { select: { id: true } },
+            _count: { select: { reactions: true, comments: true } },
           },
         })
         .then((rows) =>
-          rows.map((p) => {
-            const counts = (p.reactions ?? []).reduce<Record<string, number>>(
-              (acc, r) => {
-                acc[r.kind] = (acc[r.kind] ?? 0) + 1;
-                return acc;
-              },
-              { like: 0, repost: 0, handshake: 0 }
-            );
-            return {
-              id: p.id,
-              type: p.type,
-              body: p.body,
-              tags: p.tags,
-              projectId: p.projectId,
-              authorId: p.authorId,
-              createdAt: p.createdAt,
-              author: p.author,
-              project: p.project,
-              _count: {
-                reactions: counts,
-                comments: (p.comments ?? []).length,
-              },
-            };
-          })
+          rows.map((p) => ({
+            id: p.id,
+            type: p.type,
+            // snippet only — full body fetched on demand from the post detail
+            body: p.body ? p.body.slice(0, 200) : null,
+            tags: p.tags,
+            audioTitle: p.audioTitle,
+            projectId: p.projectId,
+            authorId: p.authorId,
+            createdAt: p.createdAt,
+            author: p.author,
+            project: p.project,
+            // Note: _count.reactions here is a total count, not per-kind.
+            // Search previews don't need the per-kind breakdown the feed does.
+            _count: {
+              reactions: { like: 0, repost: 0, handshake: 0 },
+              comments: p._count.comments,
+            },
+          }))
         ),
 
       // --- Synergy requests ---
@@ -160,6 +166,8 @@ export async function GET(req: NextRequest) {
       }),
 
       // --- Articles (published only) ---
+      // Drop the full article body from search results — it can be large and
+      // the search list only renders title/subtitle/tags + author.
       db.article.findMany({
         where: {
           published: true,
@@ -167,7 +175,19 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { createdAt: "desc" },
         take: 5,
-        include: { author: { select: FOUNDER_SELECT } },
+        select: {
+          id: true,
+          title: true,
+          subtitle: true,
+          tags: true,
+          coverColor: true,
+          createdAt: true,
+          updatedAt: true,
+          published: true,
+          authorId: true,
+          author: { select: FOUNDER_SELECT },
+          _count: { select: { claps: true } },
+        },
       }),
     ]);
 

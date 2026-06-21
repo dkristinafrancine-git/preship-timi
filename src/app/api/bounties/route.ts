@@ -50,11 +50,22 @@ export async function GET(req: NextRequest) {
     const offers = await db.synergyOffer.findMany({
       where: { founderId: targetId, status: "accepted" },
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        pitch: true,
+        offer: true,
+        createdAt: true,
         request: {
-          include: {
+          // Only the card-display fields — don't pull the requester's full
+          // bio/location/skills for every gathered bounty.
+          select: {
+            id: true,
+            title: true,
+            bountyType: true,
+            status: true,
             founder: {
-              select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
+              select: { id: true, name: true, handle: true, title: true, avatarUrl: true },
             },
             project: {
               select: {
