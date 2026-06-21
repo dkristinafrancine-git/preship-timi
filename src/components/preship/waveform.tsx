@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { fmtDuration } from "@/lib/preship";
+import { toast } from "sonner";
 
 /**
  * Audio waveform player.
@@ -73,7 +74,21 @@ export function WaveformPlayer({
         audio.pause();
       } else {
         if (progress >= 1) audio.currentTime = 0;
-        audio.play().catch(() => {});
+        // Surface real playback failures instead of silently swallowing them.
+        // Previously this was `.catch(() => {})`, which hid every 404 /
+        // NotSupportedError / NotAllowedError behind a fake "playing" UI —
+        // the classic "progress bar moves but no sound" trap.
+        audio.play().catch((err: DOMException) => {
+          setPlaying(false);
+          if (err?.name === "NotAllowedError") {
+            toast.error("Browser blocked autoplay — click play again.");
+          } else if (err?.name === "NotSupportedError") {
+            toast.error("This audio format isn't supported in your browser.");
+          } else {
+            toast.error("Couldn't play audio.");
+            console.error("[WaveformPlayer] play() failed", err);
+          }
+        });
       }
     } else {
       if (progress >= 1) setProgress(0);
@@ -117,6 +132,11 @@ export function WaveformPlayer({
         }}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
+        onError={() => {
+          // Network error, decode failure, or unsupported source. Reset the
+          // UI so it doesn't claim to be "playing" while silent.
+          setPlaying(false);
+        }}
       />
       <div className="flex items-center gap-3">
         <button
@@ -174,7 +194,11 @@ export function WaveformPlayer({
 
       {!compact && (
         <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-[#DAFF01]/50">
-          <span>preship / audio {audioUrl ? "· live" : "· simulated"}</span>
+          {audioUrl ? (
+            <span>preship / audio · live</span>
+          ) : (
+            <span className="text-[#DAFF01]/35">preview only · no audio attached</span>
+          )}
           <span>{playing ? "playing" : progress > 0 ? "paused" : "ready"}</span>
         </div>
       )}
