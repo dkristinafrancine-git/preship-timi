@@ -58,7 +58,7 @@ export function ArticleEditorDialog({
     if (article) {
       setTitle(article.title);
       setSubtitle(article.subtitle ?? "");
-      setBody(article.body);
+      setBody(article.body ?? "");
       setTags(article.tags ?? "");
       setCoverColor(article.coverColor || COVER_COLORS[0].value);
       setPublished(article.published);

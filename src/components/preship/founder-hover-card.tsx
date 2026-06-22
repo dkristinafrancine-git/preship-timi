@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { FounderAvatar } from "./avatars";
-import { Tag } from "./badges";
+import { Tag, FoundingBadge } from "./badges";
 import { useApi, useMutate } from "@/lib/use-api";
 import type { Founder } from "@/lib/preship-types";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ export function FounderHoverCard({
   extraStats,
 }: {
   founder: Pick<Founder, "id" | "name" | "handle" | "title" | "avatarUrl"> &
-    Partial<Pick<Founder, "bio" | "location" | "skills">>;
+    Partial<Pick<Founder, "bio" | "location" | "skills" | "isFoundingMember">>;
   children: React.ReactNode;
   className?: string;
   extraStats?: { label: string; value: string | number; icon?: React.ReactNode }[];
@@ -29,8 +29,14 @@ export function FounderHoverCard({
   const skills = founder.skills
     ? founder.skills.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
+  // Defer the follow-status fetch until the card actually opens. This used to
+  // fire on mount for EVERY founder name rendered (feed posts, rail, synergy
+  // cards) — dozens of round-trips per screen. The dedup cache means repeated
+  // opens of the same founder are instant; passing `null` until first open
+  // skips the fetch entirely for cards the user never hovers.
+  const [open, setOpen] = useState(false);
   const { data: followData } = useApi<{ following: boolean }>(
-    `/api/follows?founderId=${founder.id}`
+    open ? `/api/follows?founderId=${founder.id}` : null
   );
   const mutate = useMutate();
   const [busy, setBusy] = useState(false);
@@ -52,7 +58,7 @@ export function FounderHoverCard({
   };
 
   return (
-    <HoverCard openDelay={250} closeDelay={150}>
+    <HoverCard openDelay={250} closeDelay={150} open={open} onOpenChange={setOpen}>
       <HoverCardTrigger asChild>
         <span
           className={cn(
@@ -72,8 +78,9 @@ export function FounderHoverCard({
           <div className="flex items-center gap-3">
             <FounderAvatar founder={founder} size={48} />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-[15px] font-semibold text-[#0E1909]">
-                {founder.name}
+              <p className="flex items-center gap-1 truncate font-display text-[15px] font-semibold text-[#0E1909]">
+                <span className="truncate">{founder.name}</span>
+                <FoundingBadge show={founder.isFoundingMember} />
               </p>
               <p className="truncate font-mono text-xs text-[#0E1909]/55">
                 @{founder.handle}

@@ -14,6 +14,8 @@ export async function GET() {
     const follows = await db.follow.findMany({
       where: { followerId: me.id },
       orderBy: { createdAt: "desc" },
+      // Cap the followed-founders list; renders as a sidebar card.
+      take: 100,
       include: {
         following: {
           select: {
@@ -23,7 +25,7 @@ export async function GET() {
             title: true,
             bio: true,
             location: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             skills: true,
           },
         },

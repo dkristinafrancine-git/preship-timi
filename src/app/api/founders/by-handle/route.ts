@@ -11,11 +11,12 @@ export async function GET(req: NextRequest) {
     const handle = searchParams.get("handle");
     if (!handle) return NextResponse.json({ error: "handle required" }, { status: 400 });
 
-    // Case-insensitive match against the indexed handle. Handles are
-    // normalized to lowercase on signup/onboarding, but insensitive matching
-    // here keeps lookups robust if a caller passes mixed case.
+    // Handles are normalized to lowercase on signup/onboarding, so a plain
+    // equality lookup hits the @@index([handle]) B-tree directly. Lowercasing
+    // the input keeps lookups robust if a caller passes mixed case, without
+    // paying for an insensitive (LOWER()-style) compare on every request.
     const founder = await db.user.findFirst({
-      where: { handle: { equals: handle, mode: "insensitive" } },
+      where: { handle: handle.toLowerCase() },
       select: {
         id: true,
         name: true,
@@ -23,17 +24,21 @@ export async function GET(req: NextRequest) {
         title: true,
         bio: true,
         location: true,
-        avatarUrl: true,
+        avatarUrl: true, isFoundingMember: true,
         skills: true,
         createdAt: true,
       },
     });
     if (!founder) return NextResponse.json({ error: "Founder not found" }, { status: 404 });
 
-    const projectCount = await db.project.count({ where: { founderId: founder.id } });
-    const bountyCount = await db.synergyOffer.count({
-      where: { founderId: founder.id, status: "accepted" },
-    });
+    // Both counts depend only on founder.id, not on each other — run them
+    // concurrently instead of two serial round-trips through the pooler.
+    const [projectCount, bountyCount] = await Promise.all([
+      db.project.count({ where: { founderId: founder.id } }),
+      db.synergyOffer.count({
+        where: { founderId: founder.id, status: "accepted" },
+      }),
+    ]);
 
     return NextResponse.json({ founder, projectCount, bountyCount });
   } catch (err) {

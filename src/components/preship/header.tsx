@@ -8,7 +8,7 @@ import { usePreship } from "@/lib/preship-store";
 import { Button } from "@/components/ui/button";
 import { Menu, HelpCircle } from "lucide-react";
 import { useApi } from "@/lib/use-api";
-import type { FeedPost, SynergyRequest, IdeaLabSession } from "@/lib/preship-types";
+import type { TickerEntry } from "@/app/api/ticker/route";
 import { useMemo } from "react";
 import { Logo } from "./logo";
 import { AuthButton } from "./auth/login-modal";
@@ -82,38 +82,21 @@ type TickerItem = {
 };
 
 function LiveTicker() {
-  const feed = useApi<{ posts: FeedPost[] }>("/api/feed?sort=newest");
-  const synergy = useApi<{ requests: SynergyRequest[] }>("/api/synergy?status=open");
-  const idealab = useApi<{ sessions: IdeaLabSession[] }>("/api/idealab?status=live");
+  // One lightweight fetch (4 rows × 3 kinds, no relations/counts) replaces
+  // the three full-list fetches this used to make. Cache-Control on the
+  // endpoint means SPA navigations don't refetch it either.
+  const { data } = useApi<{ entries: TickerEntry[] }>("/api/ticker");
   const navigate = usePreship((s) => s.navigate);
 
   const items = useMemo<TickerItem[]>(() => {
     const out: TickerItem[] = [];
-    // Always include the latest feed posts, synergy broadcasts, and live sessions
-    // (not gated by the current view — the ticker is a cross-network signal).
-    feed.data?.posts?.slice(0, 4).forEach((p) => {
-      out.push({
-        key: `post-${p.id}`,
-        label: `@${p.author.handle} posted in ${p.project?.name ?? "general"}`,
-        kind: "post",
-        onClick: () => navigate({ view: "war-room", postId: p.id }),
-      });
-    });
-    synergy.data?.requests?.slice(0, 4).forEach((s) => {
-      out.push({
-        key: `syn-${s.id}`,
-        label: `@${s.founder.handle} broadcast: ${s.title}`,
-        kind: "synergy",
-        onClick: () => navigate({ view: "synergy", synergyId: s.id }),
-      });
-    });
-    idealab.data?.sessions?.forEach((s) => {
-      out.push({
-        key: `sess-${s.id}`,
-        label: `LIVE: ${s.title}`,
-        kind: "session",
-        onClick: () => navigate({ view: "idealab", sessionId: s.id }),
-      });
+    data?.entries?.forEach((e) => {
+      const onClick = () => {
+        if (e.kind === "post") navigate({ view: "war-room", postId: e.id });
+        else if (e.kind === "synergy") navigate({ view: "synergy", synergyId: e.id });
+        else if (e.kind === "session") navigate({ view: "idealab", sessionId: e.id });
+      };
+      out.push({ key: `${e.kind}-${e.id}`, label: e.label, kind: e.kind, onClick });
     });
 
     if (out.length === 0) {
@@ -124,7 +107,7 @@ function LiveTicker() {
       );
     }
     return out;
-  }, [feed.data, synergy.data, idealab.data, navigate]);
+  }, [data, navigate]);
 
   // duplicate for seamless marquee loop
   const looped = [...items, ...items];

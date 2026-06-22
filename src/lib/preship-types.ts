@@ -2,7 +2,9 @@
 
 export type Founder = {
   id: string;
-  email: string;
+  // `email` is only present on the current user's own payload (/api/me);
+  // public endpoints (leaderboards, hover cards, lists) intentionally omit it.
+  email?: string;
   handle: string;
   name: string;
   title: string;
@@ -13,6 +15,7 @@ export type Founder = {
   bountiesPublic?: boolean;
   isCurrent: boolean;
   onboarded?: boolean;
+  isFoundingMember?: boolean;
 };
 
 export type Project = {
@@ -146,7 +149,9 @@ export type Article = {
   authorId: string;
   title: string;
   subtitle: string | null;
-  body: string;
+  // `body` is only present on the detail payload (/api/articles/[id]); the
+  // list endpoint omits it to keep the payload proportional to row count.
+  body?: string;
   tags: string | null;
   published: boolean;
   coverColor: string;

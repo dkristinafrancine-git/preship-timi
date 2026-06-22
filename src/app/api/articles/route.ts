@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 
-// Shared include for article list/detail payloads.
+// Shared include for the POST create response (full row, including body).
 const ARTICLE_INCLUDE = {
   author: {
     select: {
@@ -11,11 +11,37 @@ const ARTICLE_INCLUDE = {
       name: true,
       handle: true,
       title: true,
-      avatarUrl: true,
+      avatarUrl: true, isFoundingMember: true,
     },
   },
   _count: { select: { claps: true } },
 } satisfies Prisma.ArticleInclude;
+
+// List-card select: everything ArticleCard renders, minus the heavy `body`
+// markdown column. The list view never renders body — it lives in the detail
+// dialog fetched from /api/articles/[id]. Omitting it here keeps the list
+// payload proportional to row count, not to article length.
+const ARTICLE_LIST_SELECT = {
+  id: true,
+  title: true,
+  subtitle: true,
+  tags: true,
+  coverColor: true,
+  published: true,
+  authorId: true,
+  createdAt: true,
+  updatedAt: true,
+  author: {
+    select: {
+      id: true,
+      name: true,
+      handle: true,
+      title: true,
+      avatarUrl: true, isFoundingMember: true,
+    },
+  },
+  _count: { select: { claps: true } },
+} satisfies Prisma.ArticleSelect;
 
 // GET /api/articles — list published articles, newest first.
 // Query params:
@@ -27,10 +53,13 @@ export async function GET(req: NextRequest) {
     const authorId = searchParams.get("authorId") ?? undefined;
     const drafts = searchParams.get("drafts") === "1";
 
+    // Resolve the viewer once so we can stamp `myClap` onto each row in a
+    // single batched query instead of N per-row membership lookups.
+    const user = await getCurrentUser();
+
     let where: Prisma.ArticleWhereInput;
     if (drafts) {
       // Return only the current user's unpublished drafts
-      const user = await getCurrentUser();
       if (!user) {
         return NextResponse.json({ error: "No current user" }, { status: 401 });
       }
@@ -40,13 +69,40 @@ export async function GET(req: NextRequest) {
       if (authorId) where.authorId = authorId;
     }
 
+    // Fetch the page (bounded) and the viewer's clapped article ids in
+    // parallel — the clap set is filtered to just the fetched ids, so it's
+    // one indexed pass, not a per-row probe.
     const articles = await db.article.findMany({
       where,
-      include: ARTICLE_INCLUDE,
+      select: ARTICLE_LIST_SELECT,
       orderBy: { createdAt: "desc" },
+      take: 50,
     });
 
-    return NextResponse.json({ articles });
+    const articleIds = articles.map((a) => a.id);
+    const myClappedIds = user && articleIds.length > 0
+      ? new Set(
+          (
+            await db.articleClap.findMany({
+              where: { articleId: { in: articleIds }, userId: user.id },
+              select: { articleId: true },
+            })
+          ).map((c) => c.articleId)
+        )
+      : new Set<string>();
+
+    const withMine = articles.map((a) => ({
+      ...a,
+      myClap: myClappedIds.has(a.id),
+    }));
+
+    return NextResponse.json(
+      { articles: withMine },
+      // Public published list is quasi-static; drafts are private per-user.
+      drafts
+        ? undefined
+        : { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300" } }
+    );
   } catch (err) {
     console.error("[GET /api/articles]", err);
     return NextResponse.json(

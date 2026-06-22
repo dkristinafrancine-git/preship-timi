@@ -13,15 +13,21 @@ export async function GET() {
   try {
     const founders = await db.user.findMany({
       orderBy: { createdAt: "asc" },
+      // Cap the quick-pick list; grows with the user base otherwise.
+      take: 200,
       select: {
         id: true,
         name: true,
         handle: true,
         title: true,
-        avatarUrl: true,
+        avatarUrl: true, isFoundingMember: true,
       },
     });
-    return NextResponse.json({ founders });
+    return NextResponse.json(
+      { founders },
+      // Public + quasi-static — safe to cache at the edge briefly.
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
+    );
   } catch (err) {
     console.error("[GET /api/founders/list]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

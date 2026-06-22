@@ -32,17 +32,19 @@ export async function GET(req: NextRequest) {
     const requests = await db.synergyRequest.findMany({
       where,
       orderBy: { createdAt: "desc" },
+      // Bound the list; the synergy board is paginated client-side anyway.
+      take: 50,
       include: {
         founder: {
+          // List-card select — bio/location/skills are only rendered in the
+          // detail view (see /api/synergy/[id]). Dropping them here keeps
+          // list payload proportional to row count, not founder profile size.
           select: {
             id: true,
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
-            bio: true,
-            location: true,
-            skills: true,
+            avatarUrl: true, isFoundingMember: true,
           },
         },
         project: {
@@ -190,7 +192,7 @@ export async function POST(req: NextRequest) {
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,

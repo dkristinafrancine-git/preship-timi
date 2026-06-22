@@ -26,6 +26,8 @@ export async function GET(
     const offers = await db.synergyOffer.findMany({
       where: { requestId: id },
       orderBy: { createdAt: "asc" },
+      // Bound the offer list; unbounded findMany is a footgun as the table grows.
+      take: 50,
       include: {
         founder: {
           select: {
@@ -33,7 +35,7 @@ export async function GET(
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -97,7 +99,7 @@ export async function POST(
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -129,7 +131,7 @@ export async function POST(
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,

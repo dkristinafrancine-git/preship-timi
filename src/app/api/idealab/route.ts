@@ -70,17 +70,18 @@ export async function GET(req: NextRequest) {
 
     const sessions = await db.ideaLabSession.findMany({
       where,
+      // Bound the board; unbounded findMany grows linearly with the table.
+      take: 50,
       include: {
         host: {
+          // List-card select — bio/location/skills only render in the detail
+          // view. Trimming keeps the board payload lean.
           select: {
             id: true,
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
-            bio: true,
-            location: true,
-            skills: true,
+            avatarUrl: true, isFoundingMember: true,
           },
         },
         _count: { select: { signups: true, interests: true } },
@@ -220,7 +221,7 @@ export async function POST(req: NextRequest) {
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -234,7 +235,7 @@ export async function POST(req: NextRequest) {
                 name: true,
                 handle: true,
                 title: true,
-                avatarUrl: true,
+                avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,

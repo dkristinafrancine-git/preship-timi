@@ -3,9 +3,11 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 
-// Shared include for article detail payload. We pull the claps array
-// (with userId only) so we can compute `myClap` for the current user
-// in addition to the _count.
+// Shared include for article detail payload. We do NOT pull the claps array —
+// previously this materialized every clap row into Node just to test
+// membership for one user. Instead `myClap` is resolved with a single
+// findUnique on the @@unique([articleId, userId]) compound key (an index
+// probe) run in parallel with the article fetch below.
 const ARTICLE_DETAIL_INCLUDE = {
   author: {
     select: {
@@ -13,13 +15,12 @@ const ARTICLE_DETAIL_INCLUDE = {
       name: true,
       handle: true,
       title: true,
-      avatarUrl: true,
+      avatarUrl: true, isFoundingMember: true,
       bio: true,
       location: true,
       skills: true,
     },
   },
-  claps: { select: { id: true, userId: true } },
   _count: { select: { claps: true } },
 } satisfies Prisma.ArticleInclude;
 
@@ -27,10 +28,7 @@ type ArticleDetail = Prisma.ArticleGetPayload<{
   include: typeof ARTICLE_DETAIL_INCLUDE;
 }>;
 
-function shapeArticle(article: ArticleDetail, currentUserId?: string) {
-  const myClap = currentUserId
-    ? article.claps.some((c) => c.userId === currentUserId)
-    : false;
+function shapeArticle(article: ArticleDetail, myClap: boolean) {
   return {
     id: article.id,
     authorId: article.authorId,
@@ -60,10 +58,21 @@ export async function GET(
 
     const user = await getCurrentUser();
 
-    const article = await db.article.findUnique({
-      where: { id },
-      include: ARTICLE_DETAIL_INCLUDE,
-    });
+    // Fetch the article and the viewer's clap membership in parallel.
+    // The clap lookup is a findUnique on @@unique([articleId, userId]) —
+    // a single index probe, not a scan of all claps for the article.
+    const [article, myClapRow] = await Promise.all([
+      db.article.findUnique({
+        where: { id },
+        include: ARTICLE_DETAIL_INCLUDE,
+      }),
+      user
+        ? db.articleClap.findUnique({
+            where: { articleId_userId: { articleId: id, userId: user.id } },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+    ]);
 
     if (!article) {
       return NextResponse.json(
@@ -80,7 +89,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ article: shapeArticle(article, user?.id) });
+    return NextResponse.json({ article: shapeArticle(article, !!myClapRow) });
   } catch (err) {
     console.error("[GET /api/articles/[id]]", err);
     return NextResponse.json(
@@ -227,7 +236,14 @@ export async function PATCH(
       include: ARTICLE_DETAIL_INCLUDE,
     });
 
-    return NextResponse.json({ article: shapeArticle(updated, user.id) });
+    // After a PATCH the author's own clap state is unchanged; re-probe so the
+    // returned payload is consistent (single indexed lookup).
+    const myClapRow = await db.articleClap.findUnique({
+      where: { articleId_userId: { articleId: id, userId: user.id } },
+      select: { id: true },
+    });
+
+    return NextResponse.json({ article: shapeArticle(updated, !!myClapRow) });
   } catch (err) {
     console.error("[PATCH /api/articles/[id]]", err);
     return NextResponse.json(

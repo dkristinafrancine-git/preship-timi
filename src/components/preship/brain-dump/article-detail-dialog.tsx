@@ -90,8 +90,9 @@ function ArticleBody({
   const [clapping, setClapping] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // optimistic clap state — the API returns the new state, but we also bump
-  // the global tick so the list view refetches with fresh _count.
+  // optimistic clap state — the API returns the new state, and the mutate
+  // helper scopes invalidation to the "articles" channel so the list view
+  // refetches with fresh _count without disturbing other endpoints.
   const [clapped, setClapped] = useState(article.myClap ?? false);
   const [clapCount, setClapCount] = useState(article._count.claps);
 
