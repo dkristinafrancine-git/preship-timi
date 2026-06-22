@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { deriveSessionStatus } from "@/lib/preship";
 
 /**
  * GET /api/ticker
@@ -51,12 +52,28 @@ export async function GET() {
         },
       }),
       db.ideaLabSession.findMany({
-        where: { status: "live" },
+        // Fetch both stored-"live" and stored-"scheduled"-whose-start-has-
+        // arrived; deriveSessionStatus below filters to truly-live. We can't
+        // push the derived status into the DB query (it depends on now +
+        // duration), so we over-fetch slightly and filter in JS. Bounded by
+        // take and the session table is small.
+        where: {
+          OR: [
+            { status: "live" },
+            { status: "scheduled", scheduledAt: { lte: new Date() } },
+          ],
+        },
         orderBy: { scheduledAt: "asc" },
-        take: 4,
-        select: { id: true, title: true },
+        take: 12,
+        select: { id: true, title: true, status: true, scheduledAt: true, durationMins: true },
       }),
     ]);
+
+    // Filter to truly-live after derivation (drops no-shows whose window
+    // already ended, and sessions the host explicitly ended).
+    const liveSessions = sessions.filter(
+      (s) => deriveSessionStatus(s.status, s.scheduledAt, s.durationMins) === "live"
+    ).slice(0, 4);
 
     const entries: TickerEntry[] = [
       ...posts.map((p) => ({
@@ -71,7 +88,7 @@ export async function GET() {
         view: "synergy" as const,
         label: `@${s.founder.handle} broadcast: ${s.title}`,
       })),
-      ...sessions.map((s) => ({
+      ...liveSessions.map((s) => ({
         id: s.id,
         kind: "session" as const,
         view: "idealab" as const,

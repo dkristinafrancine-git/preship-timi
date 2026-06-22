@@ -8,7 +8,64 @@ import {
   BOUNTY_TYPES,
   type BountyType,
 } from "@/lib/preship";
-import type { IdeaRole } from "@/lib/preship-types";
+import { Star } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+
+/* ---- Founding Member badge ---- */
+
+/**
+ * Founding Member badge — a small star icon shown next to a founder's name.
+ *
+ * The first-100 cohort is granted `isFoundingMember = true` via a DB column
+ * (see migration 20260622000000_add_founding_member); it's revocable per-user.
+ *
+ * Render inline next to a name: `<h1>Maya {f.isFoundingMember && <FoundingBadge />}</h1>`.
+ * Renders nothing when `show` is false so callers can mount it conditionally
+ * without an extra wrapper.
+ *
+ * `TooltipProvider` is mounted once at the app root (Providers), so this
+ * component only needs the `Tooltip` / `Trigger` / `Content` trio.
+ */
+export function FoundingBadge({
+  show,
+  className,
+  size = 13,
+  tooltip = "Founding Member",
+}: {
+  show?: boolean;
+  className?: string;
+  /** icon size in px (lucide convention). 13 = inline-with-text default. */
+  size?: number;
+  tooltip?: string;
+}) {
+  if (show === false) return null;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          role="img"
+          aria-label={tooltip}
+          className={cn(
+            "inline-flex shrink-0 items-center align-middle text-[#DAFF01]",
+            className
+          )}
+        >
+          <Star size={size} className="fill-[#DAFF01]" strokeWidth={1.5} />
+        </span>
+      </TooltipTrigger>
+      <TooltipContent
+        side="top"
+        className="border border-[#0E1909]/15 bg-[#0E1909] font-mono text-xs font-semibold uppercase tracking-widest text-[#DAFF01]"
+      >
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 /* ---- Stage chips & rail ---- */
 
@@ -151,7 +208,7 @@ export function BountyBadge({
 
 /* ---- Role badge ---- */
 
-const ROLE_META: Record<IdeaRole, { label: string; code: string }> = {
+const ROLE_META: Record<string, { label: string; code: string }> = {
   host: { label: "Host", code: "HO" },
   "co-host": { label: "Co-host", code: "CO" },
   "technical-lead": { label: "Tech Lead", code: "TL" },
@@ -161,16 +218,29 @@ const ROLE_META: Record<IdeaRole, { label: string; code: string }> = {
   participant: { label: "Participant", code: "PA" },
 };
 
+/** Derive a short uppercase code for a custom role slug (first letters of up
+ *  to 2 words, uppercased). e.g. "ml-engineer" → "ME", "growth-hacker" → "GH". */
+function roleCode(slug: string): string {
+  const words = slug.split("-").filter(Boolean).slice(0, 2);
+  const code = words.map((w) => w[0] ?? "").join("").toUpperCase();
+  return code || "·";
+}
+
 export function RoleBadge({
   role,
   filled = false,
   className,
 }: {
-  role: IdeaRole;
+  role: string;
   filled?: boolean;
   className?: string;
 }) {
-  const m = ROLE_META[role];
+  // Look up preset metadata; fall back to a derived code + spaced slug label
+  // for host-defined custom roles (e.g. "ml-engineer").
+  const m = ROLE_META[role] ?? {
+    label: role.replace(/-/g, " "),
+    code: roleCode(role),
+  };
   return (
     <span
       className={cn(

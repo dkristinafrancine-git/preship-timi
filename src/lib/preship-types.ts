@@ -104,6 +104,10 @@ export type SynergyOffer = {
   founder: Founder;
 };
 
+/** Preset role IDs. Hosts may also define arbitrary custom roles (free text
+ *  slugs stored in rolesOpen), so role fields are typed as `string` at the
+ *  edges where customs surface (signup.role, mySignup.role). This union is
+ *  kept for the known preset set. */
 export type IdeaRole =
   | "host"
   | "co-host"
@@ -111,7 +115,9 @@ export type IdeaRole =
   | "design-lead"
   | "product-lead"
   | "marketing-lead"
-  | "participant";
+  | "participant"
+  // Host-defined custom role slug (e.g. "ml-engineer", "growth-hacker").
+  | (string & {});
 
 export type IdeaLabSession = {
   id: string;

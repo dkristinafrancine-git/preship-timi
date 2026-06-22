@@ -9,7 +9,7 @@ import { useApi } from "@/lib/use-api";
 import { useMutate } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
 import type { IdeaLabSession, IdeaLabSignup, Founder } from "@/lib/preship-types";
-import { fmtRelative, IDEA_ROLES } from "@/lib/preship";
+import { fmtRelative, IDEA_ROLES, PRESET_ROLE_IDS } from "@/lib/preship";
 import { FounderAvatar } from "../avatars";
 import { StatusPill, RoleBadge, TerminalHeader } from "../badges";
 import { LiveAudioRoom } from "./live-audio-room";
@@ -60,7 +60,10 @@ function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSessio
   const mutate = useMutate();
 
   const isLive = session.status === "live";
-  const roles = session.rolesOpen ? session.rolesOpen.split(",").filter(Boolean) : [];
+  const roles = session.rolesOpen ? session.rolesOpen.split(",").map(r => r.trim()).filter(Boolean) : [];
+  // Custom roles = session roles that aren't in the preset set. Rendered as
+  // selectable chips at signup, validated against the session's rolesOpen.
+  const customRoles = roles.filter((r) => !PRESET_ROLE_IDS.has(r));
   const signups = session.signups ?? [];
   const interests = session.interests ?? [];
   const seatsLeft = session.maxSeats - session._count.signups;
@@ -218,6 +221,25 @@ function SessionBody({ session, isHost, onOpenChange }: { session: IdeaLabSessio
                     )}
                   >
                     {r.label}
+                  </button>
+                );
+              })}
+              {/* Host-defined custom roles (free text). Selectable like presets;
+                  validated against the session's rolesOpen at signup. */}
+              {customRoles.map((slug) => {
+                const sel = signupRole === slug;
+                return (
+                  <button
+                    key={slug}
+                    onClick={() => setSignupRole(slug)}
+                    className={cn(
+                      "rounded-md border px-2.5 py-1.5 font-mono text-xs uppercase tracking-widest transition",
+                      sel
+                        ? "border-[#0E1909] bg-[#DAFF01] text-[#0E1909]"
+                        : "border-[#DAFF01] bg-[#f4ffd6] text-[#0E1909] hover:bg-[#e6ff80]"
+                    )}
+                  >
+                    {slug.replace(/-/g, " ")}
                   </button>
                 );
               })}

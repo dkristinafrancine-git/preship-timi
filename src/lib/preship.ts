@@ -44,8 +44,53 @@ export const IDEA_ROLES = [
   { id: "participant", label: "Participant" },
 ] as const;
 
+/** Preset role IDs (host-defined custom roles are NOT in this set — they're
+ *  free text stored in rolesOpen and validated per-session at signup). Typed
+ *  as Set<string> so `.has()` accepts arbitrary role slugs without narrowing. */
+export const PRESET_ROLE_IDS: Set<string> = new Set(IDEA_ROLES.map((r) => r.id));
+
 export const POST_REACTIONS = ["like", "repost", "handshake"] as const;
 export type ReactionKind = (typeof POST_REACTIONS)[number];
+
+/**
+ * Derive the effective status of an IdeaLab session at read time.
+ *
+ * The stored `status` column only changes when the host clicks "go live" or
+ * "end session" — so if the host abandons a live room, closes the tab, or
+ * never shows up to a scheduled one, the stored value goes stale forever
+ * (this was the root cause of the "always Live" and "perpetually Upcoming"
+ * bugs). Deriving the effective status on every read fixes both without any
+ * cron job or background sweep.
+ *
+ * Rules (host's explicit action always wins where it makes sense):
+ *  - `ended` stays `ended` — the host ended it deliberately; never reopen.
+ *  - `live` whose window has passed → `ended` (host went live then vanished).
+ *  - `live` whose window hasn't passed → `live` (host went live, possibly
+ *    early — respect the explicit action).
+ *  - `scheduled` whose start has arrived but hasn't ended → `live` (auto-go-
+ *    -live so the room is joinable even if the host forgets to click).
+ *  - `scheduled` whose whole window has passed → `ended` (no-show).
+ *  - `scheduled` before its start → `scheduled`.
+ */
+export function deriveSessionStatus(
+  storedStatus: string,
+  scheduledAt: Date | string,
+  durationMins: number
+): "scheduled" | "live" | "ended" {
+  if (storedStatus === "ended") return "ended";
+  const start = new Date(scheduledAt).getTime();
+  const end = start + Math.max(1, durationMins) * 60_000;
+  const now = Date.now();
+  // Window has closed → ended regardless of stored value (abandoned live room
+  // or no-show scheduled room).
+  if (now >= end) return "ended";
+  // Host explicitly went live (maybe early) → keep live until window ends.
+  if (storedStatus === "live") return "live";
+  // Stored "scheduled": auto-promote to live once the start arrives, so a
+  // no-action host still gets a joinable room for the duration window.
+  if (now >= start) return "live";
+  return "scheduled";
+}
 
 export const PROJECT_CATEGORIES = [
   "DevTool",

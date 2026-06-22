@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
+import { deriveSessionStatus } from "@/lib/preship";
 
 const STATUS_ORDER: Record<string, number> = {
   live: 0,
@@ -45,8 +46,12 @@ export async function GET(req: NextRequest) {
 
     const user = await getCurrentUser();
 
+    // NOTE: we deliberately do NOT push `status` into the Prisma where clause.
+    // The stored status only changes on explicit host action, so filtering at
+    // the DB level would surface stale rows (the "always Live" / "perpetually
+    // Upcoming" bug). Instead we fetch a bounded page, derive the effective
+    // status for each row, and filter in JS below so ?status= matches reality.
     const where: any = {};
-    if (status) where.status = status;
     if (onlyPublic) where.isPublic = true;
 
     if (onlyMine) {
@@ -88,6 +93,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Derive the effective status for each session at read time, so abandoned
+    // live rooms and no-show scheduled ones reflect reality without a cron job.
+    const derived = sessions.map((s) => ({
+      ...s,
+      status: deriveSessionStatus(s.status, s.scheduledAt, s.durationMins),
+    }));
+
     // Attach current-user specific data
     let mySignupMap = new Map<string, { role: string; status: string }>();
     let myInterestSet = new Set<string>();
@@ -112,13 +124,23 @@ export async function GET(req: NextRequest) {
       myInterestSet = new Set(myInterests.map((i) => i.sessionId));
     }
 
-    const decorated = sessions.map((s) => ({
+    // Decorate with current-user state. Built from `derived` so the effective
+    // status is carried through to the client.
+    const decorated = derived.map((s) => ({
       ...s,
       mySignup: mySignupMap.get(s.id) ?? null,
       myInterest: myInterestSet.has(s.id),
     }));
 
-    decorated.sort((a, b) => {
+    // Apply the ?status= filter AFTER derivation, so it matches the effective
+    // status (a stored-"scheduled" session whose start time has passed is
+    // effectively live, and a stored-"live" session whose window ended is
+    // effectively ended).
+    const filtered = status
+      ? decorated.filter((s) => s.status === status)
+      : decorated;
+
+    filtered.sort((a, b) => {
       const sa = STATUS_ORDER[a.status] ?? 99;
       const sb = STATUS_ORDER[b.status] ?? 99;
       if (sa !== sb) return sa - sb;
@@ -128,7 +150,7 @@ export async function GET(req: NextRequest) {
       );
     });
 
-    return NextResponse.json({ sessions: decorated });
+    return NextResponse.json({ sessions: filtered });
   } catch (err) {
     console.error("[GET /api/idealab]", err);
     return NextResponse.json(

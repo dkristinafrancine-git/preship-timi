@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useMutate } from "@/lib/use-api";
 import { IDEA_ROLES } from "@/lib/preship";
 import { cn } from "@/lib/utils";
-import { Loader2, Mic, Calendar } from "lucide-react";
+import { Loader2, Mic, Calendar, X, Plus } from "lucide-react";
 
 const DEFAULT_AGENDA = `0:00 — Wedge teardown\n0:15 — Pressure-test the thesis\n0:35 — One prototype spec\n0:55 — Handshakes & next steps`;
 
@@ -28,6 +28,11 @@ export function HostDialog({
   const [durationMins, setDurationMins] = useState(60);
   const [agenda, setAgenda] = useState(DEFAULT_AGENDA);
   const [rolesOpen, setRolesOpen] = useState<string[]>(["technical-lead", "design-lead", "participant"]);
+  // Host-defined custom roles (free text). Stored alongside presets in the
+  // comma-joined rolesOpen column; the preset set is validated against
+  // IDEA_ROLES, customs are validated per-session at signup.
+  const [customRoles, setCustomRoles] = useState<string[]>([]);
+  const [customRoleInput, setCustomRoleInput] = useState("");
   const [maxSeats, setMaxSeats] = useState(8);
   const [isPublic, setIsPublic] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -36,16 +41,45 @@ export function HostDialog({
     setRolesOpen((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
   };
 
+  const addCustomRole = () => {
+    const raw = customRoleInput.trim();
+    if (!raw) return;
+    // Normalize: title-case-ish slug. Keep it readable but id-safe: lowercase,
+    // collapse spaces to hyphens, strip odd chars. e.g. "ML Engineer" →
+    // "ml-engineer". We render the original label via the same transform at
+    // display time, so no separate label column is needed.
+    const slug = raw
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 40);
+    if (!slug) return;
+    // Avoid dupes across presets AND customs (compare by slug).
+    const all = [...rolesOpen, ...customRoles];
+    if (!all.includes(slug)) {
+      setCustomRoles((c) => [...c, slug]);
+    }
+    setCustomRoleInput("");
+  };
+
+  const removeCustomRole = (slug: string) => {
+    setCustomRoles((c) => c.filter((r) => r !== slug));
+  };
+
   const reset = () => {
     setTitle(""); setThesis(""); setDescription(""); setScheduledAt("");
     setDurationMins(60); setAgenda(DEFAULT_AGENDA);
     setRolesOpen(["technical-lead", "design-lead", "participant"]);
+    setCustomRoles([]); setCustomRoleInput("");
     setMaxSeats(8); setIsPublic(true);
   };
 
   const submit = async () => {
     if (!title.trim() || !thesis.trim() || !scheduledAt) return;
     setSubmitting(true);
+    // Merge preset toggles + custom roles into the single comma-joined column.
+    const allRoles = [...rolesOpen, ...customRoles];
     const res = await mutate("/api/idealab", {
       method: "POST",
       body: {
@@ -55,7 +89,7 @@ export function HostDialog({
         scheduledAt: new Date(scheduledAt).toISOString(),
         durationMins,
         agenda,
-        rolesOpen: rolesOpen.join(","),
+        rolesOpen: allRoles.join(","),
         maxSeats,
         isPublic,
         coverColor: "#0E1909",
@@ -170,6 +204,51 @@ export function HostDialog({
                   </button>
                 );
               })}
+            </div>
+            {/* Custom roles (host-defined free text) */}
+            {customRoles.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {customRoles.map((slug) => (
+                  <span
+                    key={slug}
+                    className="inline-flex items-center gap-1 rounded-md border border-[#DAFF01] bg-[#f4ffd6] px-2 py-1.5 font-mono text-xs uppercase tracking-widest text-[#0E1909]"
+                  >
+                    {slug.replace(/-/g, " ")}
+                    <button
+                      type="button"
+                      onClick={() => removeCustomRole(slug)}
+                      className="text-[#0E1909]/45 hover:text-[#e0463c]"
+                      aria-label={`Remove ${slug}`}
+                    >
+                      <X size={11} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="mt-2 flex items-center gap-1.5">
+              <Input
+                value={customRoleInput}
+                onChange={(e) => setCustomRoleInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomRole();
+                  }
+                }}
+                placeholder="add custom role (e.g. ML engineer, growth hacker)"
+                className="h-8 flex-1 border-[#0E1909]/12 bg-white font-mono text-xs focus-visible:ring-[#DAFF01]"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={addCustomRole}
+                disabled={!customRoleInput.trim()}
+                className="h-8 shrink-0 border-[#0E1909]/15 px-2 font-mono text-xs uppercase tracking-widest text-[#0E1909]/70 hover:bg-[#f4ffd6] hover:text-[#0E1909]"
+              >
+                <Plus size={12} /> add
+              </Button>
             </div>
           </div>
 

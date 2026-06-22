@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
+import { deriveSessionStatus } from "@/lib/preship";
 
 // GET /api/idealab/[id] — one session with host, signups, interests
 export async function GET(
@@ -19,7 +20,7 @@ export async function GET(
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -33,7 +34,7 @@ export async function GET(
                 name: true,
                 handle: true,
                 title: true,
-                avatarUrl: true,
+                avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -49,7 +50,7 @@ export async function GET(
                 id: true,
                 name: true,
                 handle: true,
-                avatarUrl: true,
+                avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -66,7 +67,20 @@ export async function GET(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ session });
+    // Derive the effective status so the detail view agrees with the board:
+    // a room the host abandoned mid-live reads as ended, a no-show scheduled
+    // room past its window reads as ended, etc. The host's explicit "ended"
+    // always wins (see deriveSessionStatus).
+    return NextResponse.json({
+      session: {
+        ...session,
+        status: deriveSessionStatus(
+          session.status,
+          session.scheduledAt,
+          session.durationMins
+        ),
+      },
+    });
   } catch (err) {
     console.error("[GET /api/idealab/[id]]", err);
     return NextResponse.json(
@@ -168,7 +182,7 @@ export async function PATCH(
             name: true,
             handle: true,
             title: true,
-            avatarUrl: true,
+            avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -182,7 +196,7 @@ export async function PATCH(
                 name: true,
                 handle: true,
                 title: true,
-                avatarUrl: true,
+                avatarUrl: true, isFoundingMember: true,
             bio: true,
             location: true,
             skills: true,
@@ -194,7 +208,18 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ session: updated });
+    // Derive so the client immediately sees the effective status (e.g. host
+    // clicks "go live" → "live"; or edits a past session → "ended").
+    return NextResponse.json({
+      session: {
+        ...updated,
+        status: deriveSessionStatus(
+          updated.status,
+          updated.scheduledAt,
+          updated.durationMins
+        ),
+      },
+    });
   } catch (err) {
     console.error("[PATCH /api/idealab/[id]]", err);
     return NextResponse.json(
