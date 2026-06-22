@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/preship/providers";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const funnel = Funnel_Display({
   variable: "--font-funnel",
@@ -65,6 +66,10 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        {/* Vercel Speed Insights — collects Real User Monitoring (Core Web
+            Vitals, LCP/INP/CLS, route timings). No-op in dev and on non-Vercel
+            hosts; only sends data on the Vercel deployment. */}
+        <SpeedInsights />
         <Toaster />
         <SonnerToaster />
       </body>
