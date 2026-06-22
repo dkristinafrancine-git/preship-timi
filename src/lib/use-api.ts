@@ -1,189 +1,167 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { usePreship, channelsForUrl } from "@/lib/preship-store";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { channelsForUrl, type InvalidationChannel } from "@/lib/preship-store";
 
 /**
- * Module-level response cache + in-flight request dedup.
+ * Data layer for Preship, built on @tanstack/react-query.
  *
- * - `cache`: keyed by full URL. Holds the last successful payload so a
- *   re-mount (or a scoped invalidate) can render instantly while we revalidate
- *   in the background (stale-while-revalidate), instead of flashing a spinner.
- * - `inflight`: a Map<url, Promise> so that N sibling components mounting the
- *   same URL in the same tick share ONE network round-trip. Previously every
- *   `useApi("/api/me")` consumer (4+ on the war-room view) fired its own fetch.
+ * The public API of `useApi` / `useMutate` is unchanged from the hand-rolled
+ * version so the ~70 call sites need no edits. Under the hood, RQ gives us:
+ *   - automatic request dedup (N consumers of one URL share one fetch),
+ *   - a cached response that survives unmount/remount and navigation,
+ *   - `placeholderData` for sort/filter switches (no spinner on re-rank),
+ *   - scoped invalidation via query-key prefixes.
  *
- * Both live for the lifetime of the page (single-page app shell), which is the
- * right scope: this is client-cached data, never the source of truth.
+ * Query keys: `[channel, url]` where `channel` is the resource family derived
+ * from `channelsForUrl` (e.g. "feed", "synergy"). A mutation invalidates by
+ * channel, so reacting to a post doesn't refetch synergy/idealab.
  */
-type Json = unknown;
-const cache = new Map<string, Json>();
-const inflight = new Map<string, Promise<Json>>();
-
-function fetchJson(url: string): Promise<Json> {
-  const existing = inflight.get(url);
-  if (existing) return existing;
-  const p = fetch(url, { headers: { Accept: "application/json" } })
-    .then(async (r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return (await r.json()) as Json;
-    })
-    .finally(() => {
-      inflight.delete(url);
-    });
-  // Only cache successful resolves onto `cache`; the in-flight promise is
-  // shared regardless of outcome so concurrent mounts don't double-fetch.
-  inflight.set(url, p);
-  return p;
-}
 
 export interface UseApiResult<T> {
   data: T | null;
-  /** True only when we have no cached data yet for this URL. Once we've
-   *  fetched once, background revalidations keep `data` populated and
-   *  `loading` false — no spinner flicker on invalidate/remount. */
+  /** True only on the first-ever load of this URL — background refetches and
+   *  remounts serve cached data and keep this false (no spinner flicker). */
   loading: boolean;
   error: string | null;
   refetch: () => void;
 }
 
+/** Channel prefix for a URL — the first channel that owns it, or "api" as a
+ *  catch-all. This is the root of the query key, so invalidating a channel
+ *  invalidates every URL in that family at once. */
+function channelOf(url: string): string {
+  const ch = channelsForUrl(url);
+  return ch[0] ?? "api";
+}
+
+async function fetchJson(url: string): Promise<unknown> {
+  const r = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
 /**
- * Fetch hook that:
- *  - dedups identical concurrent requests (one fetch per URL per tick),
- *  - serves cached data immediately and revalidates in the background,
- *  - refetches only when its OWN channel(s) are invalidated (not on every
- *    mutation app-wide).
- *
- * Returns `{ data, loading, error, refetch }`.
+ * Fetch hook. `url` may be null to skip the fetch (used by FounderHoverCard,
+ * which defers its follow-status lookup until the card opens). `deps` is
+ * kept for backward compat — RQ re-derives automatically from the `url` key,
+ * but callers that interpolate extra state into the URL (e.g. `?sort=...`)
+ * already encode it there.
  */
-export function useApi<T>(url: string | null, deps: unknown[] = []): UseApiResult<T> {
-  const channels = url ? channelsForUrl(url) : [];
-  // Subscribe to each channel counter this URL cares about. Reading them in
-  // the effect deps array re-runs the fetch only when a relevant channel bumps.
-  const invalidations = usePreship((s) => s.invalidations);
-  const channelTick = channels.map((c) => invalidations[c] ?? 0).join("-");
+export function useApi<T>(url: string | null, _deps: unknown[] = []): UseApiResult<T> {
+  const query = useQuery<T>({
+    queryKey: url ? [channelOf(url), url] : ["__disabled__"],
+    queryFn: () => fetchJson(url!) as Promise<T>,
+    enabled: url !== null,
+    // keepPreviousData-equivalent in RQ v5: when the URL changes (sort switch,
+    // filter change), keep showing the previous page's data while the new one
+    // loads instead of flashing a spinner. Removes the "loading" flicker that
+    // used to make sort toggles feel sluggish.
+    placeholderData: (prev) => prev,
+  });
 
-  const [data, setData] = useState<T | null>(() => (url ? (cache.get(url) as T | undefined ?? null) : null));
-  const [loading, setLoading] = useState<boolean>(() => (url ? !cache.has(url) : false));
-  const [error, setError] = useState<string | null>(null);
-  const [reloadCounter, setReloadCounter] = useState(0);
-  const refetch = useCallback(() => setReloadCounter((n) => n + 1), []);
-
-  // Keep a live ref to setData so we can write into the module cache from
-  // the reload path without re-subscribing.
-  const lastUrl = useRef<string | null>(null);
-
-  // Data-fetch effect: synchronous setState here is the standard SWR-style
-  // pattern (loading flags + async result), not cascading derived state.
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    let alive = true;
-    if (!url) {
-      setLoading(false);
-      setError(null);
-      return;
-    }
-    // If we already have cached data, show it immediately and skip the
-    // loading spinner; the revalidate happens in the background.
-    const cached = cache.get(url) as T | undefined;
-    if (cached !== undefined) {
-      setData(cached);
-      setError(null);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-    lastUrl.current = url;
-
-    fetchJson(url)
-      .then((d) => {
-        if (!alive) return;
-        cache.set(url, d);
-        setData(d as T);
-        setError(null);
-      })
-      .catch((e) => {
-        if (!alive) return;
-        setError(e instanceof Error ? e.message : "Failed to load");
-      })
-      .finally(() => {
-        if (alive) setLoading(false);
-      });
-
-    return () => {
-      alive = false;
-    };
-    // url + channelTick cover remounts, scoped invalidations, and reloads.
-    // deps is the caller's extra dependency list (e.g. sort/filter state).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, channelTick, reloadCounter, ...deps]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  return { data, loading, error, refetch };
+  return {
+    data: query.data ?? null,
+    // `isPending` is true only when there's no cached data yet; once a fetch
+    // has resolved, subsequent refetches/re-mounts use `isFetching` instead
+    // (which we deliberately don't surface as `loading`).
+    loading: query.isPending,
+    error: query.error instanceof Error ? query.error.message : query.error ? "Failed to load" : null,
+    refetch: () => {
+      void query.refetch();
+    },
+  };
 }
 
-/** Imperatively warm the cache (e.g. from a prefetch on hover). */
+/** Imperatively warm the cache (e.g. from a hover prefetch). */
 export function prefetchApi(url: string): void {
-  // Fire-and-forget; the result lands in `cache` on success.
-  void fetchJson(url).then((d) => cache.set(url, d)).catch(() => {});
+  // queryClient is retrieved lazily to keep this module client-only; callers
+  // run it inside event handlers where the provider is guaranteed mounted.
+  void prefetchApiImpl(url);
 }
 
-/** Drop a cached entry (e.g. after a confirmed delete where refetching would
- *  just re-show stale data briefly). Safe to call for an uncached URL. */
+// Implemented below as a tiny client bridge so prefetchApi has no hook import.
+async function prefetchApiImpl(url: string): Promise<void> {
+  const qc = getQueryClient();
+  if (!qc) return;
+  await qc.prefetchQuery({
+    queryKey: [channelOf(url), url],
+    queryFn: () => fetchJson(url),
+  });
+}
+
+/** Drop a cached entry (e.g. after a delete before the refetch lands). */
 export function invalidateCacheEntry(url: string): void {
-  cache.delete(url);
+  const qc = getQueryClient();
+  if (!qc) return;
+  void qc.removeQueries({ queryKey: [channelOf(url), url] });
+}
+
+// --- QueryClient bridge -------------------------------------------------
+// `useMutate` reads the client via the hook (it runs inside React). The
+// module-level helpers (prefetchApi / invalidateCacheEntry) reach for it
+// through this accessor, which is set by <Providers /> on mount.
+let _queryClient: import("@tanstack/react-query").QueryClient | null = null;
+export function _registerQueryClient(qc: import("@tanstack/react-query").QueryClient) {
+  _queryClient = qc;
+}
+function getQueryClient() {
+  return _queryClient;
 }
 
 /**
  * POST/PATCH/DELETE helper. Returns { ok, data, error }.
  *
- * On success it bumps only the channel(s) that own the mutation URL (derived
- * via `channelsForUrl`), so a reaction no longer refetches the entire screen.
- * Pass `{ invalidate: ["feed","synergy"] }` to broaden scope, or
- * `{ invalidate: ["*"] }` for a global refetch (e.g. login/logout).
+ * On success it invalidates only the channel(s) that own the mutation URL
+ * (derived via `channelsForUrl`), so a reaction refetches only feed — not
+ * synergy, idealab, articles, etc. Pass `{ invalidate: ["feed","synergy"] }`
+ * to broaden scope, or `{ invalidate: ["*"] }` for a global refetch.
  */
 export function useMutate() {
-  const invalidate = usePreship((s) => s.invalidate);
-  const bump = usePreship((s) => s.bump);
+  const queryClient = useQueryClient();
 
-  return useCallback(
-    async <T = unknown>(
-      url: string,
-      opts: {
-        method?: "POST" | "PATCH" | "DELETE";
-        body?: unknown;
-        /** Override which channels get dirtied. Defaults to the URL's channels. */
-        invalidate?: import("./preship-store").InvalidationChannel[];
-        /** Legacy behavior: wildcard bump (refetch everything). Default false. */
-        bumpAll?: boolean;
-      } = {}
-    ): Promise<{ ok: boolean; data?: T; error?: string }> => {
-      try {
-        const r = await fetch(url, {
-          method: opts.method ?? "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: opts.body ? JSON.stringify(opts.body) : undefined,
-        });
-        const json = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          const msg = (json as { error?: string }).error ?? `HTTP ${r.status}`;
-          toast.error(msg);
-          return { ok: false, error: msg };
-        }
-        // Scoped invalidation: only endpoints that plausibly changed refetch.
-        if (opts.bumpAll) {
-          bump();
-        } else {
-          invalidate(opts.invalidate ?? channelsForUrl(url));
-        }
-        return { ok: true, data: json as T };
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Network error";
+  return async <T = unknown>(
+    url: string,
+    opts: {
+      method?: "POST" | "PATCH" | "DELETE";
+      body?: unknown;
+      /** Override which channels get dirtied. Defaults to the URL's channels. */
+      invalidate?: InvalidationChannel[];
+      /** Legacy: wildcard bump (refetch everything). Default false. */
+      bumpAll?: boolean;
+    } = {}
+  ): Promise<{ ok: boolean; data?: T; error?: string }> => {
+    try {
+      const r = await fetch(url, {
+        method: opts.method ?? "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+      });
+      const json = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = (json as { error?: string }).error ?? `HTTP ${r.status}`;
         toast.error(msg);
         return { ok: false, error: msg };
       }
-    },
-    [invalidate, bump]
-  );
+      // Scoped invalidation: invalidate the channel prefix(es) so only queries
+      // in those families refetch. Each channel is a query-key root.
+      const channels: InvalidationChannel[] = opts.bumpAll
+        ? ["*"]
+        : (opts.invalidate ?? channelsForUrl(url));
+      if (channels.includes("*")) {
+        void queryClient.invalidateQueries();
+      } else {
+        // Invalidate every channel in one call; RQ batches the refetches.
+        void Promise.all(
+          channels.map((c) => queryClient.invalidateQueries({ queryKey: [c] }))
+        );
+      }
+      return { ok: true, data: json as T };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Network error";
+      toast.error(msg);
+      return { ok: false, error: msg };
+    }
+  };
 }

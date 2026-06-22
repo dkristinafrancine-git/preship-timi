@@ -17,15 +17,15 @@ interface DeepLink {
 }
 
 /**
- * Invalidation channels. Each channel is a monotonic counter; `useApi(url)`
- * subscribes to the channel(s) that own `url` (see `channelForUrl`) so that a
+ * Invalidation channels. `useMutate(url)` derives the channel(s) that own
+ * `url` and invalidates the matching React Query query-key prefix, so a
  * mutation only refetches the endpoints it actually affected — not every
- * `useApi` consumer on screen.
+ * query on screen.
  *
- * The special channel `"*"` is a wildcard: bumping it refetches everything
- * (used only for global state changes like login/logout). Adding new channels
- * here is optional — unknown URLs fall back to their own per-URL channel, so
- * mutations are scoped even for endpoints not listed below.
+ * The special channel `"*"` is a wildcard: invalidating it refetches every
+ * active query (used for global state changes like login/logout). URLs that
+ * don't match any family fall back to the "api" prefix, so they're still
+ * isolated from the named channels.
  */
 export type InvalidationChannel =
   | "*"
@@ -62,13 +62,9 @@ interface PreshipStore {
   setView: (v: PreshipView) => void;
   me: Founder | null;
   setMe: (m: Founder | null) => void;
-  /** Per-channel monotonic counters. `useApi` subscribes to the ones that
-   *  match its URL; a mutation bumps only the affected channels. */
-  invalidations: Record<string, number>;
-  /** Bump one or more channels (scoped refetch). Pass ["*"] to refetch all. */
-  invalidate: (channels: InvalidationChannel[]) => void;
-  /** Legacy alias kept for callers that still invoke `bump()` directly.
-   *  Equivalent to a wildcard invalidate. Prefer `invalidate([...])`. */
+  /** Invalidate every active query. Backed by React Query once the client is
+   *  registered via `_registerInvalidator` (see <Providers />). Used by
+   *  auth flows (login/logout/signup/onboarding) for a global refetch. */
   bump: () => void;
   // mobile sidebar open
   mobileNavOpen: boolean;
@@ -79,46 +75,22 @@ interface PreshipStore {
   clearDeepLink: () => void;
 }
 
+// Registered by <Providers /> so the store can trigger a React Query global
+// invalidation without importing the query client directly (avoids a circular
+// module dependency: use-api imports from preship-store).
+let _invalidateAll: (() => void) | null = null;
+export function _registerInvalidator(fn: () => void) {
+  _invalidateAll = fn;
+}
+
 export const usePreship = create<PreshipStore>((set) => ({
   view: "war-room",
   setView: (v) => set({ view: v, mobileNavOpen: false }),
   me: null,
   setMe: (m) => set({ me: m }),
-  invalidations: {},
-  invalidate: (channels) =>
-    set((s) => {
-      const next = { ...s.invalidations };
-      // Wildcard bumps every known channel so every consumer refetches.
-      const targets = channels.includes("*")
-        ? (Object.keys(next).length
-            ? Object.keys(next)
-            : ([
-                "feed",
-                "synergy",
-                "idealab",
-                "projects",
-                "articles",
-                "me",
-                "notifications",
-                "follows",
-                "founders",
-                "search",
-              ] as string[]))
-        : channels;
-      for (const c of targets) next[c] = (next[c] ?? 0) + 1;
-      return { invalidations: next };
-    }),
-  // Legacy: callers that previously did `bump()` get a wildcard refetch so
-  // behavior is unchanged for code we haven't migrated to scoped channels.
-  bump: () => set((s) => {
-    const next = { ...s.invalidations };
-    const all = [
-      "feed", "synergy", "idealab", "projects", "articles",
-      "me", "notifications", "follows", "founders", "search",
-    ];
-    for (const c of all) next[c] = (next[c] ?? 0) + 1;
-    return { invalidations: next };
-  }),
+  bump: () => {
+    if (_invalidateAll) _invalidateAll();
+  },
   mobileNavOpen: false,
   setMobileNavOpen: (v) => set({ mobileNavOpen: v }),
   deepLink: null,
