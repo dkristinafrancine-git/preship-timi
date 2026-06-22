@@ -8,7 +8,15 @@ import { db } from "@/lib/db";
  * NOTE: `email` is intentionally excluded — this endpoint is public and must
  * not leak founder email addresses. If a future caller needs emails, gate it
  * behind getCurrentUser().
+ *
+ * Fully public + quasi-static, so we export `revalidate` to engage Vercel's
+ * Data Cache / edge. The `Cache-Control` header alone is NOT enough for route
+ * handlers in Next 15+ — without `revalidate`, Next.js marks the route dynamic
+ * and Vercel runs the function every request. With it, the response is served
+ * from the edge after the first hit.
  */
+export const revalidate = 60; // seconds
+
 export async function GET() {
   try {
     const founders = await db.user.findMany({

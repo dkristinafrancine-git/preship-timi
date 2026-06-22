@@ -5,7 +5,14 @@ import { db } from "@/lib/db";
  * GET /api/founders/top
  * Returns the top 5 founders by post count, falling back to creation order
  * for ties / users without posts. Used by the War Room right rail leaderboard.
+ *
+ * Fully public + slow-moving (post counts change infrequently), so we export
+ * `revalidate` to engage Vercel's Data Cache. Without it the Cache-Control
+ * header is ignored for dynamic route handlers and Vercel re-runs the
+ * aggregate sort across all users on every request.
  */
+export const revalidate = 60; // seconds
+
 export async function GET() {
   try {
     const founders = await db.user.findMany({

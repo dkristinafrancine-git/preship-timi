@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 
@@ -43,6 +44,31 @@ const ARTICLE_LIST_SELECT = {
   _count: { select: { claps: true } },
 } satisfies Prisma.ArticleSelect;
 
+/**
+ * Cached published-articles query. This is the expensive part — a scan + author
+ * join over up to 50 rows — and it's fully public (no per-user data), so we
+ * cache it in Next.js's Data Cache (which Vercel serves from the edge). The
+ * key includes `authorId` so an author-filtered list gets its own entry.
+ *
+ * Per-user state (`myClap`) is NOT included here — it's computed fresh on each
+ * request from a separate indexed lookup, so the cache never serves one user's
+ * clap state to another. Drafts are never cached (private per user).
+ */
+const getPublishedArticles = unstable_cache(
+  async (authorId: string | undefined) => {
+    const where: Prisma.ArticleWhereInput = { published: true };
+    if (authorId) where.authorId = authorId;
+    return db.article.findMany({
+      where,
+      select: ARTICLE_LIST_SELECT,
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+  },
+  ["articles", "published-list"], // cache key tags
+  { revalidate: 30, tags: ["articles"] } // 30s TTL; useMutate revalidates on writes
+);
+
 // GET /api/articles — list published articles, newest first.
 // Query params:
 //   ?authorId=<id>  filter by author
@@ -57,27 +83,23 @@ export async function GET(req: NextRequest) {
     // single batched query instead of N per-row membership lookups.
     const user = await getCurrentUser();
 
-    let where: Prisma.ArticleWhereInput;
+    // Drafts branch: private, never cached, skips the cached query entirely.
     if (drafts) {
-      // Return only the current user's unpublished drafts
       if (!user) {
         return NextResponse.json({ error: "No current user" }, { status: 401 });
       }
-      where = { published: false, authorId: user.id };
-    } else {
-      where = { published: true };
-      if (authorId) where.authorId = authorId;
+      const draftArticles = await db.article.findMany({
+        where: { published: false, authorId: user.id },
+        select: ARTICLE_LIST_SELECT,
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      });
+      return NextResponse.json({ articles: draftArticles });
     }
 
-    // Fetch the page (bounded) and the viewer's clapped article ids in
-    // parallel — the clap set is filtered to just the fetched ids, so it's
-    // one indexed pass, not a per-row probe.
-    const articles = await db.article.findMany({
-      where,
-      select: ARTICLE_LIST_SELECT,
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
+    // Published branch: the heavy findMany is served from the Data Cache
+    // (edge on Vercel); only the per-user myClap probe hits the DB per request.
+    const articles = await getPublishedArticles(authorId);
 
     const articleIds = articles.map((a) => a.id);
     const myClappedIds = user && articleIds.length > 0
@@ -98,10 +120,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { articles: withMine },
-      // Public published list is quasi-static; drafts are private per-user.
-      drafts
-        ? undefined
-        : { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300" } }
+      { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300" } }
     );
   } catch (err) {
     console.error("[GET /api/articles]", err);
