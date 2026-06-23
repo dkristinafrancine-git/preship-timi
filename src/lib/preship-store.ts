@@ -38,7 +38,8 @@ export type InvalidationChannel =
   | "notifications"
   | "follows"
   | "founders"
-  | "search";
+  | "search"
+  | "admin";
 
 /** Map a request URL to the channel(s) a mutation against it should dirty. */
 export function channelsForUrl(url: string): InvalidationChannel[] {
@@ -54,6 +55,7 @@ export function channelsForUrl(url: string): InvalidationChannel[] {
   if (path.startsWith("/api/me")) return ["me"];
   if (path.startsWith("/api/founders")) return ["founders"];
   if (path.startsWith("/api/search")) return ["search"];
+  if (path.startsWith("/api/admin")) return ["admin"];
   return [];
 }
 

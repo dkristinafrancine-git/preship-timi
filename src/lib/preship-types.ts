@@ -16,6 +16,9 @@ export type Founder = {
   isCurrent: boolean;
   onboarded?: boolean;
   isFoundingMember?: boolean;
+  // Platform role (member | superadmin). Present on /api/me so the client can
+  // show the /admin entry point only to superadmins.
+  role?: string;
 };
 
 export type Project = {
@@ -191,4 +194,79 @@ export type Article = {
     Partial<Pick<Founder, "bio" | "location" | "skills">>;
   _count: { claps: number };
   myClap?: boolean;
+};
+
+// ---- Admin console types ----
+
+export type FeedbackStatus = "new" | "open" | "resolved" | "archived";
+
+export type Feedback = {
+  id: string;
+  userId: string | null;
+  kind: "feedback" | "support";
+  category: string | null;
+  subject: string | null;
+  message: string;
+  status: FeedbackStatus;
+  createdAt: string;
+  updatedAt: string;
+  user?: Pick<Founder, "id" | "name" | "handle" | "avatarUrl"> | null;
+};
+
+export type IpInquiryKind = "trademark" | "copyright" | "patent";
+export type IpInquiryStatus = "new" | "in-review" | "responded" | "closed";
+
+export type IpInquiry = {
+  id: string;
+  userId: string | null;
+  email: string;
+  kind: IpInquiryKind;
+  protecting: string;
+  stage: string;
+  jurisdiction: string;
+  projectName: string | null;
+  budget: string | null;
+  details: string | null;
+  status: IpInquiryStatus;
+  createdAt: string;
+  updatedAt: string;
+  user?: Pick<Founder, "id" | "name" | "handle" | "avatarUrl"> | null;
+};
+
+/** GET /api/admin/stats response. */
+export type AdminStats = {
+  users: { total: number; active7d: number; active30d: number; foundingMembers: number };
+  projects: { total: number; byStage: { stage: string; count: number }[] };
+  content: { posts: number; articles: number };
+  audio: { recordedMinutes: number; liveMinutes: number; liveParticipants: number };
+  sessions: { total: number; ended: number };
+  inbox: { openFeedback: number; openIpInquiries: number };
+};
+
+/** GET /api/admin/users row. Includes email (admin console only — the AGENT.md
+ *  rule excluding email applies to PUBLIC endpoints). lastSeenAt may be null
+ *  for users who've never had a session-bearing request since the column
+ *  shipped; the client derives active/passive against the chosen window. */
+export type AdminUser = {
+  id: string;
+  name: string;
+  handle: string;
+  email: string;
+  title: string;
+  avatarUrl: string | null;
+  role: string;
+  isFoundingMember: boolean;
+  onboarded: boolean;
+  lastSeenAt: string | null;
+  createdAt: string;
+};
+
+/** GET /api/admin/idealab/usage row — per-session live-audio breakdown. */
+export type IdeaLabUsageBreakdown = {
+  sessionId: string;
+  title: string;
+  scheduledAt: string;
+  status: string;
+  totalSeconds: number;
+  participantSpans: number;
 };

@@ -40,6 +40,8 @@ model User {
   bountiesPublic Boolean @default(true) // show gathered bounties on shareable profile
   isCurrent   Boolean  @default(false) // the "logged in" founder in this demo
   isFoundingMember Boolean @default(false) // first-100-cohort badge; revocable per-user
+  role        String   @default("member") // member | superadmin — gates the /admin console
+  lastSeenAt  DateTime? // stamped on session-bearing requests; drives active/passive stats
   // preferences (Settings page)
   prefTheme          String   @default("system") // system | light | dark
   prefNotifications  Boolean  @default(true)
@@ -65,9 +67,14 @@ model User {
   articleClaps       ArticleClap[]
   invitesSent        Invite[]           @relation("InviteSender")
   invitesAccepted    Invite[]           @relation("InviteAcceptor")
+  feedback           Feedback[]
+  ipInquiries        IpInquiry[]
+  ideaLabUsage       IdeaLabUsage[]
 
   @@index([isCurrent])
   @@index([isFoundingMember])
+  @@index([role])
+  @@index([lastSeenAt])
   @@index([handle])
   @@index([email])
 }
@@ -252,6 +259,7 @@ model IdeaLabSession {
 
   signups   IdeaLabSignup[]
   interests IdeaLabInterest[]
+  usage     IdeaLabUsage[]
 
   @@index([hostId, scheduledAt])
   @@index([status])
@@ -342,5 +350,80 @@ model ArticleClap {
 
   @@index([articleId])
   @@index([userId])
+}
+
+// ---- Admin console: persisted feedback/support + IP inquiries ----
+//
+// Historically /api/feedback and /api/ip-support were email-only — nothing was
+// stored, so the superadmin had no inbox. These two models persist the same
+// intake so the /admin console can list + triage them. The routes STILL email
+// (sendAdminEmail) in addition to writing a row, so existing behavior is
+// preserved; persistence is additive.
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kind      String   // feedback | support
+  category  String?
+  subject   String?
+  message   String
+  status    String   @default("new") // new | open | resolved | archived
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([kind, createdAt])
+  @@index([userId])
+}
+
+model IpInquiry {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email        String   // reply-to (always present; anonymous submissions allowed)
+  kind         String   // trademark | copyright | patent
+  protecting   String
+  stage        String
+  jurisdiction String
+  projectName  String?
+  budget       String?
+  details      String?
+  status       String   @default("new") // new | in-review | responded | closed
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([kind, createdAt])
+  @@index([userId])
+}
+
+// ---- Admin console: IdeaLab live-audio participant-minutes ----
+//
+// Populated by POST /api/webhooks/livekit from LiveKit server events. A row is
+// created on `participant_joined` (leftAt null) and closed on
+// `participant_left` (leftAt + denormalized durationSecs set). `room_finished`
+// sweeps any still-open rows for the room.
+//
+// The LiveKit room name encodes the session: "idealab-<sessionId>", and the
+// participant identity is the User.id (see the livekit-token route). Anonymous
+// or livekit-only identities (no matching User) store userId null but keep the
+// participantId for dedup. participantId + sessionId together identify a
+// presence span; rows are upserted idempotently against webhook retries.
+
+model IdeaLabUsage {
+  id            String   @id @default(cuid())
+  sessionId     String
+  session       IdeaLabSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  participantId String   // LiveKit participant identity (= User.id when known)
+  joinedAt      DateTime
+  leftAt        DateTime?
+  durationSecs  Int?     // denormalized on leave for fast SUM without subtraction at read time
+
+  @@index([sessionId])
+  @@index([joinedAt])
+  @@index([participantId, sessionId])
 }
 

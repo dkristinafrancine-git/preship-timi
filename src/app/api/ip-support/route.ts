@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 import { sendAdminEmail } from "@/lib/email";
 
@@ -10,8 +11,10 @@ import { sendAdminEmail } from "@/lib/email";
  * request IP help. When a session exists, the founder's identity is attached
  * automatically; otherwise the submitted email is used as the reply-to.
  *
- * Nothing is persisted — the intake is emailed to the admin inbox via Resend
- * (dev-fallback log when RESEND_API_KEY is unset), mirroring the invite flow.
+ * The intake is PERSISTED to the IpInquiry table (so the /admin console has a
+ * triageable inbox) AND emailed to the admin via Resend (dev-fallback log when
+ * RESEND_API_KEY is unset). DB write first, then email I/O — see AGENT.md
+ * pooling rules.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -46,6 +49,22 @@ export async function POST(req: NextRequest) {
     const projectName = typeof b.projectName === "string" ? b.projectName.trim() : "";
     const budget = typeof b.budget === "string" ? b.budget.trim() : "";
     const details = typeof b.details === "string" ? b.details.trim() : "";
+
+    // Persist first (the durable inbox record), then email. userId is null for
+    // anonymous submissions; email is always the reply-to.
+    await db.ipInquiry.create({
+      data: {
+        userId: user?.id ?? null,
+        email: replyTo,
+        kind,
+        protecting: protecting.trim(),
+        stage,
+        jurisdiction: jurisdiction.trim(),
+        projectName: projectName || null,
+        budget: budget || null,
+        details: details || null,
+      },
+    });
 
     await sendAdminEmail({
       subject: `IP support · ${kind} — ${protecting.trim().slice(0, 60)}`,

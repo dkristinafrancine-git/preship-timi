@@ -21,6 +21,12 @@ import { getToken } from "next-auth/jwt";
  * to /login?callbackUrl=<original-path>. Authenticated users hitting /login or
  * /signup are bounced to /app.
  *
+ * The platform admin console (`/admin` + `/api/admin/*`) is NOT in the public
+ * lists above, so the middleware forces a session here. Role authorization
+ * (superadmin) is enforced server-side in each handler via `requireAdmin()`
+ * and in the /admin layout — the middleware only guarantees *a* session, not
+ * *the right* session.
+ *
  * `NEXTAUTH_SECRET` (already required by NextAuth in production) decrypts the
  * JWT, so no extra env is needed.
  */
@@ -52,6 +58,11 @@ const PUBLIC_PREFIXES = [
   // founder's identity only when a session exists; otherwise an email is
   // required and used as the reply-to.
   "/api/ip-support",
+  // LiveKit server webhook — receives room/participant events. LiveKit has no
+  // NextAuth session, so the route is public; auth is the webhook signature,
+  // verified inside the handler with LIVEKIT_API_KEY/SECRET. See
+  // /api/webhooks/livekit.
+  "/api/webhooks/livekit",
 ];
 
 function isPublic(pathname: string): boolean {

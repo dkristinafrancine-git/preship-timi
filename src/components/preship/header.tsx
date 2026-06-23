@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { usePreship } from "@/lib/preship-store";
 import { Button } from "@/components/ui/button";
-import { Menu, HelpCircle } from "lucide-react";
+import { Menu, HelpCircle, ShieldCheck } from "lucide-react";
 import { useApi } from "@/lib/use-api";
 import type { TickerEntry } from "@/app/api/ticker/route";
 import { useMemo } from "react";
@@ -17,6 +17,7 @@ import { NotificationBell } from "./notifications/notification-bell";
 
 export function Header() {
   const setMobileNavOpen = usePreship((s) => s.setMobileNavOpen);
+  const me = usePreship((s) => s.me);
   const router = useRouter();
   const { status } = useSession();
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -46,6 +47,18 @@ export function Header() {
         <Logo />
 
         <div className="ml-auto flex items-center gap-2.5">
+          {/* Platform console entry point — superadmins only. me is null on the
+              public landing page, so this self-hides for visitors. */}
+          {me?.role === "superadmin" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/admin")}
+              className="tactile-flat hidden font-mono text-xs uppercase tracking-widest text-[#0E1909]/65 hover:bg-[#0E1909]/5 hover:text-[#0E1909] md:inline-flex"
+            >
+              <ShieldCheck size={15} /> Admin
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"

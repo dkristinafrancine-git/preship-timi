@@ -2,6 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
+import { ensureAdminRole, ADMIN_ROLE, MEMBER_ROLE } from "@/lib/admin";
 
 /**
  * Hash a plaintext password using scrypt with a random 16-byte salt.
@@ -101,9 +102,14 @@ export const authOptions: NextAuthOptions = {
           avatarUrl: string | null;
         };
         token.id = u.id;
+        token.email = u.email;
         token.handle = u.handle;
         token.title = u.title;
         token.avatarUrl = u.avatarUrl;
+        // Bootstrap the superadmin role from the ADMIN_EMAILS allowlist on
+        // sign-in. The role then rides on the token for the session lifetime
+        // so handlers/middleware/the client can check it without a DB hit.
+        token.role = await ensureAdminRole({ userId: u.id, email: u.email });
       }
       return token;
     },
@@ -113,6 +119,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as Record<string, unknown>).handle = token.handle;
         (session.user as Record<string, unknown>).title = token.title;
         (session.user as Record<string, unknown>).avatarUrl = token.avatarUrl;
+        (session.user as Record<string, unknown>).role =
+          (token.role as string | undefined) ?? MEMBER_ROLE;
       }
       return session;
     },
