@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { usePreship } from "@/lib/preship-store";
 import { useApi } from "@/lib/use-api";
 import { TerminalHeader, StatusPill, StageChip, Tag, FoundingBadge } from "./badges";
@@ -10,25 +11,59 @@ import type { Founder, Project, SynergyRequest, IdeaLabSession, FeedPost } from 
 import { fmtRelative } from "@/lib/preship";
 import { TrendingUp, Flame, Users, Calendar, ArrowRight } from "lucide-react";
 
-export function RightRail() {
+/**
+ * Right navigation rail.
+ *
+ * `mode="app"` (default) renders the rail matching the current in-app view;
+ * clicks navigate via the preship store.
+ *
+ * `mode="landing"` renders only the war-room rail (leaderboard + trending) in
+ * read-only form — clickable items route to /login instead of navigating,
+ * and /api/me is skipped (no session). Also drops the header offset since the
+ * landing page has no sticky header.
+ */
+export function RightRail({ mode = "app" }: { mode?: "app" | "landing" }) {
+  const isLanding = mode === "landing";
   const view = usePreship((s) => s.view);
+  // The landing page has no sticky header, so the rail sticks to the very top
+  // with a small breathing margin rather than offsetting under a 96px header.
+  const stickyCls = isLanding
+    ? "lg:top-6 lg:h-[calc(100vh-1.5rem)]"
+    : "lg:top-[96px] lg:h-[calc(100vh-96px)]";
   return (
-    <aside className="hidden w-[320px] shrink-0 space-y-5 lg:sticky lg:top-[96px] lg:h-[calc(100vh-96px)] lg:block lg:overflow-y-auto lg:pb-8 scroll-thin">
-      {view === "war-room" && <WarRoomRail />}
-      {view === "synergy" && <SynergyRail />}
-      {view === "idealab" && <IdeaLabRail />}
-      {view === "projects" && <ProjectsRail />}
-      {view === "profile" && <ProfileRail />}
-      {(view === "search" || view === "brain-dump" || view === "settings" || view === "docs") && <GenericRail />}
+    <aside className={cn(
+      "hidden w-[320px] shrink-0 space-y-5 lg:sticky lg:block lg:overflow-y-auto lg:pb-8 scroll-thin",
+      stickyCls
+    )}>
+      {(isLanding || view === "war-room") && <WarRoomRail mode={mode} />}
+      {!isLanding && view === "synergy" && <SynergyRail />}
+      {!isLanding && view === "idealab" && <IdeaLabRail />}
+      {!isLanding && view === "projects" && <ProjectsRail />}
+      {!isLanding && view === "profile" && <ProfileRail />}
+      {!isLanding && (view === "search" || view === "brain-dump" || view === "settings" || view === "docs") && <GenericRail />}
     </aside>
   );
 }
 
-function WarRoomRail() {
-  const { data: trending } = useApi<{ posts: FeedPost[] }>("/api/feed?sort=trending");
-  const { data: me } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
-  const { data: topData } = useApi<{ founders: Founder[] }>("/api/founders/top");
+/** Click handler shared across the rail. In-app: navigate(deepLink). Landing:
+ *  route to /login (ignores any deep-link arg, since the destination is auth'd). */
+function useRailNav(mode: "app" | "landing") {
   const navigate = usePreship((s) => s.navigate);
+  const router = useRouter();
+  return mode === "landing"
+    ? (_arg?: unknown) => router.push("/login?callbackUrl=/app")
+    : navigate;
+}
+
+function WarRoomRail({ mode = "app" }: { mode?: "app" | "landing" }) {
+  const isLanding = mode === "landing";
+  const { data: trending } = useApi<{ posts: FeedPost[] }>("/api/feed?sort=trending");
+  // /api/me 401s for anonymous visitors — skip it on the landing page.
+  const { data: me } = useApi<{ user: Founder; projects: Project[] }>(
+    isLanding ? null : "/api/me"
+  );
+  const { data: topData } = useApi<{ founders: Founder[] }>("/api/founders/top");
+  const navigate = useRailNav(mode);
   const trendingTop = trending?.posts?.slice(0, 4) ?? [];
   const topFounders = topData?.founders ?? [];
 

@@ -1,11 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { usePreship, type PreshipView } from "@/lib/preship-store";
-import { FounderAvatar } from "./avatars";
-import { FoundingBadge } from "./badges";
-import { useApi } from "@/lib/use-api";
-import type { Founder, Project } from "@/lib/preship-types";
+import { IpSupportDialog } from "./ip-support-dialog";
 import {
   Radio,
   Zap,
@@ -16,6 +15,7 @@ import {
   Settings,
   User,
   BookText,
+  Scale,
   X,
 } from "lucide-react";
 
@@ -34,13 +34,32 @@ const SECONDARY: { id: PreshipView; label: string; code: string; icon: typeof Ra
   { id: "settings", label: "Settings", code: "ST", icon: Settings },
 ];
 
-export function Sidebar() {
+/**
+ * Left navigation rail.
+ *
+ * `mode="app"` (default) is the in-app workspace: nav items switch the active
+ * view via `setView`, and the current-founder card is shown at the bottom.
+ *
+ * `mode="landing"` is used on the public landing page: there's no logged-in
+ * founder, no founder card, and every nav item routes to /login instead of
+ * switching views (the destination is behind auth).
+ */
+export function Sidebar({ mode = "app" }: { mode?: "app" | "landing" }) {
+  const isLanding = mode === "landing";
   const view = usePreship((s) => s.view);
   const setView = usePreship((s) => s.setView);
-  const mobileNavOpen = usePreship((s) => s.mobileNavOpen);
   const setMobileNavOpen = usePreship((s) => s.setMobileNavOpen);
+  const mobileNavOpen = usePreship((s) => s.mobileNavOpen);
+  const router = useRouter();
+  const [ipOpen, setIpOpen] = useState(false);
 
-  const { data: meData } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
+  const goLogin = () => {
+    router.push("/login?callbackUrl=/app");
+    setMobileNavOpen(false);
+  };
+
+  // Shared click handler — in-app switches view; on landing, route to login.
+  const onNav = (id: PreshipView) => (isLanding ? goLogin() : setView(id));
 
   return (
     <>
@@ -83,7 +102,7 @@ export function Sidebar() {
               return (
                 <li key={item.id}>
                   <button
-                    onClick={() => setView(item.id)}
+                    onClick={() => onNav(item.id)}
                     className={cn(
                       "tactile-flat group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left",
                       active
@@ -91,7 +110,7 @@ export function Sidebar() {
                         : "text-[#0E1909] hover:bg-[#f4ffd6]"
                     )}
                   >
-                    <Icon size={17} className={cn("transition-transform duration-150", active ? "text-[#DAFF01]" : "text-[#0E1909]/70 group-hover:scale-110")} />
+                    <Icon size={24} className={cn("transition-transform duration-150", active ? "text-[#DAFF01]" : "text-[#0E1909]/70 group-hover:scale-110")} />
                     <span className="flex-1 font-display text-[15px] font-medium">{item.label}</span>
                     <span
                       className={cn(
@@ -117,7 +136,7 @@ export function Sidebar() {
               return (
                 <li key={item.id}>
                   <button
-                    onClick={() => setView(item.id)}
+                    onClick={() => onNav(item.id)}
                     className={cn(
                       "tactile-flat group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition",
                       active
@@ -125,7 +144,7 @@ export function Sidebar() {
                         : "text-[#0E1909]/70 hover:bg-[#f4ffd6] hover:text-[#0E1909]"
                     )}
                   >
-                    <Icon size={17} className={active ? "text-[#DAFF01]" : "text-[#0E1909]/50 transition-transform duration-150 group-hover:scale-110"} />
+                    <Icon size={24} className={active ? "text-[#DAFF01]" : "text-[#0E1909]/50 transition-transform duration-150 group-hover:scale-110"} />
                     <span className="flex-1 font-display text-[15px] font-medium">{item.label}</span>
                     <span className={cn("font-mono text-xs uppercase tracking-widest", active ? "text-[#DAFF01]/60" : "text-[#0E1909]/30")}>
                       {item.code}
@@ -137,34 +156,36 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        {/* current founder card — clickable to open profile */}
-        {meData?.user && (
-          <button
-            onClick={() => setView("profile")}
-            className="m-4 block rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3.5 text-left transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]"
-          >
-            <div className="flex items-center gap-3">
-              <FounderAvatar founder={meData.user} size={40} />
-              <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1 truncate font-display text-[15px] font-semibold text-[#0E1909]">
-                  <span className="truncate">{meData.user.name}</span>
-                  <FoundingBadge show={meData.user.isFoundingMember} />
-                </p>
-                <p className="truncate font-mono text-xs text-[#0E1909]/55">
-                  @{meData.user.handle}
-                </p>
-              </div>
+        {/* IP support CTA — shown on both the authed app and the landing replica.
+            Opens the Trademark / Copyright / Patent intake form. */}
+        <button
+          onClick={() => setIpOpen(true)}
+          className="m-4 block rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3.5 text-left transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]"
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#0E1909] text-[#DAFF01]">
+              <Scale size={18} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-[14px] font-semibold leading-tight text-[#0E1909]">
+                Trademark · Copyright · Patent
+              </p>
+              <p className="mt-1 font-mono text-[11px] leading-snug text-[#0E1909]/55">
+                Protect what you're building
+              </p>
             </div>
-            <div className="mt-2.5 flex items-center justify-between border-t border-[#0E1909]/10 pt-2.5">
-              <span className="font-mono text-xs uppercase tracking-widest text-[#0E1909]/50">
-                {meData.projects.length} project{meData.projects.length === 1 ? "" : "s"}
-              </span>
-              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]">
-                profile →
-              </span>
-            </div>
-          </button>
-        )}
+          </div>
+          <div className="mt-2.5 flex items-center justify-between border-t border-[#0E1909]/10 pt-2.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
+              ip support
+            </span>
+            <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]">
+              get help →
+            </span>
+          </div>
+        </button>
+
+        <IpSupportDialog open={ipOpen} onOpenChange={setIpOpen} />
       </aside>
     </>
   );

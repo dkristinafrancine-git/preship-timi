@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { FeedPost, Comment, Founder } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
 import { FounderAvatar, ProjectMark } from "../avatars";
-import { StageChip, Tag, FoundingBadge } from "../badges";
+import { StageCode, Tag, FoundingBadge } from "../badges";
 import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
 import { useMutate } from "@/lib/use-api";
@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePreship } from "@/lib/preship-store";
+import { useRouter } from "next/navigation";
 
 export function FeedPost({ post }: { post: FeedPost }) {
   const [showComments, setShowComments] = useState(false);
@@ -29,9 +30,16 @@ export function FeedPost({ post }: { post: FeedPost }) {
   const [savingEdit, setSavingEdit] = useState(false);
   const mutate = useMutate();
   const me = usePreship((s) => s.me);
+  const router = useRouter();
   const isAuthor = me?.id === post.authorId;
 
   const react = async (kind: "like" | "repost" | "handshake") => {
+    // Anonymous visitors (public landing page) get routed to login instead of
+    // firing a mutation they can't authenticate. Reactions need a session.
+    if (!me) {
+      router.push("/login?callbackUrl=/app");
+      return;
+    }
     await mutate(`/api/posts/${post.id}/react`, { method: "POST", body: { kind } });
   };
 
@@ -75,7 +83,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
               <p className="truncate font-display text-[13px] font-semibold leading-tight text-[#0E1909]" title={post.project.name}>
                 {post.project.name}
               </p>
-              <StageChip stage={post.project.alphaStage} className="mt-0.5 !px-1 !py-0" />
+              <StageCode stage={post.project.alphaStage} className="mt-0.5" />
             </div>
           </div>
         )}

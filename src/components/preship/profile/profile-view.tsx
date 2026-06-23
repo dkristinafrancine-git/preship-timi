@@ -97,7 +97,7 @@ export function ProfileView() {
   };
 
   const copyShareLink = () => {
-    const url = `${window.location.origin}/?founder=${meData?.user?.id ?? ""}`;
+    const url = `${window.location.origin}/f/${meData?.user?.handle ?? ""}`;
     navigator.clipboard?.writeText(url);
     toast.success("Shareable link copied →");
   };

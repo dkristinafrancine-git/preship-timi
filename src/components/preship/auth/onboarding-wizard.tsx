@@ -150,7 +150,7 @@ export function OnboardingWizard({ user }: { user: Founder }) {
       // bump the store so every useApi consumer refetches (incl. /api/me),
       // then head to the app (we're on /onboarding now, not an overlay).
       bump();
-      router.push("/");
+      router.push("/app");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Network error";
       toast.error(msg);

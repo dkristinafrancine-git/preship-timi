@@ -29,7 +29,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const search = useSearchParams();
   const bump = usePreship((s) => s.bump);
 
-  const callbackUrl = search.get("callbackUrl") || "/";
+  const callbackUrl = search.get("callbackUrl") || "/app";
   const inviteToken = search.get("invite");
 
   const [email, setEmail] = useState("");

@@ -8,6 +8,7 @@ import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 import { RightRail } from "./right-rail";
 import { Footer } from "./footer";
+import { FeedbackWidget } from "./feedback-widget";
 import { WarRoomView } from "./war-room/war-room-view";
 import { SynergyView } from "./synergy/synergy-view";
 import { IdeaLabView } from "./idealab/idealab-view";
@@ -39,7 +40,9 @@ export function PreshipApp() {
     }
   }, [meData, router]);
 
-  // on first mount, honor a ?founder=<id> shareable link by opening the profile
+  // Legacy deep-link: /app?founder=<id> opens that founder's profile. Shareable
+  // profile links now use the clean /f/<handle> route; this keeps old
+  // ?founder=<id> links (e.g. forwarded from / by middleware) working.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -74,6 +77,10 @@ export function PreshipApp() {
       </main>
 
       <Footer />
+
+      {/* Floating Feedback / Support button — only renders for a logged-in
+          founder (self-hides when there's no `me`). */}
+      <FeedbackWidget />
     </div>
   );
 }

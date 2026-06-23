@@ -27,7 +27,7 @@ export function Header() {
     if (status === "authenticated") {
       setInviteOpen(true);
     } else {
-      router.push("/login?callbackUrl=/");
+      router.push("/login?callbackUrl=/app");
     }
   }
 

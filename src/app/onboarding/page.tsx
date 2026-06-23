@@ -30,7 +30,7 @@ export default function OnboardingPage() {
   // Already onboarded → bounce to the app.
   useEffect(() => {
     if (user && (user.onboarded || user.title !== "")) {
-      router.replace("/");
+      router.replace("/app");
     }
   }, [user, router]);
 

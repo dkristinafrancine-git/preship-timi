@@ -95,6 +95,29 @@ export function StageChip({
   );
 }
 
+/** Code-only stage chip — just the abbreviation (e.g. `CD`), no full name.
+ *  Used in dense contexts like the war-room feed where the stage is a tag,
+ *  not the focus. See StageChip for the full `CD Customer Discovery` chip. */
+export function StageCode({
+  stage,
+  className,
+}: {
+  stage: string;
+  className?: string;
+}) {
+  const code = STAGE_CODE[stage] ?? "—";
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center whitespace-nowrap rounded border border-[#0E1909]/15 bg-[#f4ffd6] px-1.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]",
+        className
+      )}
+    >
+      {code}
+    </span>
+  );
+}
+
 /** Horizontal alpha-stage progression rail. */
 export function StageRail({
   currentStage,
