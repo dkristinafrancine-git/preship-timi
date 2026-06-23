@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 import { sendAdminEmail } from "@/lib/email";
 
@@ -7,8 +8,12 @@ import { sendAdminEmail } from "@/lib/email";
  *
  * Auth-required. Handles both Feedback and Support submissions from the
  * floating widget — `kind` distinguishes them ("feedback" | "support") so one
- * endpoint serves both tabs. Emailed to the admin inbox via Resend (dev-fallback
- * log when unset), with the founder's identity auto-attached.
+ * endpoint serves both tabs.
+ *
+ * The submission is PERSISTED to the Feedback table (so the /admin console has
+ * a triageable inbox) AND emailed to the admin inbox via Resend (dev-fallback
+ * log when unset). DB write happens first, then the email I/O — per the pooling
+ * rule, never hold work dependent on the row across the email round-trip.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -35,6 +40,20 @@ export async function POST(req: NextRequest) {
     }
 
     const category = typeof b.category === "string" ? b.category.trim() : "";
+
+    // Persist first — the inbox is the durable record. Email failure must not
+    // lose the submission; an email exception bubbles to the 500 below, but the
+    // row is already committed by then. (If email flakiness becomes an issue,
+    // wrap the email in its own try/catch and return ok regardless.)
+    await db.feedback.create({
+      data: {
+        userId: user.id,
+        kind,
+        category: category || null,
+        subject: subject || null,
+        message,
+      },
+    });
 
     await sendAdminEmail({
       subject:
