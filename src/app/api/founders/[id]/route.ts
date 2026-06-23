@@ -11,7 +11,7 @@ const FOUNDER_PROFILE_SELECT = {
   title: true,
   bio: true,
   location: true,
-  avatarUrl: true,
+  avatarUrl: true, isFoundingMember: true,
   skills: true,
 } as const;
 
@@ -20,7 +20,7 @@ const FOUNDER_CARD_SELECT = {
   name: true,
   handle: true,
   title: true,
-  avatarUrl: true,
+  avatarUrl: true, isFoundingMember: true,
 } as const;
 
 const PROJECT_CARD_SELECT = {

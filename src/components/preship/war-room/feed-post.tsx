@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { FeedPost, Comment, Founder } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
 import { FounderAvatar, ProjectMark } from "../avatars";
-import { StageChip, Tag } from "../badges";
+import { StageChip, Tag, FoundingBadge } from "../badges";
 import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
 import { useMutate } from "@/lib/use-api";
@@ -61,6 +61,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
             <FounderHoverCard founder={post.author} className="font-display text-[15px] font-semibold text-[#0E1909]">
               {post.author.name}
             </FounderHoverCard>
+            <FoundingBadge show={post.author.isFoundingMember} className="-mt-0.5" />
             <span className="font-mono text-[13px] text-[#0E1909]/50">@{post.author.handle}</span>
             <span className="font-mono text-[13px] text-[#0E1909]/35">·</span>
             <span className="font-mono text-[13px] text-[#0E1909]/50">{fmtRelative(post.createdAt)}</span>
@@ -303,6 +304,7 @@ function CommentsSection({ postId }: { postId: string }) {
                   <span className="font-display text-[13px] font-semibold text-[#0E1909]">
                     {c.user.name}
                   </span>
+                  <FoundingBadge show={c.user.isFoundingMember} size={11} />
                   <span className="font-mono text-xs text-[#0E1909]/45">
                     @{c.user.handle} · {fmtRelative(c.createdAt)}
                   </span>

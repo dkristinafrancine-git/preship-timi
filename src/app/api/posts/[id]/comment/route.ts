@@ -14,7 +14,7 @@ export async function GET(
       orderBy: { createdAt: "asc" },
       include: {
         user: {
-          select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
+          select: { id: true, name: true, handle: true, title: true, avatarUrl: true, isFoundingMember: true, bio: true, location: true, skills: true },
         },
       },
     });
@@ -67,7 +67,7 @@ export async function POST(
       },
       include: {
         user: {
-          select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
+          select: { id: true, name: true, handle: true, title: true, avatarUrl: true, isFoundingMember: true, bio: true, location: true, skills: true },
         },
       },
     });

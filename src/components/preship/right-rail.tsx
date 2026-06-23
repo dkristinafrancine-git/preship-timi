@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { usePreship } from "@/lib/preship-store";
 import { useApi } from "@/lib/use-api";
-import { TerminalHeader, StatusPill, StageChip, Tag } from "./badges";
+import { TerminalHeader, StatusPill, StageChip, Tag, FoundingBadge } from "./badges";
 import { FounderAvatar, ProjectMark } from "./avatars";
 import { FounderHoverCard } from "./founder-hover-card";
 import type { Founder, Project, SynergyRequest, IdeaLabSession, FeedPost } from "@/lib/preship-types";
@@ -58,9 +58,12 @@ function WarRoomRail() {
                   </span>
                   <FounderAvatar founder={f} size={30} />
                   <div className="min-w-0 flex-1">
-                    <FounderHoverCard founder={f} className="block truncate font-display text-[13px] font-semibold text-[#0E1909]">
-                      {f.name}
-                    </FounderHoverCard>
+                    <div className="flex items-center gap-1">
+                      <FounderHoverCard founder={f} className="block truncate font-display text-[13px] font-semibold text-[#0E1909]">
+                        {f.name}
+                      </FounderHoverCard>
+                      <FoundingBadge show={f.isFoundingMember} size={11} />
+                    </div>
                     <p className="truncate font-mono text-xs text-[#0E1909]/50">@{f.handle}</p>
                   </div>
                 </li>
@@ -85,6 +88,7 @@ function WarRoomRail() {
                 <FounderHoverCard founder={p.author} className="truncate font-display text-[13px] font-medium text-[#0E1909]">
                   {p.author.name}
                 </FounderHoverCard>
+                <FoundingBadge show={p.author.isFoundingMember} size={11} />
                 <span className="font-mono text-xs text-[#0E1909]/45">{fmtRelative(p.createdAt)}</span>
               </div>
               <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-[#0E1909]/70">{p.body ?? p.audioTitle}</p>

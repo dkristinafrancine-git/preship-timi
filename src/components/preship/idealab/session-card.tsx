@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import type { IdeaLabSession } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
 import { FounderAvatar } from "../avatars";
-import { StatusPill, RoleBadge } from "../badges";
+import { StatusPill, RoleBadge, FoundingBadge } from "../badges";
 import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformMini } from "../waveform";
 import { Calendar, Clock, Users, Star, ArrowRight } from "lucide-react";
@@ -86,6 +86,7 @@ export function SessionCard({
           <FounderHoverCard founder={session.host} className="font-display text-[13px] font-medium text-[#0E1909]">
             {session.host.name}
           </FounderHoverCard>
+          <FoundingBadge show={session.host.isFoundingMember} size={11} />
           <span className="font-mono text-xs text-[#0E1909]/50">@{session.host.handle}</span>
           <span className="ml-auto font-mono text-xs uppercase tracking-widest text-[#0E1909]/45">
             host

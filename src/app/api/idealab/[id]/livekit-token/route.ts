@@ -103,6 +103,7 @@ export async function POST(
         handle: user.handle,
         avatarUrl: user.avatarUrl,
         title: user.title,
+        isFoundingMember: user.isFoundingMember,
         role: isHost ? "host" : "participant",
       }),
       ttl: TOKEN_TTL_SECONDS,
@@ -115,8 +116,10 @@ export async function POST(
       canPublish: true,
       canSubscribe: true,
       // Host gets metadata-write so future host controls (pin speaker, etc.)
-      // work without re-issuing tokens.
-      canUpdateMetadata: isHost,
+      // work without re-issuing tokens. (Property is `canUpdateOwnMetadata`
+      // in livekit-server-sdk; `canUpdateMetadata` is not a valid VideoGrant
+      // field and was a typo that caused a type error.)
+      canUpdateOwnMetadata: isHost,
       // Explicitly audio-only for IdeaLab — no video publishing.
       canPublishData: true,
     });

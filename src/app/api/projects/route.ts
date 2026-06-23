@@ -15,7 +15,7 @@ function initialsFromName(name: string): string {
 
 const PROJECT_LIST_INCLUDE = {
   founder: {
-    select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
+    select: { id: true, name: true, handle: true, title: true, avatarUrl: true, isFoundingMember: true, bio: true, location: true, skills: true },
   },
   _count: { select: { posts: true, synergyRequests: true } },
 } as const;

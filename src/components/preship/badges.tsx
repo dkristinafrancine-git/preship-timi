@@ -6,8 +6,8 @@ import {
   STAGE_CODE,
   STAGE_ORDER,
   BOUNTY_TYPES,
-  type BountyType,
 } from "@/lib/preship";
+import type { BountyType } from "@/lib/preship-types";
 import { Star } from "lucide-react";
 import {
   Tooltip,

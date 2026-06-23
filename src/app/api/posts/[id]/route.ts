@@ -13,7 +13,7 @@ const POST_INCLUDE = {
       name: true,
       handle: true,
       title: true,
-      avatarUrl: true,
+      avatarUrl: true, isFoundingMember: true,
       bio: true,
       location: true,
       skills: true,

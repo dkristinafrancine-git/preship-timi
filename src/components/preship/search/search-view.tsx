@@ -7,7 +7,7 @@ import { ViewHeader } from "../view-header";
 import { ApiErrorState } from "../api-error-state";
 import { FounderAvatar, ProjectMark } from "../avatars";
 import { FounderHoverCard } from "../founder-hover-card";
-import { Tag, StatusPill, BountyBadge, StageChip } from "../badges";
+import { Tag, StatusPill, BountyBadge, StageChip, FoundingBadge } from "../badges";
 import { fmtRelative } from "@/lib/preship";
 import type {
   Founder,
@@ -296,6 +296,7 @@ function FounderRow({ founder, onClick }: { founder: Founder; onClick: () => voi
             >
               {founder.name}
             </FounderHoverCard>
+            <FoundingBadge show={founder.isFoundingMember} className="-mt-0.5" />
             <span className="truncate font-mono text-xs text-[#0E1909]/50">
               @{founder.handle}
             </span>
@@ -354,6 +355,7 @@ function PostRow({ post, onClick }: { post: FeedPost; onClick: () => void }) {
             <span className="truncate font-display text-[14px] font-semibold text-[#0E1909]">
               {post.author.name}
             </span>
+            <FoundingBadge show={post.author.isFoundingMember} size={11} />
             <span className="truncate font-mono text-xs text-[#0E1909]/50">
               @{post.author.handle}
             </span>

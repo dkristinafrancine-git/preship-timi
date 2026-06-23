@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { compressAndUpload } from "@/lib/image-compress";
 import { FounderAvatar } from "../avatars";
+import { FoundingBadge } from "../badges";
 import type { Founder } from "@/lib/preship-types";
 import { Loader2, Camera, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -19,7 +20,7 @@ export function AvatarUpload({
   size = 96,
   className,
 }: {
-  founder: Pick<Founder, "avatarUrl" | "name" | "handle">;
+  founder: Pick<Founder, "avatarUrl" | "name" | "handle" | "isFoundingMember">;
   onUploaded: (url: string) => void;
   size?: number;
   className?: string;
@@ -98,7 +99,10 @@ export function AvatarUpload({
         />
       </div>
       <div className="min-w-0">
-        <p className="font-display text-sm font-semibold text-[#0E1909]">{founder.name}</p>
+        <p className="flex items-center gap-1 font-display text-sm font-semibold text-[#0E1909]">
+          <span>{founder.name}</span>
+          <FoundingBadge show={founder.isFoundingMember} />
+        </p>
         <p className="font-mono text-xs text-[#0E1909]/55">@{founder.handle}</p>
         <div className="mt-1.5 flex items-center gap-1.5">
           <button

@@ -130,9 +130,19 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[920px] flex-col justify-center px-5 py-10 lg:px-8">
       <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-[#0E1909]/15 bg-white shadow-[0_8px_30px_rgba(14,25,9,0.08)] md:grid-cols-2">
-        {/* ---------- left: ink brand panel ---------- */}
-        <div className="relative flex flex-col justify-between bg-[#0E1909] p-7 text-white lg:p-9">
-          <div>
+        {/* ---------- left: ink brand panel with bg image ---------- */}
+        <div className="relative flex flex-col justify-between overflow-hidden bg-[#0E1909] p-7 text-white lg:p-9">
+          {/* Background image, layered behind everything with an ink-to-transparent
+              scrim so the text on top stays legible at any image brightness.
+              bg-cover centers/crops; the gradient overlay is the dark scrim. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: "url('/auth-bg-img.avif')" }}
+          />
+          
+          {/* All content sits above the image + scrim. */}
+          <div className="relative z-10">
             <Link href="/" className="inline-block">
               <Logo variant="on-dark" />
             </Link>
@@ -157,7 +167,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             </p>
           </div>
 
-          <ul className="mt-8 space-y-2.5">
+          <ul className="relative z-10 mt-8 space-y-2.5">
             {[
               "War room feed — alpha updates in real time",
               "Synergy — broadcast a bottleneck, get a handshake",
@@ -172,7 +182,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             ))}
           </ul>
 
-          <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
+          <p className="relative z-10 mt-8 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
             the alpha war room — collaborate in broad daylight
           </p>
         </div>

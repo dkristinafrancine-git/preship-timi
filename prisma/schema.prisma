@@ -39,6 +39,7 @@ model User {
   skills      String?  // comma separated
   bountiesPublic Boolean @default(true) // show gathered bounties on shareable profile
   isCurrent   Boolean  @default(false) // the "logged in" founder in this demo
+  isFoundingMember Boolean @default(false) // first-100-cohort badge; revocable per-user
   // preferences (Settings page)
   prefTheme          String   @default("system") // system | light | dark
   prefNotifications  Boolean  @default(true)
@@ -66,6 +67,7 @@ model User {
   invitesAccepted    Invite[]           @relation("InviteAcceptor")
 
   @@index([isCurrent])
+  @@index([isFoundingMember])
   @@index([handle])
   @@index([email])
 }

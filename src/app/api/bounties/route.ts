@@ -63,9 +63,11 @@ export async function GET(req: NextRequest) {
             id: true,
             title: true,
             bountyType: true,
+            stake: true,
+            tags: true,
             status: true,
             founder: {
-              select: { id: true, name: true, handle: true, title: true, avatarUrl: true },
+              select: { id: true, name: true, handle: true, title: true, avatarUrl: true, isFoundingMember: true },
             },
             project: {
               select: {
@@ -73,6 +75,7 @@ export async function GET(req: NextRequest) {
                 name: true,
                 logoMark: true,
                 logoColor: true,
+                logoUrl: true,
                 alphaStage: true,
                 category: true,
               },

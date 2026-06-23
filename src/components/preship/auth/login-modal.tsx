@@ -25,6 +25,7 @@ export function LoginModal({
   const [signupName, setSignupName] = useState("");
   const [signupHandle, setSignupHandle] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const bump = usePreship((s) => s.bump);
 
   const doLogin = async () => {
@@ -238,16 +239,31 @@ export function LoginModal({
 
           {session && mode === "login" && (
             <Button
-              onClick={() => {
-                signOut({ redirect: false });
-                toast.success("Signed out →");
-                onOpenChange(false);
-                setTimeout(() => bump(), 200);
+              onClick={async () => {
+                if (signingOut) return;
+                // Await signOut BEFORE showing success — otherwise the toast
+                // fires while the session is still active, the store bump
+                // triggers a refetch that races the signout POST, and
+                // NextAuth's client aborts with CLIENT_FETCH_ERROR. Show a
+                // spinner during the round-trip so the user gets feedback.
+                setSigningOut(true);
+                try {
+                  await signOut({ redirect: false });
+                  toast.success("Signed out →");
+                  onOpenChange(false);
+                  bump();
+                } catch (e) {
+                  toast.error("Sign out failed — try again");
+                  console.error("[signOut]", e);
+                } finally {
+                  setSigningOut(false);
+                }
               }}
+              disabled={signingOut}
               variant="outline"
-              className="w-full border-[#0E1909]/20 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60 hover:text-[#e0463c]"
+              className="w-full border-[#0E1909]/20 font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909]/60 hover:text-[#e0463c] disabled:opacity-50"
             >
-              <LogOut size={13} /> sign out
+              {signingOut ? <Loader2 size={13} className="animate-spin" /> : <LogOut size={13} />} sign out
             </Button>
           )}
         </div>
@@ -264,6 +280,7 @@ export function AuthButton({
 }) {
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const bump = usePreship((s) => s.bump);
   const setView = usePreship((s) => s.setView);
 
@@ -329,15 +346,27 @@ export function AuthButton({
             </button>
             <div className="border-t border-[#0E1909]/8 my-1" />
             <button
-              onClick={() => {
+              onClick={async () => {
+                if (signingOut) return;
+                // Await signOut before success feedback — see the comment on
+                // the LoginModal sign-out button for the race this prevents.
                 setMenuOpen(false);
-                signOut({ redirect: false });
-                toast.success("Signed out →");
-                setTimeout(() => bump(), 200);
+                setSigningOut(true);
+                try {
+                  await signOut({ redirect: false });
+                  toast.success("Signed out →");
+                  bump();
+                } catch (e) {
+                  toast.error("Sign out failed — try again");
+                  console.error("[signOut]", e);
+                } finally {
+                  setSigningOut(false);
+                }
               }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#f8f9f3] hover:text-[#e0463c]"
+              disabled={signingOut}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#f8f9f3] hover:text-[#e0463c] disabled:opacity-50"
             >
-              <LogOut size={12} /> sign out
+              {signingOut ? <Loader2 size={12} className="animate-spin" /> : <LogOut size={12} />} sign out
             </button>
           </div>
         </>

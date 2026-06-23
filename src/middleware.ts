@@ -61,10 +61,17 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Run on everything EXCEPT Next internals, static asset files, and the
-  // NextAuth API routes (covered by PUBLIC_PREFIXES, but matcher avoids
-  // running the edge function on trivial asset requests at all).
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|favicon.svg|logo_preship.svg|upload|download|api/auth).*)",
-  ],
+  // Run on app routes and API routes — NOT on static assets.
+  //
+  // The negative lookahead excludes:
+  //   - Next internals:        _next/*
+  //   - NextAuth handlers:     api/auth/*
+  //   - ANY file in /public:   paths containing a "." (favicon.svg,
+  //                            logo_preship.svg, auth-bg-img.avif, robots.txt,
+  //                            etc.). Route paths never contain a ".", so this
+  //                            safely matches every public asset without
+  //                            hardcoding filenames — which previously caused
+  //                            new public assets (e.g. the auth background) to
+  //                            be redirected to /login by the auth gate.
+  matcher: ["/((?!_next/static|_next/image|api/auth|.*\\..*).*)"],
 };

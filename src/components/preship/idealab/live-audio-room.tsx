@@ -7,12 +7,16 @@ import {
   useRemoteParticipants,
   useSpeakingParticipants,
   useConnectionState,
-  ConnectionState,
 } from "@livekit/components-react";
-import { RoomEvent, Track } from "livekit-client";
+// NOTE: `ConnectionState` (the enum) must come from livekit-client.
+// @livekit/components-react exports a same-named React COMPONENT that shadows
+// the enum, so importing it from there gives a function with no .Connecting
+// / .Reconnecting / .Disconnected members (the original type error).
+import { RoomEvent, Track, ConnectionState } from "livekit-client";
 import "@livekit/components-styles";
 import { cn } from "@/lib/utils";
 import { FounderAvatar } from "../avatars";
+import { FoundingBadge } from "../badges";
 import { Mic, MicOff, Hand, Volume2, Loader2, WifiOff, AlertCircle, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import type { IdeaLabSession } from "@/lib/preship-types";
@@ -135,9 +139,10 @@ export function LiveAudioRoom({
         toast.error("Live audio connection error");
       }}
       options={{
-        // Adaptive streaming keeps small rooms crisp without manual tuning.
-        adaptiveAudio: true,
-        dyncast: false,
+        // Dynacast off — we don't need dynamic bitrate scaling for small
+        // invite-only rooms. Adaptive audio is handled by the server's SFU
+        // defaults. (Note the spelling: `dynacast`, not `dyncast`.)
+        dynacast: false,
       }}
     >
       <RoomInner sessionId={sessionId} isHost={isHost} onLeave={onLeave} />
@@ -208,7 +213,7 @@ function RoomInner({
             isHost={isHost}
             muted={
               !localParticipant.isMicrophoneEnabled ||
-              localParticipant.microphoneTrack?.isMuted === true
+              localParticipant.getTrackPublication(Track.Source.Microphone)?.isMuted === true
             }
           />
         )}
@@ -220,7 +225,7 @@ function RoomInner({
             metadata={p.metadata}
             speaking={speakingIds.has(p.identity)}
             isHost={false}
-            muted={!p.isMicrophoneEnabled || p.microphoneTrack?.isMuted === true}
+            muted={!p.isMicrophoneEnabled || p.getTrackPublication(Track.Source.Microphone)?.isMuted === true}
           />
         ))}
         {remoteParticipants.length === 0 && !connecting && (
@@ -242,7 +247,7 @@ function RoomInner({
 /** Parses the JSON metadata the token route stamped onto each participant. */
 function parseMeta(
   metadata: string | undefined
-): { handle?: string; avatarUrl?: string | null; title?: string | null; role?: string } {
+): { handle?: string; avatarUrl?: string | null; title?: string | null; isFoundingMember?: boolean; role?: string } {
   if (!metadata) return {};
   try {
     return JSON.parse(metadata);
@@ -298,9 +303,10 @@ const LiveSpeakerTile = memo(function LiveSpeakerTile({
           </span>
         )}
       </div>
-      <span className="max-w-full truncate font-mono text-xs text-[#DAFF01]/70">
+      <span className="flex max-w-full items-center gap-0.5 truncate font-mono text-xs text-[#DAFF01]/70">
         @{founder.handle}
         {isLocal && <span className="text-[#DAFF01]/40"> (you)</span>}
+        {meta.isFoundingMember && <FoundingBadge size={10} />}
       </span>
       <span className="rounded bg-[#DAFF01]/15 px-1 font-mono text-[8px] uppercase tracking-widest text-[#DAFF01]">
         {isHost ? "host" : meta.role?.split("-")[0] ?? "guest"}
@@ -318,7 +324,7 @@ function MicControls({ onLeave }: { onLeave: () => void }) {
   const muted =
     !localParticipant ||
     !localParticipant.isMicrophoneEnabled ||
-    localParticipant.microphoneTrack?.isMuted === true;
+    localParticipant.getTrackPublication(Track.Source.Microphone)?.isMuted === true;
 
   const toggleMic = useCallback(async () => {
     if (!localParticipant || toggling) return;

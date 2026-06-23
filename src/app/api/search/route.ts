@@ -26,7 +26,7 @@ const FOUNDER_SELECT = {
   name: true,
   handle: true,
   title: true,
-  avatarUrl: true,
+  avatarUrl: true, isFoundingMember: true,
   bio: true,
   skills: true,
 } as const;
@@ -37,7 +37,7 @@ const FOUNDER_RELATION = {
     name: true,
     handle: true,
     title: true,
-    avatarUrl: true,
+    avatarUrl: true, isFoundingMember: true,
     bio: true,
     location: true,
     skills: true,

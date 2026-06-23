@@ -102,6 +102,27 @@ export type SynergyOffer = {
   status: "pending" | "accepted" | "declined";
   createdAt: string;
   founder: Founder;
+  // Present when the offer is fetched via /api/bounties (gathered bounties
+  // view) — the parent request's card-shaped fields. Not included on the
+  // per-request offer endpoints (/api/synergy/[id]/offers).
+  request?: {
+    id: string;
+    title: string;
+    bountyType: BountyType;
+    stake: number | null;
+    tags: string | null;
+    status: "open" | "matched" | "closed";
+    founder: Founder;
+    project: {
+      id: string;
+      name: string;
+      logoMark: string;
+      logoColor: string;
+      logoUrl: string | null;
+      alphaStage: string;
+      category: string;
+    } | null;
+  };
 };
 
 /** Preset role IDs. Hosts may also define arbitrary custom roles (free text

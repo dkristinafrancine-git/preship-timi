@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/current-user";
 // passwordHash, email, or large relations we won't render.
 const POST_INCLUDE = {
   author: {
-    select: { id: true, name: true, handle: true, title: true, avatarUrl: true, bio: true, location: true, skills: true },
+    select: { id: true, name: true, handle: true, title: true, avatarUrl: true, isFoundingMember: true, bio: true, location: true, skills: true },
   },
   project: {
     select: {

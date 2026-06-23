@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { SynergyRequest, SynergyOffer } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
 import { FounderAvatar, ProjectMark } from "../avatars";
-import { BountyBadge, StatusPill, Tag, StageChip } from "../badges";
+import { BountyBadge, StatusPill, Tag, StageChip, FoundingBadge } from "../badges";
 import { FounderHoverCard } from "../founder-hover-card";
 import { OfferDialog } from "./offer-dialog";
 import { useApi } from "@/lib/use-api";
@@ -71,6 +71,7 @@ export function SynergyCard({
               <FounderHoverCard founder={request.founder} className="font-display text-[15px] font-semibold text-[#0E1909]">
                 {request.founder.name}
               </FounderHoverCard>
+              <FoundingBadge show={request.founder.isFoundingMember} className="-mt-0.5" />
               <span className="font-mono text-[13px] text-[#0E1909]/50">@{request.founder.handle}</span>
             </div>
             <p className="truncate font-mono text-xs text-[#0E1909]/55">{request.founder.title}</p>
@@ -263,6 +264,7 @@ export function SynergyCard({
                         <span className="font-display text-xs font-semibold text-[#0E1909]">
                           {o.founder.name}
                         </span>
+                        <FoundingBadge show={o.founder.isFoundingMember} size={11} />
                         <span className="font-mono text-xs text-[#0E1909]/45">
                           @{o.founder.handle} · {fmtRelative(o.createdAt)} ago
                         </span>

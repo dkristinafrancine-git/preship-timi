@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { usePreship, type PreshipView } from "@/lib/preship-store";
 import { FounderAvatar } from "./avatars";
+import { FoundingBadge } from "./badges";
 import { useApi } from "@/lib/use-api";
 import type { Founder, Project } from "@/lib/preship-types";
 import {
@@ -145,8 +146,9 @@ export function Sidebar() {
             <div className="flex items-center gap-3">
               <FounderAvatar founder={meData.user} size={40} />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-[15px] font-semibold text-[#0E1909]">
-                  {meData.user.name}
+                <p className="flex items-center gap-1 truncate font-display text-[15px] font-semibold text-[#0E1909]">
+                  <span className="truncate">{meData.user.name}</span>
+                  <FoundingBadge show={meData.user.isFoundingMember} />
                 </p>
                 <p className="truncate font-mono text-xs text-[#0E1909]/55">
                   @{meData.user.handle}

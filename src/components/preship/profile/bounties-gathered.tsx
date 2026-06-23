@@ -35,6 +35,10 @@ export function BountiesGathered({
     <ul className="space-y-3">
       {bounties.map((b) => {
         const r = b.request;
+        // An accepted offer should always have a parent request in the
+        // payload; if it doesn't (orphaned offer, or an endpoint that didn't
+        // include the relation), there's nothing to render here.
+        if (!r) return null;
         const tags = r.tags ? r.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
         return (
           <li key={b.id}>
