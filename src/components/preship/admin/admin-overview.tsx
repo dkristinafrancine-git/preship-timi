@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useApi } from "@/lib/use-api";
 import type { AdminStats } from "@/lib/preship-types";
@@ -17,27 +16,6 @@ import {
 /** Live /admin overview dashboard. Fetches the aggregate stats endpoint. */
 export function AdminOverview() {
   const { data, loading, error } = useApi<AdminStats>("/api/admin/stats");
-
-  // DEBUG: when the stats fetch fails, pull the server's debug message out of
-  // the 500 response body so the real error shows on-screen. Removed once the
-  // root cause is fixed.
-  const [debugMsg, setDebugMsg] = useState<string | null>(null);
-  useEffect(() => {
-    if (!error) {
-      setDebugMsg(null);
-      return;
-    }
-    let cancelled = false;
-    fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then((j) => {
-        if (!cancelled && j && typeof j.debug === "string") setDebugMsg(j.debug);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [error]);
 
   if (loading) {
     return (
@@ -56,7 +34,6 @@ export function AdminOverview() {
   }
 
   if (error || !data) {
-    // DEBUG: show the server's debug message if present (Network tab also has it)
     return (
       <div className="space-y-6">
         <OverviewHeader />
@@ -64,11 +41,6 @@ export function AdminOverview() {
           <p className="font-mono text-xs uppercase tracking-widest text-red-300/80">
             Couldn’t load stats — {error || "unknown error"}
           </p>
-          {debugMsg ? (
-            <p className="mt-3 break-words font-mono text-xs text-red-200/90">
-              server: {debugMsg}
-            </p>
-          ) : null}
         </div>
       </div>
     );
