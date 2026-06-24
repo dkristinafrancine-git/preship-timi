@@ -5,8 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useMutate } from "@/lib/use-api";
+import { useApi, useMutate, useSynergyCache } from "@/lib/use-api";
+import type { Founder, SynergyOffer } from "@/lib/preship-types";
 import { Loader2, Handshake } from "lucide-react";
+import { toast } from "sonner";
 
 export function OfferDialog({
   open,
@@ -23,19 +25,56 @@ export function OfferDialog({
   const [offer, setOffer] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const mutate = useMutate();
+  const synergyCache = useSynergyCache(requestId);
+  const { data: meData } = useApi<{ user: Founder }>("/api/me");
 
   const submit = async () => {
     if (!pitch.trim()) return;
+    const me = meData?.user;
+    if (!me) return;
+    const pitchText = pitch.trim();
+    const offerText = offer.trim() || null;
+
+    // Optimistic: build a provisional offer with a temp id, prepend it to the
+    // cached offer list AND bump the parent request's offer count + set myOffer.
+    // Both patch instantly; the real offer swaps in (temp→real) once the POST
+    // resolves. On failure we close the dialog (the count badge will re-sync on
+    // the next natural refetch) and toast.
+    const tempId = `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const provisional: SynergyOffer = {
+      id: tempId,
+      requestId,
+      founderId: me.id,
+      pitch: pitchText,
+      offer: offerText,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      founder: me,
+    };
+    synergyCache.prependOffer(provisional);
+    synergyCache.offerSubmitted(provisional);
+
     setSubmitting(true);
-    const res = await mutate(`/api/synergy/${requestId}/offers`, {
+    const res = await mutate<{ offer: SynergyOffer }>(`/api/synergy/${requestId}/offers`, {
       method: "POST",
-      body: { pitch: pitch.trim(), offer: offer.trim() || null },
+      body: { pitch: pitchText, offer: offerText },
+      invalidate: [], // already patched optimistically
     });
     setSubmitting(false);
-    if (res.ok) {
+    if (res.ok && res.data?.offer) {
+      // Reconcile: swap the temp offer for the real one in both caches.
+      synergyCache.removeOffer(tempId);
+      synergyCache.prependOffer(res.data.offer);
+      // myOffer was set to the provisional; re-point it at the real offer.
+      synergyCache.offerSubmitted(res.data.offer);
       setPitch("");
       setOffer("");
       onOpenChange(false);
+      toast.success("Handshake offered →");
+    } else {
+      // Roll back the optimistic offer + count bump.
+      synergyCache.removeOffer(tempId);
+      toast.error("Couldn't send handshake — please retry.");
     }
   };
 

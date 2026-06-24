@@ -4,11 +4,11 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutate } from "@/lib/use-api";
+import { useMutate, useFeedCache } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
-import type { Founder, Project } from "@/lib/preship-types";
+import type { FeedPost, Founder, Project } from "@/lib/preship-types";
 import { ProjectMark } from "../avatars";
 import { Type, Mic, Hash, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ export function PostComposer() {
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [uploadedAudioUrl, setUploadedAudioUrl] = useState<string | null>(null);
   const mutate = useMutate();
+  const feedCache = useFeedCache();
   const me = usePreship((s) => s.me);
   const { data: meData } = useApi<{ user: Founder; projects: Project[] }>("/api/me");
   const projects = meData?.projects ?? [];
@@ -102,23 +103,95 @@ export function PostComposer() {
       audioDuration = Math.max(1, recorder.seconds);
     }
 
-    const res = await mutate("/api/posts", {
-      method: "POST",
-      body: {
-        type: mode,
-        body: mode === "text" ? body.trim() : body.trim() || null,
-        audioTitle: mode === "audio" ? audioTitle.trim() : null,
-        audioUrl,
-        audioDuration,
-        audioWaveform: wf,
-        tags: tags.trim() || null,
-        projectId: projectId || null,
-      },
-    });
+    // Snapshot the payload we're about to send, in the exact server shapes,
+    // so the optimistic provisional post matches what the DB will store.
+    const payload = {
+      type: mode,
+      body: mode === "text" ? body.trim() : body.trim() || null,
+      audioTitle: mode === "audio" ? audioTitle.trim() : null,
+      audioUrl,
+      audioDuration,
+      audioWaveform: wf,
+      tags: tags.trim() || null,
+      projectId: projectId || null,
+    };
+
+    // Optimistic: build a provisional post from the composer state + current
+    // user and prepend it to the feed INSTANTLY (before the round trip). A
+    // fresh post has zero reactions/comments and the author's own (empty)
+    // myReaction. The temp id is swapped for the real one once the create
+    // resolves. Requires `me` — anonymous compose isn't reachable (the composer
+    // only renders inside /app behind auth).
+    const tempId = `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const selectedProject = projects.find((p) => p.id === projectId) ?? null;
+    if (me) {
+      const provisional: FeedPost = {
+        id: tempId,
+        authorId: me.id,
+        projectId: payload.projectId,
+        type: payload.type,
+        body: payload.body,
+        audioTitle: payload.audioTitle,
+        audioUrl: payload.audioUrl,
+        audioDuration: payload.audioDuration,
+        audioWaveform: payload.audioWaveform,
+        tags: payload.tags,
+        createdAt: new Date().toISOString(),
+        author: me,
+        // FeedPost.project is typed Project|null but the real feed payload only
+        // carries the card fields below. selectedProject is a full Project from
+        // /api/me, so it satisfies the type; FeedPost only renders the card
+        // subset. Passing the whole object is correct and avoids an inline
+        // partial that wouldn't match the Project type.
+        project: selectedProject,
+        _count: {
+          reactions: { like: 0, repost: 0, handshake: 0 },
+          comments: 0,
+        },
+        myReaction: [],
+      };
+      feedCache.prepend(provisional);
+    }
+    // Clear the composer immediately so the user sees their post land and the
+    // box empty in the same frame — the create continues in the background.
+    const draftReset = { mode, body, audioTitle, tags, projectId };
+    reset();
+
+    const res = await mutate<{ post: Omit<FeedPost, "_count" | "myReaction"> }>(
+      "/api/posts",
+      {
+        method: "POST",
+        body: payload,
+        // We already optimistically prepended; don't refetch the whole feed.
+        invalidate: [],
+      }
+    );
     setSubmitting(false);
-    if (res.ok) {
+
+    if (res.ok && res.data?.post) {
+      // Reconcile: swap the temp post for the real one (real id, server
+      // canonical createdAt). A fresh post still has empty counts/myReaction.
+      const real = res.data.post as FeedPost;
+      const shaped: FeedPost = {
+        ...real,
+        _count: real._count ?? {
+          reactions: { like: 0, repost: 0, handshake: 0 },
+          comments: 0,
+        },
+        myReaction: real.myReaction ?? [],
+      };
+      feedCache.reconcile(tempId, shaped);
       toast.success(mode === "audio" ? "Audio post shipped →" : "Post shipped →");
-      reset();
+    } else {
+      // Create failed: remove the provisional post so the feed doesn't show a
+      // ghost, and restore the draft so the user doesn't lose their input.
+      feedCache.remove(tempId);
+      setMode(draftReset.mode);
+      setBody(draftReset.body);
+      setAudioTitle(draftReset.audioTitle);
+      setTags(draftReset.tags);
+      setProjectId(draftReset.projectId);
+      // useMutate already toasted the error message.
     }
   };
 

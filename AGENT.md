@@ -152,6 +152,7 @@ fetch A first, then `Promise.all` the rest.
 ```
 prisma/schema.prisma                          models + Prisma-managed B-tree indexes
 prisma/migrations/..._add_trgm_search_indexes/ raw GIN trigram indexes (ILIKE search)
+prisma/migrations/..._add_pgmq_write_queue/    raw pgmq extension + preship_write_jobs queue
 src/lib/db.ts                                Prisma client singleton
 src/lib/current-user.ts                      getCurrentUser() — session → full User row
 src/lib/auth.ts                              NextAuth config, hashPassword/verifyPassword
@@ -160,7 +161,50 @@ src/app/api/feed/route.ts                    reference for _count + batched myRe
 src/app/api/founders/[id]/route.ts           reference for Promise.all + trimmed selects
 src/app/api/search/route.ts                  reference for parallel multi-model search
 src/lib/human-test.ts                        signed human-test quiz + passwordStrength
+src/lib/queue-types.ts                       WriteJob contract (react/notify job shapes)
+src/lib/queue.ts                             pgmq enqueue/read/ack helpers ($queryRawUnsafe)
+src/worker/index.ts                          background worker poll loop (separate process)
+src/worker/handlers.ts                       idempotent job handlers (handleReact/handleNotify)
 ```
+
+## Queue + worker + optimistic UI rules
+
+The reaction/post hot path is **optimistic UI + queue-backed writes** — the
+opposite of the inline `await` the old code used. The flow:
+
+1. **UI updates optimistically first.** `use-api.ts` exposes
+   `applyReactionOptimistic` / `prependPostOptimistic` / `reconcilePost` /
+   `removePostOptimistic` + the `useFeedCache()` hook. These patch the React
+   Query cache via `setQueriesData({ queryKey: ["feed"] })` (every feed query
+   at once — newest AND trending). They are **pure + idempotent** and **never
+   invalidate/refetch** the feed on the hot path; truth converges on the next
+   natural refetch (sort switch, navigation, staleTime 5min, manual).
+2. **The API route enqueues, it doesn't write.** A hot-path route validates
+   (auth + ownership + shape) and calls `enqueueReaction`/`enqueueNotify`, then
+   returns the **projected** result the client already assumed. It must NOT do
+   the Prisma write or `notify()` inline — that's what made requests hold the
+   single pooled connection open across read+write+notify and saturate the pool.
+   See `src/app/api/posts/[id]/react/route.ts`.
+3. **The worker owns the write.** `src/worker/` is a separate process (own
+   PgBouncer connection slot → it *relieves* pool pressure) that drains
+   `preship_write_jobs` and runs the real writes. Run exactly one per env.
+
+### When adding a new queued op
+
+1. Add the job variant to the `WriteJob` union in `src/lib/queue-types.ts`.
+   **Encode the desired end state, never a toggle/increment** — the queue is
+   durable and retries, so `desired: boolean` + a unique constraint makes the
+   handler converge to the right state under any replay order.
+2. Add an `enqueue*` helper in `src/lib/queue.ts` (one `$queryRawUnsafe`
+   `pgmq.send`; keep it fast).
+3. Add a handler in `src/worker/handlers.ts`. Make it idempotent; for "notify
+   on create" semantics, detect the create via the unique-constraint error
+   (P2002) so retries don't duplicate side effects.
+4. Add the `case` to `dispatch` in `src/worker/index.ts` (the `never`
+   exhaustiveness check will flag it at typecheck if you forget).
+5. Swap the inline write/notify in the API route for the enqueue; have the
+   route return the projected state and let the UI update optimistically.
+
 
 ## When you add a new table
 

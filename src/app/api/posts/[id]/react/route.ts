@@ -2,7 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 import { POST_REACTIONS } from "@/lib/preship";
-import { notify } from "@/lib/notify";
+import { enqueueReaction } from "@/lib/queue";
+
+// POST /api/posts/[id]/react
+//
+// Fire-and-forget-the-write model: this route validates the request and
+// enqueues a job; the actual Prisma write + author notification happen in the
+// background worker (src/worker/, draining the `preship_write_jobs` pgmq
+// queue). The response carries the *projected* result so the client can update
+// optimistically and confirm intent without waiting on the DB write.
+//
+// Why the client sends `desired` (not a "toggle"): the API never needs to read
+// the reaction row to decide what to do, which removes a DB round trip from
+// the hot path entirely. The client already knows the current UI state and
+// sends the target; the worker converges to that target idempotently.
 
 export async function POST(
   req: NextRequest,
@@ -29,41 +42,30 @@ export async function POST(
       );
     }
 
-    const post = await db.post.findUnique({ where: { id } });
+    // `desired` defaults to true (preserve backward compat for any caller that
+    // only sends `kind`). When present it MUST be boolean.
+    const rawDesired = (body as { desired?: unknown }).desired;
+    const desired =
+      rawDesired === undefined ? true : rawDesired === true;
+    if (rawDesired !== undefined && typeof rawDesired !== "boolean") {
+      return NextResponse.json(
+        { error: "desired must be a boolean" },
+        { status: 400 }
+      );
+    }
+
+    // Existence check only — we don't need the author or reaction rows here;
+    // the worker resolves them when it runs the job. Cheapest valid gate.
+    const post = await db.post.findUnique({ where: { id }, select: { id: true } });
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    const existing = await db.reaction.findUnique({
-      where: {
-        postId_userId_kind: { postId: id, userId: user.id, kind },
-      },
-    });
+    // Enqueue + return immediately. We don't await the worker; the response
+    // reflects the client's requested end state.
+    await enqueueReaction({ postId: id, userId: user.id, kind: kind as "like" | "repost" | "handshake", desired });
 
-    if (existing) {
-      await db.reaction.delete({ where: { id: existing.id } });
-      return NextResponse.json({ reacted: false, kind });
-    }
-
-    await db.reaction.create({
-      data: { postId: id, userId: user.id, kind },
-    });
-
-    // notify the post author (don't notify self)
-    if (post.authorId !== user.id) {
-      const kindLabel = kind === "handshake" ? "handshake" : kind === "repost" ? "repost" : "like";
-      await notify(
-        post.authorId,
-        "reaction",
-        `${user.name} ${kindLabel}ed your post`,
-        kind === "handshake"
-          ? `${user.name} offered a handshake on your post.`
-          : `${user.name} ${kindLabel}ed your post.`,
-        "war-room",
-        id
-      );
-    }
-    return NextResponse.json({ reacted: true, kind });
+    return NextResponse.json({ reacted: desired, kind });
   } catch (err) {
     console.error("[POST /api/posts/[id]/react]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

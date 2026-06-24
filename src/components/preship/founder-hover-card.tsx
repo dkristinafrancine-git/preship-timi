@@ -4,7 +4,7 @@ import { useState } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { FounderAvatar } from "./avatars";
 import { Tag, FoundingBadge } from "./badges";
-import { useApi, useMutate } from "@/lib/use-api";
+import { useApi, useMutate, useFollowCache } from "@/lib/use-api";
 import type { Founder } from "@/lib/preship-types";
 import { cn } from "@/lib/utils";
 import { MapPin, Trophy, Boxes, UserPlus, UserCheck, Loader2 } from "lucide-react";
@@ -39,22 +39,34 @@ export function FounderHoverCard({
     open ? `/api/follows?founderId=${founder.id}` : null
   );
   const mutate = useMutate();
+  const followCache = useFollowCache();
   const [busy, setBusy] = useState(false);
   const following = followData?.following ?? false;
 
   const toggleFollow = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    // Optimistic: flip the cached follow state instantly so the button
+    // switches in the same frame. The POST is fire-and-forget; on failure we
+    // roll back. No refetch — the boolean is the whole state.
+    const next = !following;
+    followCache.set(founder.id, next);
     setBusy(true);
-    const res = await mutate("/api/follows", {
-      method: "POST",
-      body: { founderId: founder.id },
-    });
-    setBusy(false);
-    if (res.ok) {
-      const next = res.data as { following: boolean } | undefined;
-      toast.success(next?.following ? "Following →" : "Unfollowed →");
+    try {
+      const res = await mutate("/api/follows", {
+        method: "POST",
+        body: { founderId: founder.id },
+        invalidate: [], // we already patched the cache optimistically
+      });
+      if (!res.ok) {
+        followCache.set(founder.id, !next); // rollback
+      } else {
+        toast.success(next ? "Following →" : "Unfollowed →");
+      }
+    } catch {
+      followCache.set(founder.id, !next); // rollback
     }
+    setBusy(false);
   };
 
   return (

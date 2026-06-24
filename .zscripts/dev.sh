@@ -109,6 +109,10 @@ cleanup() {
 		echo "Stopping Next.js dev server (PID: $DEV_PID)..."
 		kill "$DEV_PID" >/dev/null 2>&1 || true
 	fi
+	if [ -n "${WORKER_PID:-}" ] && kill -0 "$WORKER_PID" >/dev/null 2>&1; then
+		echo "Stopping write worker (PID: $WORKER_PID)..."
+		kill "$WORKER_PID" >/dev/null 2>&1 || true
+	fi
 }
 
 trap cleanup EXIT INT TERM
@@ -145,6 +149,22 @@ echo "[BUN] Performing health check..."
 curl -fsS localhost:3000 >/dev/null
 echo "[BUN] Health check passed"
 log_step_end "Health check"
+
+# Background write worker (pgmq consumer). Started in dev so reactions/posts
+# process off-path during local development. Its own process + DB connection.
+log_step_start "Starting write worker"
+echo "[WORKER] Starting pgmq write worker..."
+bun run src/worker/index.ts &
+WORKER_PID=$!
+sleep 1
+if ! kill -0 "$WORKER_PID" >/dev/null 2>&1; then
+	echo "[WORKER] failed to start (continuing without it)"
+	unset WORKER_PID
+else
+	echo "[WORKER] started (PID: $WORKER_PID)"
+fi
+disown "$WORKER_PID" 2>/dev/null || true
+log_step_end "Starting write worker"
 
 start_mini_services
 

@@ -8,7 +8,7 @@ import { FounderAvatar, ProjectMark } from "../avatars";
 import { StageCode, Tag, FoundingBadge } from "../badges";
 import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
-import { useMutate } from "@/lib/use-api";
+import { useMutate, useFeedCache, useCommentCache } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
 import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2, Pencil, Trash2, X, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
   const [editBody, setEditBody] = useState(post.body ?? "");
   const [savingEdit, setSavingEdit] = useState(false);
   const mutate = useMutate();
+  const feedCache = useFeedCache();
   const me = usePreship((s) => s.me);
   const router = useRouter();
   const isAuthor = me?.id === post.authorId;
@@ -40,7 +41,26 @@ export function FeedPost({ post }: { post: FeedPost }) {
       router.push("/login?callbackUrl=/app");
       return;
     }
-    await mutate(`/api/posts/${post.id}/react`, { method: "POST", body: { kind } });
+    // Optimistic: compute the target state from the current UI and patch the
+    // feed cache IMMEDIATELY (same frame, no round trip). The background
+    // worker writes the truth; on failure we roll back.
+    const desired = !post.myReaction.includes(kind);
+    feedCache.react(post.id, kind, desired);
+
+    try {
+      // Fire-and-forget the enqueue. The API validates + enqueues and returns
+      // fast; it no longer holds the DB connection open across a write+notify.
+      // We send `desired` so the server never has to read the reaction row.
+      await fetch(`/api/posts/${post.id}/react`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, desired }),
+      });
+    } catch {
+      // Network failure: roll the optimistic patch back to the prior state.
+      feedCache.react(post.id, kind, !desired);
+      toast.error("Couldn't reach the server — reaction not saved.");
+    }
   };
 
   const saveEdit = async () => {
@@ -103,8 +123,21 @@ export function FeedPost({ post }: { post: FeedPost }) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={async () => {
-                  const res = await mutate(`/api/posts/${post.id}`, { method: "DELETE" });
-                  if (res.ok) toast.success("Post deleted →");
+                  // Optimistic: pull the post from the feed cache instantly,
+                  // then DELETE. No feed refetch (the row is gone from the UI
+                  // already; the worker/DB already removed it by the time any
+                  // refetch would run).
+                  feedCache.remove(post.id);
+                  const res = await mutate(`/api/posts/${post.id}`, {
+                    method: "DELETE",
+                    invalidate: [], // we already optimistically removed it
+                  });
+                  if (!res.ok) {
+                    // On failure the next natural feed refetch restores it.
+                    toast.error("Delete failed — post will reappear on refresh.");
+                  } else {
+                    toast.success("Post deleted →");
+                  }
                 }}
                 className="cursor-pointer font-mono text-xs uppercase tracking-widest text-[#e0463c] focus:text-[#e0463c]"
               >
@@ -278,18 +311,39 @@ function CommentsSection({ postId }: { postId: string }) {
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const mutate = useMutate();
+  const commentCache = useCommentCache();
   const me = useApi<{ user: Founder }>("/api/me");
 
   const submit = async () => {
     if (!body.trim()) return;
+    const user = me.data?.user;
+    if (!user) return;
+    // Optimistic: prepend a provisional comment with a temp id the instant the
+    // user submits, then reconcile temp→real when the POST resolves. On failure
+    // we remove the provisional row + restore the draft. No refetch — the
+    // comment list is the displayed content, patched in place.
+    const text = body.trim();
+    const tempId = `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const provisional: Comment = {
+      id: tempId,
+      body: text,
+      createdAt: new Date().toISOString(),
+      user,
+    };
+    commentCache.prepend(postId, provisional);
+    setBody("");
     setSubmitting(true);
-    const res = await mutate(`/api/posts/${postId}/comment`, {
+    const res = await mutate<{ comment: Comment }>(`/api/posts/${postId}/comment`, {
       method: "POST",
-      body: { body: body.trim() },
+      body: { body: text },
+      invalidate: [], // already patched optimistically
     });
     setSubmitting(false);
-    if (res.ok) {
-      setBody("");
+    if (res.ok && res.data?.comment) {
+      commentCache.reconcile(postId, tempId, res.data.comment);
+    } else {
+      commentCache.remove(postId, tempId);
+      setBody(text); // restore the draft so the user doesn't lose input
     }
   };
 
@@ -319,7 +373,14 @@ function CommentsSection({ postId }: { postId: string }) {
                   {me.data?.user && c.user.id === me.data.user.id && (
                     <button
                       onClick={async () => {
-                        await mutate(`/api/posts/${postId}/comment/${c.id}`, { method: "DELETE" });
+                        // Optimistic remove + no refetch. On failure the next
+                        // natural refetch restores the comment.
+                        commentCache.remove(postId, c.id);
+                        const res = await mutate(`/api/posts/${postId}/comment/${c.id}`, {
+                          method: "DELETE",
+                          invalidate: [],
+                        });
+                        if (!res.ok) toast.error("Delete failed — comment will reappear on refresh.");
                       }}
                       className="ml-auto rounded p-0.5 text-[#0E1909]/25 opacity-0 transition hover:text-[#e0463c] group-hover:opacity-100"
                       aria-label="Delete comment"

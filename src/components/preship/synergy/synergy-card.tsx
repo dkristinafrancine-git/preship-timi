@@ -9,7 +9,7 @@ import { BountyBadge, StatusPill, Tag, StageChip, FoundingBadge } from "../badge
 import { FounderHoverCard } from "../founder-hover-card";
 import { OfferDialog } from "./offer-dialog";
 import { useApi } from "@/lib/use-api";
-import { useMutate } from "@/lib/use-api";
+import { useMutate, useSynergyCache } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
 import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight, Sparkles, Trash2, XCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ export function SynergyCard({
   const [expanded, setExpanded] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
   const mutate = useMutate();
+  const synergyCache = useSynergyCache(request.id);
   const me = usePreship((s) => s.me);
 
   const { data, loading } = useApi<{ offers: SynergyOffer[] }>(
@@ -36,16 +37,24 @@ export function SynergyCard({
   const tags = request.tags ? request.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
 
   const accept = async (offerId: string) => {
+    // Optimistic: flip this offer's pill to "accepted" instantly. The server's
+    // atomic PATCH also declines siblings + sets the request to "matched"; that
+    // multi-row change reconciles on the next natural refetch. This just kills
+    // the immediate flicker on the clicked row. No refetch.
+    synergyCache.patchOfferStatus(offerId, "accepted");
     const res = await mutate(`/api/synergy/${request.id}/offers/${offerId}`, {
       method: "PATCH",
       body: { status: "accepted" },
+      invalidate: [],
     });
     if (res.ok) toast.success("Handshake accepted → request matched");
   };
   const decline = async (offerId: string) => {
+    synergyCache.patchOfferStatus(offerId, "declined");
     await mutate(`/api/synergy/${request.id}/offers/${offerId}`, {
       method: "PATCH",
       body: { status: "declined" },
+      invalidate: [],
     });
   };
 
@@ -314,7 +323,13 @@ export function SynergyCard({
                         size="sm"
                         variant="ghost"
                         onClick={async () => {
-                          await mutate(`/api/synergy/${request.id}/offers/${o.id}`, { method: "DELETE" });
+                          // Optimistic withdraw + no refetch.
+                          synergyCache.removeOffer(o.id);
+                          const res = await mutate(`/api/synergy/${request.id}/offers/${o.id}`, {
+                            method: "DELETE",
+                            invalidate: [],
+                          });
+                          if (res.ok) toast.success("Handshake withdrawn →");
                         }}
                         className="h-7 font-mono text-xs uppercase tracking-widest text-[#0E1909]/50 hover:text-[#e0463c]"
                       >
