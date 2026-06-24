@@ -94,7 +94,14 @@ export async function GET() {
 
     return NextResponse.json(stats);
   } catch (err) {
+    // DEBUG: surface the real error message so it's visible client-side (Network
+    // tab) while we diagnose the production 500. Revert to the generic message
+    // once the root cause is fixed.
+    const message = err instanceof Error ? err.message : String(err);
     console.error("[GET /api/admin/stats]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error", debug: message },
+      { status: 500 }
+    );
   }
 }
