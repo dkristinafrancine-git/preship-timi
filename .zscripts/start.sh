@@ -94,26 +94,6 @@ else
     echo "⚠️  未找到 Next.js 服务器文件: ./next-service-dist/server.js"
 fi
 
-# 启动后台写入 worker (pgmq 队列消费者)
-# The worker drains the preship_write_jobs queue and runs deferred writes +
-# notifications. It runs as its own process so it gets its own DB connection
-# slot and can't take down the web server. Skipped if the script isn't present
-# (e.g. a build without .zscripts) — the app still works, just without
-# background processing.
-if [ -f "./.zscripts/worker.sh" ]; then
-    echo "🚀 启动后台写入 worker..."
-    sh ./.zscripts/worker.sh &
-    WORKER_PID=$!
-    pids="$pids $WORKER_PID"
-
-    sleep 1
-    if ! kill -0 "$WORKER_PID" 2>/dev/null; then
-        echo "⚠️  worker 可能启动失败，但继续运行..."
-    else
-        echo "✅ worker 已启动 (PID: $WORKER_PID)"
-    fi
-fi
-
 # 启动 mini-services
 if [ -f "./mini-services-start.sh" ]; then
     echo "🚀 启动 mini-services..."

@@ -91,64 +91,7 @@ psql "$DIRECT_URL" -f supabase/rls.sql
 
 ---
 
-## 4. Background write queue (Supabase Queues / pgmq)
-
-The reaction + post hot path is **optimistic + queue-backed**: the API route
-validates and *enqueues* a job, returns immediately, and the UI updates from
-the React Query cache in the same frame. A **separate worker process**
-(`src/worker/`, started by `.zscripts/worker.sh`) drains the
-`preship_write_jobs` queue and performs the real Prisma writes + notifications
-at its own pace. This keeps web requests short-lived so they stop saturating
-the single-connection PgBouncer pool, while the UI feels instant.
-
-### Enabling pgmq (one-time)
-
-The queue uses the **pgmq** Postgres extension (Supabase Queues). Enable it in
-the Supabase dashboard:
-
-- **Database → Extensions → search "pgmq" → toggle ON.**
-
-Then apply the migration that creates the extension + the `preship_write_jobs`
-queue:
-
-```bash
-npm run db:migrate:deploy   # applies 20260625000000_add_pgmq_write_queue
-```
-
-The queue + its archive live in the `pgmq` schema (not a Prisma model — pgmq
-can't be expressed in `schema.prisma`, same as the trigram indexes). Enqueue /
-read / ack go through `db.$queryRawUnsafe` in `src/lib/queue.ts`, all with the
-`pgmq.` schema prefix to avoid search_path ambiguity.
-
-### Running the worker
-
-```bash
-npm run worker:dev   # dev: tsx watch src/worker/index.ts (auto-restarts)
-npm run worker       # prod: node --import tsx src/worker/index.ts
-```
-
-`dev.sh` and `start.sh` start it automatically alongside Next + Caddy. Without
-the worker running, enqueued jobs simply pile up and process the next time it
-boots — the app keeps serving (reads work), but writes/reactions don't land
-until the worker drains. **Run exactly one worker per environment** (pgmq's
-visibility timeout makes multiple workers safe, but there's no reason to scale
-out for this workload).
-
-### Durability + retry model
-
-- A message read by the worker is hidden for a visibility timeout (`vt`, 30s);
-  if the worker dies mid-handle, the message reappears and is retried.
-- Handlers are **idempotent**: reaction jobs encode the *desired state*
-  (`desired: boolean`), not a toggle, so a retry converges to the right state.
-  `handleReact` only fires the author notification on a genuine create (detected
-  via the unique constraint), so retries never re-spam.
-- A message read more than 5 times is **archived** (dead-letter) instead of
-  looping forever — inspect in the dashboard or via `SELECT * FROM
-  pgmq.q_preship_write_jobs_archive`.
-
----
-
-## 5. Day-to-day commands
+## 4. Day-to-day commands
 
 ```bash
 npm run db:generate        # regenerate the Prisma client after schema edits
@@ -156,13 +99,11 @@ npm run db:migrate:dev     # create + apply a migration (development)
 npm run db:migrate:deploy  # apply pending migrations (production / CI)
 npm run db:seed            # re-run prisma/seed.ts (wipes + reseeds)
 npm run db:studio          # Prisma Studio GUI against the live DB
-npm run worker:dev         # background write worker (pgmq consumer, dev)
-npm run worker             # background write worker (prod)
 ```
 
 ---
 
-## 6. Gotchas
+## 5. Gotchas
 
 ### `DATABASE_URL` already exported in your shell
 
