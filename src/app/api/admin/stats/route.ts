@@ -27,49 +27,45 @@ export async function GET() {
     const cutoff7 = activeSince(7);
     const cutoff30 = activeSince(30);
 
-    // Every branch is an aggregate/groupBy — O(1) or O(distinct-values), never
-    // O(rows). They're independent, so fan them out in one round-trip.
-    const [
-      totalUsers,
-      active7d,
-      active30d,
-      foundingMembers,
-      projectStageGroups,
-      totalProjects,
-      postsCount,
-      articlesCount,
-      audioSecondsAgg,
-      sessionsTotal,
-      sessionsEnded,
-      openFeedback,
-      openIpInquiries,
-      liveSecondsAgg,
-      liveParticipantsNow,
-    ] = await Promise.all([
-      db.user.count(),
-      db.user.count({ where: { lastSeenAt: { gte: cutoff7 } } }),
-      db.user.count({ where: { lastSeenAt: { gte: cutoff30 } } }),
-      db.user.count({ where: { isFoundingMember: true } }),
-      db.project.groupBy({ by: ["alphaStage"], _count: { _all: true } }),
-      db.project.count(),
-      db.post.count(),
-      db.article.count(),
-      // SUM returns a number; null audioDuration rows contribute null and are
-      // coerced to 0 by `_sum` returning null when no rows — handle below.
-      db.post.aggregate({ _sum: { audioDuration: true } }),
-      db.ideaLabSession.count(),
-      db.ideaLabSession.count({ where: { status: "ended" } }),
-      db.feedback.count({ where: { status: { notIn: ["resolved", "archived"] } } }),
-      db.ipInquiry.count({ where: { status: { notIn: ["responded", "closed"] } } }),
-      // Live IdeaLab minutes: SUM of closed-span durationSecs (written by the
-      // LiveKit webhook). Open spans (leftAt null) have no denormalized duration
-      // yet, so they're excluded from the SUM and counted separately instead.
-      db.ideaLabUsage.aggregate({ _sum: { durationSecs: true } }),
-      db.ideaLabUsage.count({ where: { leftAt: null } }),
-    ]);
+    // Every query is an aggregate/groupBy — O(1) or O(distinct-values), never
+    // O(rows). They run SEQUENTIALLY (not Promise.all): the prod connection pool
+    // is connection_limit=1 (transaction-mode PgBouncer — see AGENT.md §5), so
+    // firing many parallel queries contends for the single connection and the
+    // tail ones time out (Prisma P2024). Each query is a sub-ms indexed
+    // aggregate, so sequential total latency is well under the pool timeout.
+    const totalUsers = await db.user.count();
+    const active7d = await db.user.count({ where: { lastSeenAt: { gte: cutoff7 } } });
+    const active30d = await db.user.count({ where: { lastSeenAt: { gte: cutoff30 } } });
+    const foundingMembers = await db.user.count({ where: { isFoundingMember: true } });
+    const projectStageGroups = await db.project.groupBy({
+      by: ["alphaStage"],
+      _count: { _all: true },
+    });
+    const totalProjects = await db.project.count();
+    // One aggregate gets both the post count and the audio-duration sum — the
+    // `_count` and `_sum` run in a single SQL statement.
+    const postAgg = await db.post.aggregate({
+      _count: { _all: true },
+      _sum: { audioDuration: true },
+    });
+    const articlesCount = await db.article.count();
+    const sessionsTotal = await db.ideaLabSession.count();
+    const sessionsEnded = await db.ideaLabSession.count({ where: { status: "ended" } });
+    const openFeedback = await db.feedback.count({
+      where: { status: { notIn: ["resolved", "archived"] } },
+    });
+    const openIpInquiries = await db.ipInquiry.count({
+      where: { status: { notIn: ["responded", "closed"] } },
+    });
+    // Live IdeaLab minutes: SUM of closed-span durationSecs (written by the
+    // LiveKit webhook). Open spans (leftAt null) have no denormalized duration
+    // yet, so they're excluded from the SUM and counted separately instead.
+    const liveSecondsAgg = await db.ideaLabUsage.aggregate({ _sum: { durationSecs: true } });
+    const liveParticipantsNow = await db.ideaLabUsage.count({ where: { leftAt: null } });
 
-    const recordedSeconds = audioSecondsAgg._sum.audioDuration ?? 0;
+    const recordedSeconds = postAgg._sum.audioDuration ?? 0;
     const liveSeconds = liveSecondsAgg._sum.durationSecs ?? 0;
+    const postsCount = postAgg._count._all;
 
     const stats: AdminStats = {
       users: {
@@ -94,14 +90,7 @@ export async function GET() {
 
     return NextResponse.json(stats);
   } catch (err) {
-    // DEBUG: surface the real error message so it's visible client-side (Network
-    // tab) while we diagnose the production 500. Revert to the generic message
-    // once the root cause is fixed.
-    const message = err instanceof Error ? err.message : String(err);
     console.error("[GET /api/admin/stats]", err);
-    return NextResponse.json(
-      { error: "Internal server error", debug: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
