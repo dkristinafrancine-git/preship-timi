@@ -5,8 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useApi, useMutate, useSynergyCache } from "@/lib/use-api";
-import type { Founder, SynergyOffer } from "@/lib/preship-types";
+import { useMutate, useSynergyCache } from "@/lib/use-api";
+import { usePreship } from "@/lib/preship-store";
+import type { SynergyOffer } from "@/lib/preship-types";
 import { Loader2, Handshake } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,11 +27,12 @@ export function OfferDialog({
   const [submitting, setSubmitting] = useState(false);
   const mutate = useMutate();
   const synergyCache = useSynergyCache(requestId);
-  const { data: meData } = useApi<{ user: Founder }>("/api/me");
+  // Use the already-loaded current user from the store (not a fresh /api/me
+  // fetch) so the optimistic offer can prepend the instant the user submits.
+  const me = usePreship((s) => s.me);
 
   const submit = async () => {
     if (!pitch.trim()) return;
-    const me = meData?.user;
     if (!me) return;
     const pitchText = pitch.trim();
     const offerText = offer.trim() || null;

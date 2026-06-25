@@ -288,12 +288,14 @@ export function setFollowOptimistic(
   founderId: string,
   following: boolean
 ): void {
-  // The follow query key is ["api", "/api/follows?founderId=<id>"]. We find the
-  // matching cached entry by URL substring and set it directly. Done per-key
-  // (via getQueriesData + setQueryData) rather than via setQueriesData's updater
-  // because the installed React Query types the updater as a single-arg fn,
-  // which can't read the query key it's patching.
-  const matches = qc.getQueriesData<{ following: boolean }>({ queryKey: ["api"] });
+  // The follow query key is ["follows", "/api/follows?founderId=<id>"] — the
+  // channel root comes from channelsForUrl("/api/follows") = ["follows"], NOT
+  // "api". (Searching ["api"] is the bug that made optimistic follows silently
+  // no-op.) We find the matching cached entry by URL substring and set it
+  // directly. Done per-key (getQueriesData + setQueryData) rather than via
+  // setQueriesData's updater because the installed React Query types the
+  // updater as a single-arg fn, which can't read the query key it's patching.
+  const matches = qc.getQueriesData<{ following: boolean }>({ queryKey: ["follows"] });
   for (const [key] of matches) {
     const url = Array.isArray(key) ? String(key[1] ?? "") : "";
     if (url.includes(`/api/follows`) && url.includes(`founderId=${founderId}`)) {
@@ -304,9 +306,10 @@ export function setFollowOptimistic(
 
 // --- Optimistic comment cache -------------------------------------------
 //
-// Comments for a post are cached under the "api" channel at
-// /api/posts/<id>/comment. We prepend a provisional comment, then reconcile
-// temp→real when the sync POST resolves — same shape as new posts.
+// Comments for a post are cached under the "feed" channel (because
+// channelsForUrl("/api/posts/...") = ["feed"]) at /api/posts/<id>/comment.
+// We prepend a provisional comment, then reconcile temp→real when the sync
+// POST resolves — same shape as new posts.
 
 type CommentsCache = { comments: Comment[] };
 
@@ -318,7 +321,10 @@ function updateCommentCache(
   postId: string,
   fn: (c: CommentsCache) => CommentsCache
 ): void {
-  const matches = qc.getQueriesData<CommentsCache>({ queryKey: ["api"] });
+  // Channel root is "feed" (NOT "api") — channelsForUrl maps /api/posts/* to
+  // the feed family. The URL-substring filter below narrows to just this post's
+  // comment thread, so matching the whole feed family is fine.
+  const matches = qc.getQueriesData<CommentsCache>({ queryKey: ["feed"] });
   for (const [key, cache] of matches) {
     const url = Array.isArray(key) ? String(key[1] ?? "") : "";
     if (!url.includes(`/api/posts/${postId}/comment`)) continue;

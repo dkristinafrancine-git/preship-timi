@@ -8,8 +8,7 @@ import { FounderAvatar, ProjectMark } from "../avatars";
 import { BountyBadge, StatusPill, Tag, StageChip, FoundingBadge } from "../badges";
 import { FounderHoverCard } from "../founder-hover-card";
 import { OfferDialog } from "./offer-dialog";
-import { useApi } from "@/lib/use-api";
-import { useMutate, useSynergyCache } from "@/lib/use-api";
+import { useApi, useMutate, useSynergyCache, prefetchApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
 import { ChevronDown, Handshake, MessageSquare, Loader2, Check, X, ArrowRight, Sparkles, Trash2, XCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -159,6 +158,10 @@ export function SynergyCard({
       <div className="flex items-center gap-2 border-t border-[#0E1909]/8 px-3 py-2">
         <button
           onClick={() => setExpanded((e) => !e)}
+          // Prefetch the offer thread on hover/focus so it opens instantly when
+          // the user clicks — kills the loading wait on first expand.
+          onMouseEnter={() => prefetchApi(`/api/synergy/${request.id}/offers`)}
+          onFocus={() => prefetchApi(`/api/synergy/${request.id}/offers`)}
           className="tactile-flat flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs uppercase tracking-widest text-[#0E1909]/60 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
         >
           <MessageSquare size={13} />

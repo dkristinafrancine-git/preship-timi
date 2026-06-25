@@ -8,7 +8,7 @@ import { FounderAvatar, ProjectMark } from "../avatars";
 import { StageCode, Tag, FoundingBadge } from "../badges";
 import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
-import { useMutate, useFeedCache, useCommentCache } from "@/lib/use-api";
+import { useMutate, useFeedCache, useCommentCache, prefetchApi } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
 import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2, Pencil, Trash2, X, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -249,6 +249,9 @@ export function FeedPost({ post }: { post: FeedPost }) {
           active={showComments}
           activeColor="text-[#0E1909]"
           onClick={() => setShowComments((s) => !s)}
+          // Prefetch the comment thread on hover/focus so it opens instantly when
+          // the user clicks — kills the "loading thread…" wait on first open.
+          onHover={() => prefetchApi(`/api/posts/${post.id}/comment`)}
         />
         <div className="ml-auto flex items-center gap-1 pr-1">
           <button
@@ -276,6 +279,7 @@ function ReactionBtn({
   activeColor,
   highlight,
   onClick,
+  onHover,
 }: {
   icon: typeof Heart;
   label: string;
@@ -284,10 +288,13 @@ function ReactionBtn({
   activeColor: string;
   highlight?: boolean;
   onClick: () => void;
+  onHover?: () => void;
 }) {
   return (
     <button
       onClick={onClick}
+      onMouseEnter={onHover}
+      onFocus={onHover}
       className={cn(
         "tactile-flat group flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-mono text-[13px]",
         highlight && !active
@@ -312,12 +319,14 @@ function CommentsSection({ postId }: { postId: string }) {
   const [submitting, setSubmitting] = useState(false);
   const mutate = useMutate();
   const commentCache = useCommentCache();
-  const me = useApi<{ user: Founder }>("/api/me");
+  // Use the already-loaded current user from the store (not a fresh /api/me
+  // fetch) so the optimistic comment can prepend the instant the user submits,
+  // even before any network call resolves.
+  const me = usePreship((s) => s.me);
 
   const submit = async () => {
     if (!body.trim()) return;
-    const user = me.data?.user;
-    if (!user) return;
+    if (!me) return;
     // Optimistic: prepend a provisional comment with a temp id the instant the
     // user submits, then reconcile temp→real when the POST resolves. On failure
     // we remove the provisional row + restore the draft. No refetch — the
@@ -328,7 +337,7 @@ function CommentsSection({ postId }: { postId: string }) {
       id: tempId,
       body: text,
       createdAt: new Date().toISOString(),
-      user,
+      user: me,
     };
     commentCache.prepend(postId, provisional);
     setBody("");
@@ -370,7 +379,7 @@ function CommentsSection({ postId }: { postId: string }) {
                   <span className="font-mono text-xs text-[#0E1909]/45">
                     @{c.user.handle} · {fmtRelative(c.createdAt)}
                   </span>
-                  {me.data?.user && c.user.id === me.data.user.id && (
+                  {me && c.user.id === me.id && (
                     <button
                       onClick={async () => {
                         // Optimistic remove + no refetch. On failure the next
@@ -398,7 +407,7 @@ function CommentsSection({ postId }: { postId: string }) {
 
       {/* composer */}
       <div className="mt-3.5 flex items-center gap-2">
-        {me.data?.user && <FounderAvatar founder={me.data.user} size={28} />}
+        {me && <FounderAvatar founder={me} size={28} />}
         <input
           value={body}
           onChange={(e) => setBody(e.target.value)}
