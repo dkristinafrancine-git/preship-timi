@@ -6,7 +6,7 @@ import { Logo } from "./logo";
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-[#0E1909]/10 bg-[#0E1909]">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-6 lg:px-8">
+      <div className="flex flex-col gap-4 px-5 py-6 lg:px-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Logo variant="lime" />

@@ -35,9 +35,9 @@ export function PublicLanding() {
       {/* slim logo bar — no auth controls, no ticker */}
       <SlimLogoBar />
 
-      {/* 3-column grid: left nav | center feed | right rail */}
-      <main className="mx-auto w-full max-w-[1320px] flex-1 px-5 pb-28 pt-5 lg:px-8 lg:pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:gap-8">
+      {/* 3-column grid: left nav | center feed | right rail — full-width on desktop */}
+      <main className="w-full flex-1 px-5 pb-28 pt-5 lg:px-10 lg:pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_380px] lg:gap-8">
           <Sidebar mode="landing" />
           <section className="min-w-0 px-0 lg:px-0">
             <LandingFeed
@@ -64,7 +64,7 @@ export function PublicLanding() {
 function SlimLogoBar() {
   return (
     <div className="sticky top-0 z-50 border-b border-[#0E1909]/10 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-[1320px] items-center justify-between px-5 lg:px-8">
+      <div className="flex h-16 items-center justify-between px-5 lg:px-10">
         <Link href="/" aria-label="Preship home">
           <Logo />
         </Link>
@@ -93,7 +93,7 @@ function LandingFeed({
   return (
     <div className="space-y-5">
       {/* view-style header, sticky just below the slim (h-16) logo bar */}
-      <div className="sticky top-16 z-20 -mx-5 mb-1 border-b border-[#0E1909]/10 bg-white/95 px-5 py-4 backdrop-blur lg:-mx-8 lg:px-8">
+      <div className="sticky top-16 z-20 -mx-5 mb-1 border-b border-[#0E1909]/10 bg-white/95 px-5 py-4 backdrop-blur lg:-mx-10 lg:px-10">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
           <Radio size={18} className="text-[#0E1909]/60" />
           <h1 className="font-display text-2xl font-semibold tracking-tight text-[#0E1909]">
@@ -152,7 +152,7 @@ function CtaRibbon() {
         className="pointer-events-none h-8 w-full bg-gradient-to-t from-[#0E1909] to-transparent"
       />
       <div className="border-t border-[#DAFF01]/20 bg-[#0E1909] shadow-[0_-12px_40px_rgba(14,25,9,0.45)]">
-        <div className="mx-auto flex max-w-[1320px] flex-col items-center gap-3 px-5 py-3.5 sm:flex-row sm:justify-between lg:px-8">
+        <div className="flex flex-col items-center gap-3 px-5 py-3.5 sm:flex-row sm:justify-between lg:px-10">
           <div className="text-center sm:text-left">
             <p className="font-display text-[15px] font-semibold text-white">
               Join the <span className="text-[#DAFF01]">alpha war room.</span>

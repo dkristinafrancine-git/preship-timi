@@ -34,8 +34,8 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#0E1909]/10 bg-white/95 backdrop-blur">
-      {/* main bar: logo left, auth right — full width, max-width constrained inner */}
-      <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-3 px-5 lg:px-8">
+      {/* main bar: logo left, auth right — full width, aligned with grid */}
+      <div className="flex h-16 items-center gap-3 px-5 lg:px-10">
         <button
           className="rounded-md p-1.5 text-[#0E1909] hover:bg-[#0E1909]/5 lg:hidden"
           onClick={() => setMobileNavOpen(true)}

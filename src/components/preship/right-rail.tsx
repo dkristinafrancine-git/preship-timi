@@ -32,7 +32,7 @@ export function RightRail({ mode = "app" }: { mode?: "app" | "landing" }) {
     : "lg:top-[96px] lg:h-[calc(100vh-96px)]";
   return (
     <aside className={cn(
-      "hidden w-[320px] shrink-0 space-y-5 lg:sticky lg:block lg:overflow-y-auto lg:pb-8 scroll-hidden",
+      "hidden w-[380px] shrink-0 space-y-5 lg:sticky lg:block lg:overflow-y-auto lg:pb-8 scroll-hidden",
       stickyCls
     )}>
       {(isLanding || view === "war-room") && <WarRoomRail mode={mode} />}

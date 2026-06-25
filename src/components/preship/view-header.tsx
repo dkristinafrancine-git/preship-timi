@@ -23,7 +23,7 @@ export function ViewHeader({
   return (
     <div
       className={cn(
-        "sticky top-[96px] z-20 -mx-5 mb-6 border-b border-[#0E1909]/10 bg-white/95 px-5 py-4 backdrop-blur lg:-mx-8 lg:px-8",
+        "sticky top-[96px] z-20 -mx-5 mb-6 border-b border-[#0E1909]/10 bg-white/95 px-5 py-4 backdrop-blur lg:-mx-10 lg:px-10",
         className
       )}
     >

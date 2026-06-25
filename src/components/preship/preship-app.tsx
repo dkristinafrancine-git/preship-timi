@@ -57,9 +57,9 @@ export function PreshipApp() {
       {/* full-width sticky header: logo + auth + live ticker */}
       <Header />
 
-      {/* 3-column grid: left nav | center | right rail — max-width centered */}
-      <main className="mx-auto w-full max-w-[1320px] flex-1 px-5 pt-5 pb-10 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:gap-8">
+      {/* 3-column grid: left nav | center | right rail — full-width on desktop */}
+      <main className="w-full flex-1 px-5 pt-5 pb-10 lg:px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_380px] lg:gap-8">
           <Sidebar />
           <section className="min-w-0 px-0 lg:px-0">
             {view === "war-room" && <WarRoomView />}
