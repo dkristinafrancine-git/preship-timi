@@ -139,6 +139,7 @@ export async function GET(req: NextRequest) {
         updatedAt: p.updatedAt,
         author: p.author,
         project: p.project,
+        impressions: p.impressions,
         _count: {
           reactions: counts,
           comments: p._count.comments,

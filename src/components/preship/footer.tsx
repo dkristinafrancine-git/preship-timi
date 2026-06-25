@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Logo } from "./logo";
 
 export function Footer() {
@@ -23,6 +24,20 @@ export function Footer() {
             <a className="cursor-pointer transition hover:text-[#DAFF01]">hosting etiquette</a>
             <span className="text-white/15">·</span>
             <a className="cursor-pointer transition hover:text-[#DAFF01]">help</a>
+            <span className="text-white/15">·</span>
+            <Link
+              href="/privacy"
+              className="cursor-pointer transition hover:text-[#DAFF01]"
+            >
+              privacy
+            </Link>
+            <span className="text-white/15">·</span>
+            <Link
+              href="/terms"
+              className="cursor-pointer transition hover:text-[#DAFF01]"
+            >
+              terms
+            </Link>
           </div>
         </div>
         <div className="flex flex-col gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">

@@ -136,6 +136,7 @@ export function PostComposer() {
         audioDuration: payload.audioDuration,
         audioWaveform: payload.audioWaveform,
         tags: payload.tags,
+        impressions: 0,
         createdAt: new Date().toISOString(),
         author: me,
         // FeedPost.project is typed Project|null but the real feed payload only

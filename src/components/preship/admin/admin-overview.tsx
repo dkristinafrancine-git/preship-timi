@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useApi } from "@/lib/use-api";
 import type { AdminStats } from "@/lib/preship-types";
+import { InviteTestCard } from "./invite-test-card";
 import {
   Users,
   UserCheck,
@@ -29,6 +30,7 @@ export function AdminOverview() {
             />
           ))}
         </div>
+        <InviteTestCard />
       </div>
     );
   }
@@ -42,6 +44,7 @@ export function AdminOverview() {
             Couldn’t load stats — {error || "unknown error"}
           </p>
         </div>
+        <InviteTestCard />
       </div>
     );
   }
@@ -133,6 +136,9 @@ export function AdminOverview() {
         <h3 className="font-display text-sm font-semibold text-white/90">Projects by stage</h3>
         <ProjectStageBars stages={data.projects.byStage} />
       </div>
+
+      {/* Invite email transport check */}
+      <InviteTestCard />
     </div>
   );
 }

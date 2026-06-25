@@ -244,6 +244,11 @@
 }
 .scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
 
+/* hidden scrollbar — element still scrolls, the thumb is just invisible.
+   Used on the right rail so the column scrolls without a visible gutter. */
+.scroll-hidden { scrollbar-width: none; -ms-overflow-style: none; }
+.scroll-hidden::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
 /* subtle grid background for hero / war-room headers */
 .bg-grid {
   background-image:

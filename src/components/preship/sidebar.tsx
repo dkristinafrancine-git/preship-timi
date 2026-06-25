@@ -157,31 +157,29 @@ export function Sidebar({ mode = "app" }: { mode?: "app" | "landing" }) {
         </nav>
 
         {/* IP support CTA — shown on both the authed app and the landing replica.
-            Opens the Trademark / Copyright / Patent intake form. */}
+            Opens the Trademark / Copyright / Patent intake form. Kept clean and
+            breathable: one icon tile, a single descriptive line, and a single
+            inline affordance — no redundant footer label row. */}
         <button
           onClick={() => setIpOpen(true)}
-          className="m-4 block rounded-lg border border-[#0E1909]/12 bg-[#f8f9f3] p-3.5 text-left transition-all duration-200 hover:border-[#0E1909]/25 hover:shadow-[0_4px_12px_rgba(14,25,9,0.06)]"
+          className="hover-lift group m-4 block rounded-xl border border-[#0E1909]/12 bg-[#f8f9f3] p-4 text-left"
         >
-          <div className="flex items-start gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#0E1909] text-[#DAFF01]">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0E1909] text-[#DAFF01] transition-transform duration-200 group-hover:scale-105">
               <Scale size={18} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="font-display text-[14px] font-semibold leading-tight text-[#0E1909]">
                 Trademark · Copyright · Patent
               </p>
-              <p className="mt-1 font-mono text-[11px] leading-snug text-[#0E1909]/55">
-                Protect what you're building
-              </p>
             </div>
           </div>
-          <div className="mt-2.5 flex items-center justify-between border-t border-[#0E1909]/10 pt-2.5">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#0E1909]/40">
-              ip support
-            </span>
-            <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#0E1909] hover:text-[#6f8a3e]">
-              get help →
-            </span>
+          <p className="mt-3 font-mono text-[11px] leading-relaxed text-[#0E1909]/55">
+            Protect what you're building before you ship.
+          </p>
+          <div className="mt-3 flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest text-[#0E1909] transition-colors group-hover:text-[#6f8a3e]">
+            get help
+            <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
           </div>
         </button>
 

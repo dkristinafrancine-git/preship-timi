@@ -10,7 +10,7 @@ import { FounderHoverCard } from "../founder-hover-card";
 import { WaveformPlayer } from "../waveform";
 import { useMutate, useFeedCache, useCommentCache, prefetchApi } from "@/lib/use-api";
 import { useApi } from "@/lib/use-api";
-import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2, Pencil, Trash2, X, Check } from "lucide-react";
+import { Heart, Repeat2, Handshake, MessageCircle, Share, MoreHorizontal, Loader2, Pencil, Trash2, X, Check, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,7 +82,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
   return (
     <article className="terminal-card">
       {/* header */}
-      <div className="flex items-start gap-3.5 p-5 pb-3.5">
+      <div className="flex items-start gap-3 p-4 pb-3 sm:gap-3.5 sm:p-5 sm:pb-3.5">
         <FounderAvatar founder={post.author} size={44} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -97,7 +97,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
           <p className="truncate font-mono text-xs text-[#0E1909]/55">{post.author.title}</p>
         </div>
         {post.project && (
-          <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] px-2.5 py-1.5">
+          <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-[#0E1909]/12 bg-[#f8f9f3] px-2 py-1.5 sm:px-2.5">
             <ProjectMark mark={post.project.logoMark} color={post.project.logoColor} logoUrl={post.project.logoUrl} name={post.project.name} size={20} />
             <div className="hidden max-w-[120px] min-w-0 sm:block">
               <p className="truncate font-display text-[13px] font-semibold leading-tight text-[#0E1909]" title={post.project.name}>
@@ -110,7 +110,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
         {isAuthor ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="tactile-flat rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
+              <button className="tactile-flat -mr-1 shrink-0 rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]">
                 <MoreHorizontal size={18} />
               </button>
             </DropdownMenuTrigger>
@@ -148,7 +148,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
         ) : (
           <button
             onClick={() => toast.success("Link copied →")}
-            className="tactile-flat rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
+            className="tactile-flat -mr-1 shrink-0 rounded p-1 text-[#0E1909]/35 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
             aria-label="Share"
           >
             <Share size={16} />
@@ -157,7 +157,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
       </div>
 
       {/* body */}
-      <div className="px-5 pb-4">
+      <div className="px-4 pb-4 sm:px-5">
         {editing ? (
           <div className="space-y-3">
             <Textarea
@@ -189,7 +189,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
         ) : post.type === "audio" ? (
           <div className="space-y-3.5">
             {post.body && (
-              <p className="whitespace-pre-wrap font-display text-[15px] leading-[1.65] text-[#0E1909]/85">
+              <p className="whitespace-pre-wrap break-words font-display text-[15px] leading-[1.65] text-[#0E1909]/85">
                 {post.body}
               </p>
             )}
@@ -201,7 +201,7 @@ export function FeedPost({ post }: { post: FeedPost }) {
             />
           </div>
         ) : (
-          <p className="whitespace-pre-wrap font-display text-[16px] leading-[1.65] text-[#0E1909]/90">
+          <p className="whitespace-pre-wrap break-words font-display text-[15px] leading-[1.65] text-[#0E1909]/90 sm:text-[16px]">
             {post.body}
           </p>
         )}
@@ -215,8 +215,8 @@ export function FeedPost({ post }: { post: FeedPost }) {
         )}
       </div>
 
-      {/* reactions */}
-      <div className="flex items-center gap-1 border-t border-[#0E1909]/8 px-3 py-2">
+      {/* reactions + impressions */}
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 border-t border-[#0E1909]/8 px-2.5 py-2 sm:px-3">
         <ReactionBtn
           icon={Heart}
           label="like"
@@ -253,17 +253,25 @@ export function FeedPost({ post }: { post: FeedPost }) {
           // the user clicks — kills the "loading thread…" wait on first open.
           onHover={() => prefetchApi(`/api/posts/${post.id}/comment`)}
         />
-        <div className="ml-auto flex items-center gap-1 pr-1">
-          <button
-            onClick={() => {
-              toast.success("Link copied →");
-            }}
-            className="tactile-flat rounded p-1.5 text-[#0E1909]/40 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
-            aria-label="Share"
-          >
-            <Share size={15} />
-          </button>
-        </div>
+        {/* Read-only reach stat — NOT a reaction. Impression count is recorded
+            by the batched view-ping in WarRoomView (main feed only). */}
+        <span
+          className="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 font-mono text-[13px] text-[#0E1909]/40"
+          title="Impressions — feed views"
+          aria-label={`${post.impressions} impressions`}
+        >
+          <Eye size={15} />
+          <span className="tabular-nums">{post.impressions}</span>
+        </span>
+        <button
+          onClick={() => {
+            toast.success("Link copied →");
+          }}
+          className="tactile-flat rounded p-1.5 text-[#0E1909]/40 hover:bg-[#0E1909]/5 hover:text-[#0E1909]"
+          aria-label="Share"
+        >
+          <Share size={15} />
+        </button>
       </div>
 
       {showComments && <CommentsSection postId={post.id} />}

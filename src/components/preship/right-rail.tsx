@@ -7,9 +7,9 @@ import { useApi } from "@/lib/use-api";
 import { TerminalHeader, StatusPill, StageChip, Tag, FoundingBadge } from "./badges";
 import { FounderAvatar, ProjectMark } from "./avatars";
 import { FounderHoverCard } from "./founder-hover-card";
-import type { Founder, Project, SynergyRequest, IdeaLabSession, FeedPost } from "@/lib/preship-types";
+import type { Founder, Project, SynergyRequest, IdeaLabSession, FeedPost, RecentProject } from "@/lib/preship-types";
 import { fmtRelative } from "@/lib/preship";
-import { TrendingUp, Flame, Users, Calendar, ArrowRight } from "lucide-react";
+import { TrendingUp, Flame, Users, Calendar, ArrowRight, Boxes } from "lucide-react";
 
 /**
  * Right navigation rail.
@@ -32,7 +32,7 @@ export function RightRail({ mode = "app" }: { mode?: "app" | "landing" }) {
     : "lg:top-[96px] lg:h-[calc(100vh-96px)]";
   return (
     <aside className={cn(
-      "hidden w-[320px] shrink-0 space-y-5 lg:sticky lg:block lg:overflow-y-auto lg:pb-8 scroll-thin",
+      "hidden w-[320px] shrink-0 space-y-5 lg:sticky lg:block lg:overflow-y-auto lg:pb-8 scroll-hidden",
       stickyCls
     )}>
       {(isLanding || view === "war-room") && <WarRoomRail mode={mode} />}
@@ -137,6 +137,9 @@ function WarRoomRail({ mode = "app" }: { mode?: "app" | "landing" }) {
         </div>
       </div>
 
+      {/* Recent projects — network-wide discovery with activity stat */}
+      <RecentProjectsCard mode={mode} />
+
       {/* My projects quick status */}
       {me?.projects?.length ? (
         <div className="terminal-card">
@@ -160,6 +163,64 @@ function WarRoomRail({ mode = "app" }: { mode?: "app" | "landing" }) {
         </div>
       ) : null}
     </>
+  );
+}
+
+function RecentProjectsCard({ mode = "app" }: { mode?: "app" | "landing" }) {
+  const { data } = useApi<{ projects: RecentProject[] }>("/api/projects/recent");
+  const navigate = useRailNav(mode);
+  const projects = data?.projects ?? [];
+
+  if (projects.length === 0) return null;
+
+  return (
+    <div className="terminal-card">
+      <TerminalHeader label="recent · projects" right={<Boxes size={14} className="text-[#0E1909]/40" />} />
+      <div className="divide-y divide-[#0E1909]/8">
+        {projects.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => navigate({ view: "projects" })}
+            className="hover-row block w-full cursor-pointer px-4 py-3 text-left"
+          >
+            <div className="flex items-center gap-2.5">
+              <ProjectMark
+                mark={p.logoMark}
+                color={p.logoColor}
+                logoUrl={p.logoUrl}
+                name={p.name}
+                size={30}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-display text-[13px] font-semibold leading-tight text-[#0E1909]">
+                  {p.name}
+                </p>
+                <p className="truncate font-mono text-xs text-[#0E1909]/50">
+                  @{p.founder.handle}
+                </p>
+              </div>
+              <StageChip stage={p.alphaStage} />
+            </div>
+            <p className="mt-2 line-clamp-1 text-[12px] leading-relaxed text-[#0E1909]/65">
+              {p.tagline}
+            </p>
+            <div className="mt-2 flex items-center gap-3 font-mono text-[11px] text-[#0E1909]/50">
+              <span className="flex items-center gap-1">
+                <ArrowRight size={11} className="text-[#DAFF01]" />
+                <span className="font-semibold text-[#0E1909]/80">{p.activity.recentPosts}</span>
+                posts · 30d
+              </span>
+              {p.activity.synergyRequests > 0 && (
+                <span>
+                  <span className="font-semibold text-[#0E1909]/80">{p.activity.synergyRequests}</span>
+                  open
+                </span>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

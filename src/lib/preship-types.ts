@@ -38,6 +38,26 @@ export type Project = {
   _count?: { posts: number; synergyRequests: number };
 };
 
+/** Shape returned by GET /api/projects/recent (network-wide discovery card). */
+export type RecentProject = {
+  id: string;
+  name: string;
+  tagline: string;
+  category: string;
+  alphaStage: string;
+  logoUrl: string | null;
+  logoColor: string;
+  logoMark: string | null;
+  website: string | null;
+  createdAt: string;
+  founder: Pick<Founder, "id" | "name" | "handle" | "avatarUrl" | "isFoundingMember">;
+  activity: {
+    recentPosts: number; // war-room posts in the last 30d (the headline stat)
+    totalPosts: number;
+    synergyRequests: number;
+  };
+};
+
 export type ReactionKind = "like" | "repost" | "handshake";
 
 export type FeedPost = {
@@ -51,6 +71,7 @@ export type FeedPost = {
   audioDuration: number | null;
   audioWaveform: string | null;
   tags: string | null;
+  impressions: number;
   createdAt: string;
   author: Founder;
   project: Project | null;

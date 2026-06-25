@@ -153,6 +153,7 @@ model Post {
   audioDuration Int?     // seconds
   audioWaveform String?  // comma-separated bar heights 0..1
   tags          String?  // comma-separated hashtags
+  impressions   Int      @default(0) // feed view-pings (batched, anonymous reach metric)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

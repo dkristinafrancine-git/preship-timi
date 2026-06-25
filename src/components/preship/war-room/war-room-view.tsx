@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useApi } from "@/lib/use-api";
 import { usePreship } from "@/lib/preship-store";
@@ -19,6 +19,31 @@ export function WarRoomView() {
   const posts = data?.posts ?? [];
   const deepLink = usePreship((s) => s.deepLink);
   const clearDeepLink = usePreship((s) => s.clearDeepLink);
+
+  // Record a batched impression for the page's posts once per feed load.
+  // Pings ONLY the main feed (never the right-rail trending fetch) so counts
+  // aren't inflated ~2× per view. The ref guard stops StrictMode's double
+  // effect invocation in dev from double-counting; in prod the effect runs once.
+  // Skips optimistic/temp posts ("optimistic-…") — only real ids reach the API.
+  const pingedKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (loading || posts.length === 0) return;
+    // Stable key per (sort, post-set) so re-renders with identical data don't
+    // re-ping, but a sort change / new posts does.
+    const key = `${sort}:${posts.map((p) => p.id).join(",")}`;
+    if (pingedKey.current === key) return;
+    pingedKey.current = key;
+    const ids = posts.map((p) => p.id).filter((id) => !id.startsWith("optimistic-"));
+    if (ids.length === 0) return;
+    // Fire-and-forget: best-effort, never blocks the feed. `keepalive` lets the
+    // request survive a tab close/navigation.
+    fetch("/api/feed/impressions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ postIds: ids }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [posts, loading, sort]);
 
   // deep-link from ticker: scroll to + briefly highlight a post
   useEffect(() => {
