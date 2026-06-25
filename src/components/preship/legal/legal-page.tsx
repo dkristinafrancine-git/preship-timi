@@ -30,6 +30,8 @@ export function LegalPage({
   intro,
   sections,
   contactEmail,
+  draft = true,
+  contactPrompt = "questions about this policy",
 }: {
   eyebrow: string;
   title: string;
@@ -37,6 +39,11 @@ export function LegalPage({
   intro: ReactNode;
   sections: LegalSection[];
   contactEmail: string;
+  /** Show the DRAFT banner. True for legal copy (privacy/terms) that must be
+   *  reviewed by counsel; false for brand/community pages we author directly. */
+  draft?: boolean;
+  /** Eyebrow above the contact email. Override for brand/community pages. */
+  contactPrompt?: string;
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f9f3]">
@@ -63,17 +70,19 @@ export function LegalPage({
           </h1>
         </div>
 
-        {/* DRAFT notice */}
-        <div className="mt-6 flex items-start gap-3 rounded-lg border border-[#DAFF01]/60 bg-[#DAFF01]/15 p-4">
-          <span className="mt-0.5 font-mono text-[11px] font-bold uppercase tracking-widest text-[#0E1909]">
-            draft
-          </span>
-          <p className="font-display text-sm leading-relaxed text-[#0E1909]/80">
-            This is a draft generated for review. It is not legal advice and is
-            not a substitute for counsel. Have a qualified attorney review and
-            finalize it before relying on it for your live product.
-          </p>
-        </div>
+        {/* DRAFT notice — only shown for legal copy pending counsel review. */}
+        {draft && (
+          <div className="mt-6 flex items-start gap-3 rounded-lg border border-[#DAFF01]/60 bg-[#DAFF01]/15 p-4">
+            <span className="mt-0.5 font-mono text-[11px] font-bold uppercase tracking-widest text-[#0E1909]">
+              draft
+            </span>
+            <p className="font-display text-sm leading-relaxed text-[#0E1909]/80">
+              This is a draft generated for review. It is not legal advice and is
+              not a substitute for counsel. Have a qualified attorney review and
+              finalize it before relying on it for your live product.
+            </p>
+          </div>
+        )}
 
         {/* intro */}
         {intro && (
@@ -102,7 +111,7 @@ export function LegalPage({
         {/* contact */}
         <div className="mt-12 rounded-lg border border-[#0E1909]/10 bg-white p-5">
           <p className="font-mono text-[11px] uppercase tracking-widest text-[#0E1909]/45">
-            questions about this policy
+            {contactPrompt}
           </p>
           <p className="mt-1.5 text-[15px] leading-relaxed text-[#0E1909]/80">
             Email us at{" "}

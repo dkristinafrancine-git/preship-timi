@@ -11,6 +11,8 @@ import { getToken } from "next-auth/jwt";
  *                   `/?founder=<id>` deep-links still work once forwarded.
  *  - `/login`,`/signup`  auth pages.
  *  - `/privacy`,`/terms` public legal pages linked from the footer.
+ *  - `/manifesto`,`/hosting-etiquette` public brand/community pages linked
+ *                   from the footer.
  *  - `/api/auth/*`, `/_next/*`, static assets.
  *  - The read-only GET endpoints backing the landing page (feed, ticker,
  *    leaderboards, synergy/projects/idealab lists). These already return
@@ -32,7 +34,15 @@ import { getToken } from "next-auth/jwt";
  * JWT, so no extra env is needed.
  */
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/privacy", "/terms"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/signup",
+  "/privacy",
+  "/terms",
+  "/manifesto",
+  "/hosting-etiquette",
+];
 
 // path prefixes that are always public (read-only / asset / auth-handler)
 const PUBLIC_PREFIXES = [

@@ -11,6 +11,9 @@ import {
   User,
   Target,
   Flag,
+  Handshake,
+  BadgeDollarSign,
+  Copyright,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -58,6 +61,20 @@ const SECTIONS: DocSection[] = [
     ],
   },
   {
+    id: "handshake",
+    name: "Handshake",
+    code: "HS",
+    icon: Handshake,
+    definition:
+      "The handshake is Preship's highest-intent signal — a public commitment, not a reaction. When you handshake a broadcast (or accept a Synergy offer), you're saying: 'I see this founder, I'm backing their next move, and I'm attaching my name to it.' Unlike a like, a handshake carries weight — it's visible on profiles, tied to a specific project or bottleneck, and meant to be honored. Founders who collect handshakes are the ones the network has actually endorsed, not just applauded.",
+    goals: [
+      "Separate cheap signals (likes) from real commitments (handshakes)",
+      "Make backing visible — gathered handshakes land on the backed founder's profile",
+      "Anchor each handshake to a project, stage, or bottleneck so it stays accountable",
+      "Reward founders who ship and follow through, not just those who post loudly",
+    ],
+  },
+  {
     id: "synergy",
     name: "Synergy",
     code: "SY",
@@ -69,6 +86,21 @@ const SECTIONS: DocSection[] = [
       "Match by skills (your profile skills ↔ broadcast tags)",
       "Five bounty types: equity, advisor shares, revenue share, co-founder, barter",
       "Accept an offer → it lands on your profile as a gathered bounty",
+    ],
+  },
+  {
+    id: "bounty",
+    name: "Bounty",
+    code: "BY",
+    icon: BadgeDollarSign,
+    definition:
+      "A bounty is the stake attached to a Synergy broadcast — the consideration a founder puts up to unblock a bottleneck. When you post a broadcast, you choose a bounty type (equity, advisor shares, revenue share, co-founder offer, or barter) and an optional stake amount. The bounty isn't paid upfront and Preship never holds funds; it's a declaration of intent that becomes binding only when you accept an offer and handshake the solver. The practical goal is simple: make 'I'm stuck' expensive enough to mean something, and make 'I can help' worth showing up for. Accepted bounties show up as gathered bounties on the broadcaster's profile — a public receipt of who backed whom, and for what.",
+    goals: [
+      "Five bounty types: equity, advisor shares, revenue share, co-founder, barter",
+      "Optional stake so the broadcaster puts skin in the game before asking",
+      "Not a payment rail — Preship holds no funds; the bounty is a commitment, settled between founders",
+      "Accepted bounty → gathered bounty on the broadcaster's profile (proof of unblocked work)",
+      "Honor system: a handshake is your word — your reputation compounds when you follow through",
     ],
   },
   {
@@ -141,6 +173,20 @@ const SECTIONS: DocSection[] = [
       "CB — Closed Beta: a small invited group is using it for real",
       "PB — Public Beta: anyone can sign up; you're scaling usage, not polish",
       "PL — Pre-Launch: nearly ready to call it 'launched' — last mile",
+    ],
+  },
+  {
+    id: "ip-support",
+    name: "Copy / Trademark / Patent Support",
+    code: "IP",
+    icon: Copyright,
+    definition:
+      "Intellectual-property support is a founder intake that connects you with help for Trademark, Copyright, or Patent matters — the three protections most alpha-stage projects eventually need. You submit the type of protection, what you're protecting, its current stage, jurisdiction, project name, an optional budget, and any details, plus a contact email. Our team reviews the request and follows up. This is guidance and connection, not legal representation: submitting a request does not create an attorney-client relationship, and any direction we give is general information, not a substitute for advice from qualified counsel in your jurisdiction.",
+    goals: [
+      "One intake for the three protections founders hit: Trademark, Copyright, Patent",
+      "Capture stage + jurisdiction so the follow-up is relevant, not generic",
+      "Connect you with help — Preship is not your lawyer; you bring your own counsel to finalize anything",
+      "No outcome guarantees: filings can be refused, opposed, or take months; budget for reality",
     ],
   },
 ];

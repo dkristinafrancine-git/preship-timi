@@ -15,13 +15,23 @@ export function Footer() {
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-widest text-white/45">
-            <a className="cursor-pointer transition hover:text-[#DAFF01]">manifesto</a>
+            <Link
+              href="/manifesto"
+              className="cursor-pointer transition hover:text-[#DAFF01]"
+            >
+              manifesto
+            </Link>
             <span className="text-white/15">·</span>
             <a className="cursor-pointer transition hover:text-[#DAFF01]">field notes</a>
             <span className="text-white/15">·</span>
             <a className="cursor-pointer transition hover:text-[#DAFF01]">bounty terms</a>
             <span className="text-white/15">·</span>
-            <a className="cursor-pointer transition hover:text-[#DAFF01]">hosting etiquette</a>
+            <Link
+              href="/hosting-etiquette"
+              className="cursor-pointer transition hover:text-[#DAFF01]"
+            >
+              hosting etiquette
+            </Link>
             <span className="text-white/15">·</span>
             <a className="cursor-pointer transition hover:text-[#DAFF01]">help</a>
             <span className="text-white/15">·</span>
