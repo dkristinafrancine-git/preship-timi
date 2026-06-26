@@ -57,11 +57,16 @@ export function PreshipApp() {
       {/* full-width sticky header: logo + auth + live ticker */}
       <Header />
 
-      {/* 3-column grid: left nav | center | right rail — full-width on desktop */}
+      {/* 3-column grid: left nav | center | right rail — full-width on desktop.
+          The center column is wrapped in its own low stacking context
+          (`relative z-0 isolate`) so the feed's transformed hover cards /
+          elevated children never paint over the sticky side rails, which sit
+          one layer above (`lg:z-10`). Portaled overlays (hover cards,
+          tooltips, dialogs) render at the body root and are unaffected. */}
       <main className="w-full flex-1 px-5 pt-5 pb-10 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_380px] lg:gap-8">
           <Sidebar />
-          <section className="min-w-0 px-0 lg:px-0">
+          <section className="relative z-0 min-w-0 isolate px-0 lg:px-0">
             {view === "war-room" && <WarRoomView />}
             {view === "synergy" && <SynergyView />}
             {view === "idealab" && <IdeaLabView />}

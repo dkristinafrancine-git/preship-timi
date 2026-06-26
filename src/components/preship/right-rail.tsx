@@ -32,7 +32,10 @@ export function RightRail({ mode = "app" }: { mode?: "app" | "landing" }) {
     : "lg:top-[96px] lg:h-[calc(100vh-96px)]";
   return (
     <aside className={cn(
-      "hidden w-[380px] shrink-0 space-y-5 lg:sticky lg:block lg:overflow-y-auto lg:pb-8 scroll-hidden",
+      // z-10 on lg: sits above the isolated center feed (z-0) so the feed's
+      // elevated/hovering cards never paint over this rail. Portaled overlays
+      // (hover cards, tooltips) render at body root and stay on top.
+      "hidden w-[380px] shrink-0 space-y-5 lg:sticky lg:z-10 lg:block lg:overflow-y-auto lg:pb-8 scroll-hidden",
       stickyCls
     )}>
       {(isLanding || view === "war-room") && <WarRoomRail mode={mode} />}

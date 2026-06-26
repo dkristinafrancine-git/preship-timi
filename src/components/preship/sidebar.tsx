@@ -72,8 +72,10 @@ export function Sidebar({ mode = "app" }: { mode?: "app" | "landing" }) {
       )}
       <aside
         className={cn(
-          // mobile: fixed drawer; lg+: sticky grid cell, scrolls under header
-          "fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-[#0E1909]/10 bg-white transition-transform lg:sticky lg:top-[96px] lg:z-auto lg:h-[calc(100vh-96px)] lg:translate-x-0 lg:overflow-y-auto lg:pb-8 scroll-thin",
+          // mobile: fixed drawer (z-50, above header); lg+: sticky grid cell at
+          // z-10 so it sits above the center feed (which is isolated at z-0)
+          // but below portaled overlays (hover cards/tooltips, z-50+).
+          "fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-[#0E1909]/10 bg-white transition-transform lg:sticky lg:top-[96px] lg:z-10 lg:h-[calc(100vh-96px)] lg:translate-x-0 lg:overflow-y-auto lg:pb-8 scroll-thin",
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
